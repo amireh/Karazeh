@@ -38,6 +38,7 @@
 #include "Pixy.h"
 #include "InputManager.h"
 #include "Downloader.h"
+#include <boost/thread.hpp>
 
 namespace Pixy
 {
@@ -66,6 +67,10 @@ namespace Pixy
 		 */
 		static Launcher* getSingletonPtr();
 		static Launcher& getSingleton();
+		
+		static void launchDownloader();
+		
+		const std::string getVersion();
 		
 	private:
 		Launcher();

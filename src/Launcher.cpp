@@ -152,7 +152,7 @@ namespace Pixy
 		if (!mRoot) {
 			throw Ogre::Exception( Ogre::Exception::ERR_INTERNAL_ERROR, 
 								  "Error - Couldn't initalize OGRE!", 
-								  "Vertigo - Error");
+								  std::string(PIXY_APP_NAME) + " - Error");
 		}
 		loadRenderSystems();
 	  
@@ -161,7 +161,7 @@ namespace Pixy
 		    // If game can't be configured, throw exception and quit application
 		    throw Ogre::Exception( Ogre::Exception::ERR_INTERNAL_ERROR,
 								  "Error - Couldn't Configure Renderwindow",
-								  "Vertigo - Error" );
+								  std::string(PIXY_APP_NAME) + " - Error" );
 		    return;
 		}
 
@@ -180,6 +180,7 @@ namespace Pixy
 		//this->changeState( Intro::getSingletonPtr() );
 		
 		mDownloader = Downloader::getSingletonPtr();
+		boost::thread mThread(launchDownloader);
 		
 		// lTimeLastFrame remembers the last time that it was checked
 		// we use it to calculate the time since last frame
@@ -212,16 +213,23 @@ namespace Pixy
 		
 	}
 	
+	void Launcher::launchDownloader() {
+	  Downloader::getSingletonPtr()->validateVersion();
+	}
 	
 	bool Launcher::configureGame() {
-				
+		
+		mLog->infoStream() << "configuring video settings";
 		// Load config settings from ogre.cfg
-		if( !mRoot->restoreConfig() ) {
+		//if( !mRoot->restoreConfig() ) {
+		  Ogre::RenderSystem* mRS = mRoot->getRenderSystem();
+		  mRS->setConfigOption("Full Screen", "No");
+		  mRS->setConfigOption("Video Mode", "640 x 480");
 		    // If there is no config file, show the configuration dialog
-		    if( !mRoot->showConfigDialog() ) {
+		    /*if( !mRoot->showConfigDialog() ) {
 		        return false;
-		    }
-		}
+		    }*/
+		//}
 		
 		// Initialise and create a default rendering window
 		mRenderWindow = mRoot->initialise( true, PIXY_APP_NAME );
@@ -366,5 +374,9 @@ namespace Pixy
 		
 		mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Launcher");
 	}
+	
+	const std::string Launcher::getVersion() {
+	  return std::string("VERSION 0.9.0");
+	};
 	
 } // end of namespace Pixy
