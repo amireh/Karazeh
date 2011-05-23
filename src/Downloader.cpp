@@ -34,8 +34,24 @@ namespace Pixy {
 	bool Downloader::validateVersion() {
 	  using std::string;
 	  using std::ifstream;
+	  using boost::filesystem::exists;
+	  using boost::filesystem::is_directory;
+	  using boost::filesystem::create_directory;
+	  using boost::filesystem::path;
 	  
-	  string tmp = "../tmp/patch.txt";
+	  // first of all, we need to prepare the filesystem; directories etc
+	  if (exists(path(PROJECT_TEMP_DIR))) {
+	    // if it exists but not a directory... something is wrong, remove it
+      if (!is_directory(path(PROJECT_TEMP_DIR)))
+        mLog->warnStream() << "TMP path exists but is not a directory";
+      
+    } else {
+      // it doesn't exist, let's create our directory
+      create_directory(path(PROJECT_TEMP_DIR));
+      mLog->infoStream() << "TMP path doesn't exist, creating it";
+    }
+	  
+	  string tmp = string(PROJECT_TEMP_DIR) + "patchlist.txt";
 	  string url = "http://www.amireh.net/external/patch.txt";
 	  string ourVersion = Launcher::getSingleton().getVersion();
 	  string targetVersion = "";
@@ -44,21 +60,21 @@ namespace Pixy {
 	  try {
       fetchFile(url, tmp);
     } catch (std::exception &e) {
-      mLog->errorStream() << "could not download patch list!";
-      throw e;
+      mLog->errorStream() << "could not download patch list! error: " << e.what();
+      throw new BadPatchURL("could not download patch list from '" + url + "'");
     }
-    
+
+    mLog->debugStream() << "patch list received, parsing it now";    
     /*
      * Check the version of the latest patch.
      * If it's newer than our version, we need to download the patch files.
      */
-    
     string line;
     ifstream patchList(tmp.c_str());
 
     if (!patchList.is_open()) {
       mLog->errorStream() << "could not read patch list!";
-      throw new std::runtime_error("unable to read patch list!");
+      throw new BadFileStream("unable to read patch list!");
     }
     
     bool needPatch = false;
@@ -106,7 +122,7 @@ namespace Pixy {
       
       std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
       if (elements.size() < 2) {
-        mLog->errorStream() << "misformed line: '" << line << "', skipping";
+        mLog->errorStream() << "malformed line: '" << line << "', skipping";
         continue;
       }
       
@@ -139,16 +155,17 @@ namespace Pixy {
     
     if (!located) {
       mLog->warnStream() << "possible file or local version corruption: could not locate our version in patch list";
+      
       return false;
     }
     
 	  return true;
 	};
 
-  void Downloader::downloadUpdate(void (*callback)(int)) {
+  bool Downloader::fetchPatchData(int nrRetries, void (*callback)(int)) {
   
     (*callback)(0);
-    
+    return true;
   };
 	
   void Downloader::fetchFile(std::string url, std::string out)
