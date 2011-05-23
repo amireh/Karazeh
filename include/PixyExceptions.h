@@ -21,58 +21,60 @@
  *
  */
  
-#include "PixyLogLayout.h"
-#include "log4cpp/Priority.hh"
-#include "log4cpp/FactoryParams.hh"
-#ifdef LOG4CPP_HAVE_SSTREAM
-#include <sstream>
-#endif
+#ifndef H_PixyExceptions_H
+#define H_PixyExceptions_H
 
 namespace Pixy {
 
-  PixyLogLayout::PixyLogLayout() {
-	  fTimestampsOn = false;
-	  fVanilla = false;
-  }
-  
-  PixyLogLayout::~PixyLogLayout() {
-  }
+  /*
+   * raised when our app version could not be located in the remote patch list
+   */
+	class BadVersion : public std::runtime_error {
+	public:
+		inline BadVersion(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
 
-  std::string PixyLogLayout::format(const LoggingEvent& event) {
-
-	if (fVanilla)
-		return event.message;
-		
+  /*
+   * raised when the downloader is unable to fetch the patch list from the patch
+   * server
+   */
+	class BadPatchURL : public std::runtime_error {
+	public:
+		inline BadPatchURL(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
 	
-	std::ostringstream message;        
+	/*
+	 * raised when the received patch list from the server is malformed
+	 */
+	class BadPatchList : public std::runtime_error {
+	public:
+		inline BadPatchList(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
 	
-      const std::string& priorityName = Priority::getPriorityName(event.priority);
-	if (fTimestampsOn)
-		message << event.timeStamp.getSeconds() << " ";
-      
-	// start off with priority
-	message << priorityName	<< "\t| ";
+	/*
+	 * raised when the remote patch list either could not be saved to local temp
+	 * file or that temp file could not be opened
+	 */
+	class BadFileStream : public std::runtime_error {
+	public:
+		inline BadFileStream(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
+
+	class BadConversion : public std::runtime_error {
+	public:
+		inline BadConversion(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
 	
-	// append NDC
-	if (event.ndc != "")
-		message << event.ndc << ": ";
-	
-	message << event.message << "\n";
-	
-      return message.str();
-  }
-
-  std::auto_ptr<Layout> create__layout(const FactoryParams& params)
-  {
-	return std::auto_ptr<Layout>(new PixyLogLayout);
-  }
-
-  void PixyLogLayout::setTimestamps(bool fLogTimestamps) {
-	  fTimestampsOn = fLogTimestamps;
-  }
-
-  void PixyLogLayout::setVanilla(bool inVanilla) {
-	  fVanilla = inVanilla;
-  }
-
 }
+
+#endif

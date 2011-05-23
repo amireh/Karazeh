@@ -20,59 +20,54 @@
  *  SOFTWARE. 
  *
  */
- 
-#include "PixyLogLayout.h"
-#include "log4cpp/Priority.hh"
-#include "log4cpp/FactoryParams.hh"
-#ifdef LOG4CPP_HAVE_SSTREAM
-#include <sstream>
-#endif
+
+#ifndef H_Renderer_H
+#define H_Renderer_H
 
 namespace Pixy {
-
-  PixyLogLayout::PixyLogLayout() {
-	  fTimestampsOn = false;
-	  fVanilla = false;
-  }
-  
-  PixyLogLayout::~PixyLogLayout() {
-  }
-
-  std::string PixyLogLayout::format(const LoggingEvent& event) {
-
-	if (fVanilla)
-		return event.message;
+	
+	/*	\class Renderer
+	 *	\brief
+	 *	
+	 */
+	class Renderer {
 		
-	
-	std::ostringstream message;        
-	
-      const std::string& priorityName = Priority::getPriorityName(event.priority);
-	if (fTimestampsOn)
-		message << event.timeStamp.getSeconds() << " ";
-      
-	// start off with priority
-	message << priorityName	<< "\t| ";
-	
-	// append NDC
-	if (event.ndc != "")
-		message << event.ndc << ": ";
-	
-	message << event.message << "\n";
-	
-      return message.str();
-  }
+	public:
+	  Renderer();
+		virtual ~Renderer();
+		
+		/* \brief
+		 *
+		 */
+		virtual bool setup();
+		
+		/* \brief
+		 *
+		 */
+		virtual bool deferredSetup();
 
-  std::auto_ptr<Layout> create__layout(const FactoryParams& params)
-  {
-	return std::auto_ptr<Layout>(new PixyLogLayout);
-  }
+		/* \brief
+		 *
+		 */		
+		virtual void update(unsigned long lTimeElapsed);
+		
+		/* \brief
+		 *
+		 */
+ 		virtual bool cleanup();
+		
+		void keyPressed( const OIS::KeyEvent &e );
+		void keyReleased( const OIS::KeyEvent &e );		
+		void mouseMoved( const OIS::MouseEvent &e );
+		void mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id );
+		void mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 
-  void PixyLogLayout::setTimestamps(bool fLogTimestamps) {
-	  fTimestampsOn = fLogTimestamps;
-  }
+		
+	protected:
 
-  void PixyLogLayout::setVanilla(bool inVanilla) {
-	  fVanilla = inVanilla;
-  }
-
+	private:
+		Renderer(const Renderer& src);
+		Renderer& operator=(const Renderer& rhs);
+	};
 }
+#endif

@@ -1,3 +1,26 @@
+/*
+ *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
+ *  
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  Software is furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in 
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE. 
+ *
+ */
+ 
 #include "Downloader.h"
 #include "Launcher.h"
 
@@ -9,6 +32,8 @@ namespace Pixy {
 		mLog->infoStream() << "firing up";
 		
 		curl_global_init(CURL_GLOBAL_ALL);
+		mHost = "http://127.0.0.1/";
+		mPort = "80";
   }
 	
 	Downloader::~Downloader() {
@@ -31,14 +56,11 @@ namespace Pixy {
 		return *getSingletonPtr();
 	}
 	
-	bool Downloader::validateVersion() {
-	  using std::string;
-	  using std::ifstream;
+	void Downloader::fetchPatchList(std::string out) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
-	  using boost::filesystem::path;
-	  
+	  using boost::filesystem::path;	
 	  // first of all, we need to prepare the filesystem; directories etc
 	  if (exists(path(PROJECT_TEMP_DIR))) {
 	    // if it exists but not a directory... something is wrong, remove it
@@ -50,121 +72,62 @@ namespace Pixy {
       create_directory(path(PROJECT_TEMP_DIR));
       mLog->infoStream() << "TMP path doesn't exist, creating it";
     }
-	  
-	  string tmp = string(PROJECT_TEMP_DIR) + "patchlist.txt";
-	  string url = "http://www.amireh.net/external/patch.txt";
-	  string ourVersion = Launcher::getSingleton().getVersion();
-	  string targetVersion = "";
-	  
+    
+	  std::string url = mHost + "/patchlist.txt";
 	  // get the patch list
 	  try {
-      fetchFile(url, tmp);
+      fetchFile(url, out);
     } catch (std::exception &e) {
       mLog->errorStream() << "could not download patch list! error: " << e.what();
       throw new BadPatchURL("could not download patch list from '" + url + "'");
     }
-
-    mLog->debugStream() << "patch list received, parsing it now";    
-    /*
-     * Check the version of the latest patch.
-     * If it's newer than our version, we need to download the patch files.
-     */
-    string line;
-    ifstream patchList(tmp.c_str());
-
-    if (!patchList.is_open()) {
-      mLog->errorStream() << "could not read patch list!";
-      throw new BadFileStream("unable to read patch list!");
-    }
     
-    bool needPatch = false;
-    // parse version sig
-    if (patchList.good()) {
-      getline(patchList,targetVersion);
-      if (strcmp(targetVersion.c_str(), ourVersion.c_str()) != 0) {
-        mLog->infoStream() << "Version mismatch, patch is due from " << ourVersion << " to " << targetVersion;
-        needPatch = true;
-      } else {
-        mLog->infoStream() << "Application is up to date.";
-      }
-    }
-    
-    if (!needPatch) // nothing to do here
-      return true;
-    
-    /* we need to locate our current version in the patch list, and then
-     * parse the list upwards from there
-     */
-    bool located = false;
-    while ( !located && patchList.good() )
-    {
-      getline(patchList,line);
-      
-      if (line == "") {
-        continue;
-      } else if (line == "-") {
-        mLog->debugStream() << "skipping separator: " << line;
-        continue;
-      } else if (line.substr(0, 7) == "VERSION") {
-        if (strcmp(line.c_str(), ourVersion.c_str()) == 0) {
-          // we're done parsing
-          located = true;
-          mLog->debugStream() << "found our version, no more files to parse";
-          break;
-        } else {
-          mLog->debugStream() << "skipping version signature: " << line;
-          continue;
-        }
-      }
-      
-      std::cout << "Line: " << line << "\n";
-      fflush(stdout);
-      
-      std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
-      if (elements.size() < 2) {
-        mLog->errorStream() << "malformed line: '" << line << "', skipping";
-        continue;
-      }
-      
-      PATCHOP op;
-      if (elements[0] == "C")
-        op = CREATE;
-      else if (elements[0] == "D")
-        op = DELETE;
-      else if (elements[0] == "M")
-        op = MODIFY;
-      else {
-        mLog->errorStream() << "undefined operation symbol: " << elements[0];
-        continue;
-      }
-      
-      // add the entries to our Patcher's list for processing
-      switch(op) {
-        case CREATE:
-        case MODIFY:
-          Patcher::getSingleton().registerEntry(elements[1], elements[2], op);
-          break;
-        case DELETE:
-          Patcher::getSingleton().registerEntry(elements[1], "", op);
-          break;
-      }
-      
-    }
-    
-    patchList.close();
-    
-    if (!located) {
-      mLog->warnStream() << "possible file or local version corruption: could not locate our version in patch list";
-      
-      return false;
-    }
-    
-	  return true;
 	};
+	
 
-  bool Downloader::fetchPatchData(int nrRetries, void (*callback)(int)) {
-  
-    (*callback)(0);
+
+  bool 
+  Downloader::fetchRepository(Repository *inRepo, 
+                             int nrRetries, 
+                             void (*callback)(int)) {
+	  using boost::filesystem::exists;
+	  using boost::filesystem::is_directory;
+	  using boost::filesystem::create_directory;
+	    
+    mLog->infoStream() << "downloading patch files";
+    Launcher::getSingleton().evtFetchStarted();
+    
+    // download all CREATE and MODIFY entries' remote files
+    /*std::vector<PatchEntry*> lEntries = Patcher::getSingleton().getEntries(CREATE);
+    PatchEntry* lEntry = 0;
+    std::string url;
+    while (!lEntries.empty()) {
+      lEntry = lEntries.back();
+      
+      // build up target URL
+      url = mHost + lEntry->remote;
+      
+      // make sure that the file does not exist locally, because it shouldn't
+      if (exists(lEntry->local)) {
+        mLog->errorStream() 
+        << "File to be created already exists! " << lEntry->local;
+        
+        Launcher::getSingleton().evtFetchComplete(false);
+        lEntry = 0;
+        return false;
+      }
+      
+      fetchFile(url, lEntry->local);
+      
+      lEntry = 0;
+      lEntries.pop_back();
+    };*/
+    
+    mLog->infoStream() << "downloaded all Create files";
+    
+    if (callback)
+      (*callback)(0);
+      
     return true;
   };
 	
@@ -175,11 +138,11 @@ namespace Pixy {
   }
   
   Downloader::Fetcher::Fetcher() {
-    std::cout << "fetcher created\n";
+    //std::cout << "fetcher created\n";
   }	
   
   Downloader::Fetcher::~Fetcher() {
-    std::cout << "fetcher destroyed\n";
+    //std::cout << "fetcher destroyed\n";
   }
   
   
@@ -205,7 +168,7 @@ namespace Pixy {
   }
     
   void Downloader::Fetcher::operator()(std::string url, std::string out) {
-    std::cout << "fetching URL: " << url << " => " << out << "...\n";
+    //std::cout << "fetching URL: " << url << " => " << out << "...\n";
     //printf("fetching URL: %s => %s\n", url, out);
     //sleep(10000);
     //return;

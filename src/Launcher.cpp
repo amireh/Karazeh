@@ -1,23 +1,23 @@
 /*
- *  This file is part of Vertigo.
- *
- *  Vertigo - a cross-platform arcade game powered by Ogre3D.
- *  Copyright (C) 2011 
- *    Philip Allgaier <spacegaier@ogre3d.org>, 
- *    Ahmad Amireh <ahmad@amireh.net>
- * 
- *  Vertigo is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Vertigo is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Vertigo.  If not, see <http://www.gnu.org/licenses/>.
+ *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
+ *  
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  Software is furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in 
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE. 
  *
  */
  
@@ -52,33 +52,6 @@ namespace Pixy
 		log4cpp::Category::shutdown();
 		mRoot = NULL; mInputMgr = NULL;
 	}
-
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-#include <CoreFoundation/CoreFoundation.h>
-	
-	// This function will locate the path to our application on OS X,
-	// unlike windows you cannot rely on the current working directory
-	// for locating your configuration files and resources.
-	std::string macBundlePath()
-	{
-		char path[1024];
-		CFBundleRef mainBundle = CFBundleGetMainBundle();
-		assert(mainBundle);
-		
-		CFURLRef mainBundleURL = CFBundleCopyBundleURL(mainBundle);
-		assert(mainBundleURL);
-		
-		CFStringRef cfStringRef = CFURLCopyFileSystemPath( mainBundleURL, kCFURLPOSIXPathStyle);
-		assert(cfStringRef);
-		
-		CFStringGetCString(cfStringRef, path, 1024, kCFStringEncodingASCII);
-		
-		CFRelease(mainBundleURL);
-		CFRelease(cfStringRef);
-		
-		return std::string(path);
-	}
-#endif
 
   void Launcher::loadRenderSystems() 
   {
@@ -214,7 +187,13 @@ namespace Pixy
 	}
 	
 	void Launcher::launchDownloader() {
-	  Downloader::getSingletonPtr()->validateVersion();
+	  try { 
+	    Patcher::getSingleton().validateVersion();
+	  } catch (BadVersion* e) {
+	    //mLog->errorStream() << "version mismatch!";
+	    std::cout << "version mismatch!";
+	    delete e;
+	  }
 	}
 	
 	bool Launcher::configureGame() {
@@ -376,7 +355,31 @@ namespace Pixy
 	}
 	
 	const std::string Launcher::getVersion() {
-	  return std::string("VERSION 0.9.0");
+	  return std::string(PIXY_APP_VERSION);
 	};
 	
+	
+	void Launcher::evtValidateStarted() {
+	  std::cout << "Validating version...\n";
+	}
+	void Launcher::evtValidateComplete(bool needsUpdate) {
+	  if (needsUpdate) {
+	    std::cout << "Application needs updating\n";
+	    Patcher::getSingleton().doPatch(NULL);
+	  }
+	  else
+	    std::cout << "Application is up to date\n";
+	}
+	void Launcher::evtFetchStarted() {
+	  std::cout << "Downloading patch...\n";
+	}
+	void Launcher::evtFetchComplete(bool success) {
+	  std::cout << "Patch is downloaded\n";
+	}
+	void Launcher::evtPatchStarted() {
+	  std::cout << "Patching application...\n";
+	}
+	void Launcher::evtPatchComplete(bool success) {
+	  std::cout << "Patching is complete\n";
+	}
 } // end of namespace Pixy
