@@ -129,9 +129,10 @@ class Repository {
     virtual ~Repository();
     		
     void 
-    registerEntry(std::string local, 
-                  std::string remote, 
-                  PATCHOP op);
+    registerEntry(PATCHOP op,
+                  std::string local, 
+                  std::string remote = "", 
+                  std::string temp = "");
 
 		/*! \brief
 		 *  Returns all the entries registered in this repository.

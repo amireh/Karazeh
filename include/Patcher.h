@@ -27,6 +27,7 @@
 #include "Pixy.h"
 #include "Repository.h"
 #include <vector>
+#include <map>
 #include <sstream>
 #include <fstream>
 #include <iostream>
@@ -37,8 +38,16 @@
 
 namespace Pixy {
 
-class Patcher {
+typedef enum {
+  NO_SUCH_FILE,
+  CANNOT_DELETE,
+  CANNOT_CREATE,
+  CANNOT_MODIFY  
+} PATCHERR;
 
+class Patcher {
+  typedef void (Patcher::*t_proc)(PatchEntry*);
+  typedef std::map<PATCHOP, t_proc> t_procmap;
   public:
     ~Patcher( void );
     
@@ -71,6 +80,14 @@ class Patcher {
     Version mCurrentVersion, mTargetVersion;
     
     void buildRepositories();
+    
+    t_procmap mProcessors;
+    
+    void processCreate(PatchEntry* inEntry);
+    void processDelete(PatchEntry* inEntry);
+    void processModify(PatchEntry* inEntry);
+    
+    std::vector<PATCHERR> mErrors;
     
   private:
 	  Patcher();

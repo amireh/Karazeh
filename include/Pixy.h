@@ -41,22 +41,20 @@
 /* -------------
  * PATHS
  * ------------- */
-#define PROJECT_ROOT ".."
-
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+#define PROJECT_ROOT "..\\"
 #define PROJECT_LOG_DIR "..\\log"
 #define PROJECT_RESOURCES "\\resources"
-#define PROJECT_SCRIPTS "\\resources\\scripts"
 #define PROJECT_TEMP_DIR "..\\tmp\\"
 #elif OGRE_PLATFORM == OGRE_PLATFORM_APPLE
+#define PROJECT_ROOT "../"
 #define PROJECT_RESOURCES "/Resources"
 #define PROJECT_LOG_DIR "/Resources/log"
-#define PROJECT_SCRIPTS "/Resources/scripts"
 #define PROJECT_TEMP_DIR "/Resources/tmp/"
 #else
+#define PROJECT_ROOT "../"
 #define PROJECT_LOG_DIR "../log"
 #define PROJECT_RESOURCES "/resources"
-#define PROJECT_SCRIPTS "/resources/scripts"
 #define PROJECT_TEMP_DIR "../tmp/"
 #endif
 

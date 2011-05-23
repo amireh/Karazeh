@@ -71,6 +71,9 @@ struct PatchEntry {
    */ 
   std::string Remote;
   
+  // only used in the case of MODIFY, it represents where the diff patch was downloaded to
+  std::string Temp;
+  
   // a handle to the repository we belong to
   Repository* Repo;
 };

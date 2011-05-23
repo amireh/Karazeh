@@ -25,6 +25,8 @@
 #include "Downloader.h"
 #include "Launcher.h"
 
+extern "C" int patch(const char* src, const char* dest, const char* diff);
+
 namespace Pixy {
 	Patcher* Patcher::__instance;
 	
@@ -34,6 +36,10 @@ namespace Pixy {
 		
 		mCurrentVersion = Version(std::string(PIXY_APP_VERSION));
 		mPatchListPath = std::string(PROJECT_TEMP_DIR) + "patchlist.txt";
+		
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
   }
 	
 	Patcher::~Patcher() {
@@ -178,14 +184,20 @@ namespace Pixy {
         continue;
       }
       
+      // "local" entry paths need to be adjusted to reflect the project root
+      elements[1] = PROJECT_ROOT + elements[1];
+      
       // add the entries to our Patcher's list for processing
       switch(op) {
         case CREATE:
+          mRepos.back()->registerEntry(op, elements[1], elements[2]);
+          break;
         case MODIFY:
-          mRepos.back()->registerEntry(elements[1], elements[2], op);
+          elements[3] = PROJECT_ROOT + elements[3];
+          mRepos.back()->registerEntry(op, elements[1], elements[2], elements[3]);
           break;
         case DELETE:
-          mRepos.back()->registerEntry(elements[1], "", op);
+          mRepos.back()->registerEntry(op, elements[1]);
           break;
       }
       
@@ -202,11 +214,66 @@ namespace Pixy {
 	};
 	
 	bool Patcher::doPatch(void(*callback)(int)) {
-	
+	  
+	  
+	  try {
+	    buildRepositories();
+	  } catch (BadVersion& e) {
+	  
+	  } catch (BadFileStream& e) {
+	  
+	  } catch (std::exception& e) {
+	  
+	  }
+	    
+	  mLog->infoStream() << "Patching " << mRepos.size() << " versions";
+	  
+	  std::vector<Repository*>::const_iterator repo;
+	  for (repo = mRepos.begin(); repo != mRepos.end(); ++repo) {
+	    // download the patch files
+	    Downloader::getSingleton().fetchRepository(*repo);
+	    
+	    // process them
+	    std::vector<PatchEntry*> entries = (*repo)->getEntries();
+	    
+	    std::vector<PatchEntry*>::const_iterator entry;
+	    for (entry = entries.begin(); entry != entries.end(); ++entry)
+	      (this->*mProcessors[(*entry)->Op])((*entry));
+	    
+	  }
+	  
 	  if (callback)
 	    (*callback)(0);
 	    
 	  return true;
 	}
 	
+	void Patcher::processCreate(PatchEntry* inEntry) {
+	  mLog->infoStream() << "creating a file";
+	
+	};
+	void Patcher::processDelete(PatchEntry* inEntry) {
+	  using boost::filesystem::exists;
+	  using boost::filesystem::is_directory;
+	  using boost::filesystem::create_directory;
+	  using boost::filesystem::path;
+
+    path lPath = path(inEntry->Local);
+	  mLog->infoStream() << "deleting a file";
+	  // TODO: boost error checking
+	  if (exists(lPath))
+	    if (is_directory(lPath))
+	      boost::filesystem::remove_all(lPath);
+	    else
+	      boost::filesystem::remove(lPath);
+	  else {
+	    mLog->errorStream() << "no such file to delete! " << lPath;
+	  }
+	};
+	
+	void Patcher::processModify(PatchEntry* inEntry) {
+	  mLog->infoStream() << "modifying a file";
+	  
+	  patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
+	};
 };

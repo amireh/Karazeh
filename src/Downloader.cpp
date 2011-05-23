@@ -89,7 +89,8 @@ namespace Pixy {
   bool 
   Downloader::fetchRepository(Repository *inRepo, 
                              int nrRetries, 
-                             void (*callback)(int)) {
+                             void (*callback)(int))
+  {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
@@ -98,32 +99,39 @@ namespace Pixy {
     Launcher::getSingleton().evtFetchStarted();
     
     // download all CREATE and MODIFY entries' remote files
-    /*std::vector<PatchEntry*> lEntries = Patcher::getSingleton().getEntries(CREATE);
-    PatchEntry* lEntry = 0;
-    std::string url;
-    while (!lEntries.empty()) {
-      lEntry = lEntries.back();
+    int i;
+    for (i = 0; i < 2; ++i) {
+      PATCHOP op = (i == 0) ? CREATE : MODIFY;
       
-      // build up target URL
-      url = mHost + lEntry->remote;
-      
-      // make sure that the file does not exist locally, because it shouldn't
-      if (exists(lEntry->local)) {
-        mLog->errorStream() 
-        << "File to be created already exists! " << lEntry->local;
+      std::vector<PatchEntry*> lEntries = inRepo->getEntries(op);
+      PatchEntry* lEntry = 0;
+      std::string url;
+      while (!lEntries.empty()) {
+        lEntry = lEntries.back();
         
-        Launcher::getSingleton().evtFetchComplete(false);
+        // build up target URL
+        url = mHost + lEntry->Remote;
+        
+        // make sure that the file does not exist locally, because it shouldn't
+        if (op == CREATE && exists(lEntry->Local)) {
+          mLog->errorStream() 
+          << "File to be created already exists! " << lEntry->Local;
+          
+          Launcher::getSingleton().evtFetchComplete(false);
+          lEntry = 0;
+          lEntries.pop_back();
+          continue;
+        }
+        
+        fetchFile(url, (op == CREATE) ? lEntry->Local : lEntry->Temp);
+        
         lEntry = 0;
-        return false;
-      }
+        lEntries.pop_back();
+      };
       
-      fetchFile(url, lEntry->local);
-      
-      lEntry = 0;
-      lEntries.pop_back();
-    };*/
+    }
     
-    mLog->infoStream() << "downloaded all Create files";
+    mLog->infoStream() << "downloaded all Create and Modify files";
     
     if (callback)
       (*callback)(0);
@@ -168,7 +176,7 @@ namespace Pixy {
   }
     
   void Downloader::Fetcher::operator()(std::string url, std::string out) {
-    //std::cout << "fetching URL: " << url << " => " << out << "...\n";
+    std::cout << "fetching URL: " << url << " => " << out << "...\n";
     //printf("fetching URL: %s => %s\n", url, out);
     //sleep(10000);
     //return;
@@ -179,6 +187,7 @@ namespace Pixy {
     curl = curl_easy_init();
     if(curl)
     {
+      // TODO: make sure the directory exists and create it if it doesn't
       outfile = fopen(out.c_str(), "w");
    
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -194,6 +203,8 @@ namespace Pixy {
       fclose(outfile);
       /* always cleanup */ 
       curl_easy_cleanup(curl);
+      
+      std::cout << "done fecthing file\n";
     }
   }
 };

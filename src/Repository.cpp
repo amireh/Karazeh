@@ -54,9 +54,11 @@ namespace Pixy {
 
 	
   void 
-  Repository::registerEntry(std::string Local, 
-                         std::string Remote, 
-                         PATCHOP Op)
+  Repository::registerEntry(PATCHOP Op,
+                            std::string Local, 
+                            std::string Remote,
+                            std::string Temp 
+                            )
   {
     mLog->infoStream() << "Registering patch entry of type " <<
       ( (Op == CREATE) ? "CREATE" : (Op == MODIFY) ? "MODIFY" : "DELETE" )
@@ -67,7 +69,9 @@ namespace Pixy {
     lEntry->Op = Op; 
     lEntry->Local = Local;
     lEntry->Remote = Remote;
+    lEntry->Temp = Temp;
     lEntry->Repo = this;
+     
     mEntries.push_back(lEntry);
     lEntry = 0;
   }
@@ -84,4 +88,10 @@ namespace Pixy {
   
     return entries;
   }
+  
+  std::vector<PatchEntry*>&
+  Repository::getEntries() {
+  
+    return mEntries;
+  }  
 };

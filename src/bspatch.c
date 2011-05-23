@@ -54,7 +54,8 @@ static off_t offtin(u_char *buf)
 	return y;
 }
 
-int patch(int argc,char * argv[])
+//int patch(int argc,char * argv[])
+int patch(const char* src, const char* dest, const char* diff)
 {
 	FILE * f, * cpf, * dpf, * epf;
 	BZFILE * cpfbz2, * dpfbz2, * epfbz2;
@@ -69,11 +70,11 @@ int patch(int argc,char * argv[])
 	off_t lenread;
 	off_t i;
 
-	if(argc!=4) errx(1,"usage: %s oldfile newfile patchfile\n",argv[0]);
+	//if(argc!=4) errx(1,"usage: %s oldfile newfile patchfile\n",argv[0]);
 
 	/* Open patch file */
-	if ((f = fopen(argv[3], "r")) == NULL)
-		err(1, "fopen(%s)", argv[3]);
+	if ((f = fopen(diff, "r")) == NULL)
+		err(1, "fopen(%s)", diff);
 
 	/*
 	File format:
@@ -93,7 +94,7 @@ int patch(int argc,char * argv[])
 	if (fread(header, 1, 32, f) < 32) {
 		if (feof(f))
 			errx(1, "Corrupt patch\n");
-		err(1, "fread(%s)", argv[3]);
+		err(1, "fread(%s)", diff);
 	}
 
 	/* Check for appropriate magic */
@@ -109,35 +110,35 @@ int patch(int argc,char * argv[])
 
 	/* Close patch file and re-open it via libbzip2 at the right places */
 	if (fclose(f))
-		err(1, "fclose(%s)", argv[3]);
-	if ((cpf = fopen(argv[3], "r")) == NULL)
-		err(1, "fopen(%s)", argv[3]);
+		err(1, "fclose(%s)", diff);
+	if ((cpf = fopen(diff, "r")) == NULL)
+		err(1, "fopen(%s)", diff);
 	if (fseeko(cpf, 32, SEEK_SET))
-		err(1, "fseeko(%s, %lld)", argv[3],
+		err(1, "fseeko(%s, %lld)", diff,
 		    (long long)32);
 	if ((cpfbz2 = BZ2_bzReadOpen(&cbz2err, cpf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", cbz2err);
-	if ((dpf = fopen(argv[3], "r")) == NULL)
-		err(1, "fopen(%s)", argv[3]);
+	if ((dpf = fopen(diff, "r")) == NULL)
+		err(1, "fopen(%s)", diff);
 	if (fseeko(dpf, 32 + bzctrllen, SEEK_SET))
-		err(1, "fseeko(%s, %lld)", argv[3],
+		err(1, "fseeko(%s, %lld)", diff,
 		    (long long)(32 + bzctrllen));
 	if ((dpfbz2 = BZ2_bzReadOpen(&dbz2err, dpf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", dbz2err);
-	if ((epf = fopen(argv[3], "r")) == NULL)
-		err(1, "fopen(%s)", argv[3]);
+	if ((epf = fopen(diff, "r")) == NULL)
+		err(1, "fopen(%s)", diff);
 	if (fseeko(epf, 32 + bzctrllen + bzdatalen, SEEK_SET))
-		err(1, "fseeko(%s, %lld)", argv[3],
+		err(1, "fseeko(%s, %lld)", diff,
 		    (long long)(32 + bzctrllen + bzdatalen));
 	if ((epfbz2 = BZ2_bzReadOpen(&ebz2err, epf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", ebz2err);
 
-	if(((fd=open(argv[1],O_RDONLY,0))<0) ||
+	if(((fd=open(src,O_RDONLY,0))<0) ||
 		((oldsize=lseek(fd,0,SEEK_END))==-1) ||
 		((old=malloc(oldsize+1))==NULL) ||
 		(lseek(fd,0,SEEK_SET)!=0) ||
 		(read(fd,old,oldsize)!=oldsize) ||
-		(close(fd)==-1)) err(1,"%s",argv[1]);
+		(close(fd)==-1)) err(1,"%s",src);
 	if((new=malloc(newsize+1))==NULL) err(1,NULL);
 
 	oldpos=0;newpos=0;
@@ -190,12 +191,12 @@ int patch(int argc,char * argv[])
 	BZ2_bzReadClose(&dbz2err, dpfbz2);
 	BZ2_bzReadClose(&ebz2err, epfbz2);
 	if (fclose(cpf) || fclose(dpf) || fclose(epf))
-		err(1, "fclose(%s)", argv[3]);
+		err(1, "fclose(%s)", diff);
 
 	/* Write the new file */
-	if(((fd=open(argv[2],O_CREAT|O_TRUNC|O_WRONLY,0666))<0) ||
+	if(((fd=open(dest,O_CREAT|O_TRUNC|O_WRONLY,0666))<0) ||
 		(write(fd,new,newsize)!=newsize) || (close(fd)==-1))
-		err(1,"%s",argv[2]);
+		err(1,"%s",dest);
 
 	free(new);
 	free(old);
