@@ -42,14 +42,16 @@ struct PatchEntry {
    *  convenience constructor
    */
   inline 
-  PatchEntry(std::string inLocal, 
-             std::string inRemote, 
-             PATCHOP inOp, 
+  PatchEntry(PATCHOP inOp,
+             std::string inLocal, 
+             std::string inRemote = "", 
+             std::string inChecksum = "",
              Repository* inRepo = 0) {
     Local = inLocal;
     Remote = inRemote;
     Op = inOp;
     Repo = inRepo;
+    Checksum = inChecksum;
   }
   inline ~PatchEntry() { Repo = 0; }
   
@@ -76,6 +78,8 @@ struct PatchEntry {
   
   // a handle to the repository we belong to
   Repository* Repo;
+  
+  std::string Checksum;
 };
 
 };

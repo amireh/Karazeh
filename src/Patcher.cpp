@@ -53,7 +53,12 @@ namespace Pixy {
 		  delete lRepo;
 		}
 		lRepo = 0;
-		
+
+#ifndef PIXY_PERSISTENT
+    // TODO: boost error checking
+    boost::filesystem::remove_all(PROJECT_TEMP_DIR);
+#endif
+
 		if (mLog)
 		  delete mLog;
 	}
@@ -151,13 +156,15 @@ namespace Pixy {
           
           // create a new repository for this version
           Repository *lRepo = new Repository(Version(line));
-          mRepos.push_back(lRepo);
+          mRepos.push_front(lRepo);
           lRepo = 0;
           
           
           continue;
         }
       }
+      
+      Repository *lRepo = mRepos.front();
       
       // 3) it's an entry, let's parse it
       // __DEBUG__
@@ -175,7 +182,7 @@ namespace Pixy {
       PATCHOP op;
       if (elements[0] == "C") {
         op = CREATE;
-        if (elements.size() < 3) { // CREATE entries must have at least 3 fields
+        if (elements.size() < 4) { // CREATE entries must have at least 4 fields
           mLog->errorStream() << "malformed CREATE line: '" << line << "', skipping";
           continue;
         }
@@ -195,21 +202,40 @@ namespace Pixy {
       // "local" entry paths need to be adjusted to reflect the project root
       elements[1] = PROJECT_ROOT + elements[1];
       
+      using boost::filesystem::path;
+      path lTempPath;
+      if (op != DELETE) {
+        // "temp" paths follow the following scheme:
+        // TMP_DIR/REPO_VERSION/REMOTE_FILE_NAME.EXT
+        
+        
+        lTempPath = path(
+          std::string(PROJECT_TEMP_DIR)  + 
+          lRepo->getVersion().PathValue + "/" +
+          path(elements[2]).filename()
+        ); 
+        
+        // make sure the temp directory exists, otherwise create it
+        if (!exists(lTempPath.parent_path()))
+         create_directory(lTempPath.parent_path());
+        
+        std::cout << "Found temp path: " << lTempPath << " for repository : " << lRepo->getVersion().PathValue << "\n";
+      }
+      
       // add the entries to our Patcher's list for processing
       switch(op) {
         case CREATE:
-          mRepos.back()->registerEntry(op, elements[1], elements[2]);
-          break;
         case MODIFY:
-          elements[3] = PROJECT_ROOT + elements[3];
-          mRepos.back()->registerEntry(op, elements[1], elements[2], elements[3]);
+          lRepo->registerEntry(op, elements[1], elements[2], lTempPath.string(), elements[3]);
           break;
         case DELETE:
-          mRepos.back()->registerEntry(op, elements[1]);
+          lRepo->registerEntry(op, elements[1]);
           break;
       }
       
+      lRepo = 0;
     } // patchlist file parsing loop
+    
     
     mPatchList.close();
     
@@ -233,10 +259,13 @@ namespace Pixy {
 	  
 	  }
 	    
-	  mLog->infoStream() << "Patching " << mRepos.size() << " versions";
+	  mLog->infoStream() << "Total patches: " << mRepos.size();
 	  
-	  std::vector<Repository*>::const_iterator repo;
+	  std::list<Repository*>::const_iterator repo;
 	  for (repo = mRepos.begin(); repo != mRepos.end(); ++repo) {
+	    mLog->infoStream() << "----";
+	    mLog->infoStream() << "Patching to " << (*repo)->getVersion().Value;
+	    
 	    // download the patch files
 	    Downloader::getSingleton().fetchRepository(*repo);
 	    
@@ -246,8 +275,14 @@ namespace Pixy {
 	    std::vector<PatchEntry*>::const_iterator entry;
 	    for (entry = entries.begin(); entry != entries.end(); ++entry)
 	      (this->*mProcessors[(*entry)->Op])((*entry));
-	    
+	      
+      mLog->infoStream() << "Application successfully patched to " << (*repo)->getVersion().Value;
 	  }
+	  
+	  // we're done, let's clean up.. delete the whole tmp directory
+	  // TODO: boost error checking
+	  mLog->infoStream() << "cleaning up temp";
+	  boost::filesystem::remove_all(PROJECT_TEMP_DIR);
 	  
 	  if (callback)
 	    (*callback)(0);
@@ -256,31 +291,59 @@ namespace Pixy {
 	}
 	
 	void Patcher::processCreate(PatchEntry* inEntry) {
-	  mLog->infoStream() << "creating a file";
-	
+	  using boost::filesystem::exists;
+	  using boost::filesystem::is_directory;
+	  using boost::filesystem::create_directory;
+	  using boost::filesystem::path;
+	  using boost::filesystem::rename;
+	  
+	  mLog->debugStream() << "creating a file";
+	  
+	  // TODO: boost error checking
+	  
+	  path local(inEntry->Local);
+	  path temp(inEntry->Temp);
+	  
+	  // make sure the file doesn't already exist, if it does.. delete it
+	  if (exists(local) && !is_directory(local)) {
+	    remove(local);
+	  }
+	  
+	  // let's see if its parent directory exists, otherwise we create it
+	  if (!is_directory(local.parent_path()))
+	    create_directory(local.parent_path());
+	    
+	  // now we move the file
+	  rename(temp, local);
 	};
+	
 	void Patcher::processDelete(PatchEntry* inEntry) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;
 
-    path lPath = path(inEntry->Local);
-	  mLog->infoStream() << "deleting a file";
+	  mLog->debugStream() << "deleting a file";
+	  
+	  path local(inEntry->Local);
 	  // TODO: boost error checking
-	  if (exists(lPath))
-	    if (is_directory(lPath))
-	      boost::filesystem::remove_all(lPath);
+	  if (exists(local))
+	    if (is_directory(local))
+	      boost::filesystem::remove_all(local);
 	    else
-	      boost::filesystem::remove(lPath);
+	      boost::filesystem::remove(local);
 	  else {
-	    mLog->errorStream() << "no such file to delete! " << lPath;
+	    mLog->errorStream() << "no such file to delete! " << local;
 	  }
 	};
 	
 	void Patcher::processModify(PatchEntry* inEntry) {
-	  mLog->infoStream() << "modifying a file";
+	  using boost::filesystem::path;
 	  
+	  mLog->debugStream() << "modifying a file";
+	  
+	  // TODO: boost error checking
 	  patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
+	  remove(path(inEntry->Temp));
 	};
 };

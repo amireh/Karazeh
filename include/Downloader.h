@@ -38,6 +38,7 @@
 #include <curl/easy.h>
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
+#include "md5.hpp"
 
 namespace Pixy {
 

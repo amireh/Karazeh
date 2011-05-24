@@ -57,7 +57,7 @@ namespace Pixy
     if (mRenderer)
       delete mRenderer;
     		
-		mLog->infoStream() << "++++++ Elementum cleaned up successfully ++++++";
+		mLog->infoStream() << "++++++ " << PIXY_APP_NAME << " cleaned up successfully ++++++";
 		if (mLog)
 		  delete mLog;
 		  
@@ -193,7 +193,7 @@ namespace Pixy
 		lCat->infoStream() 
 		<< "\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+";
 		lCat->infoStream() 
-		<< "\n+                           Launcher v" << PIXY_APP_VERSION << "                                    +";
+		<< "\n+                           " << PIXY_APP_NAME << " " << PIXY_APP_VERSION << "                                    +";
 		lCat->infoStream() 
 		<< "\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n";
 		

@@ -27,18 +27,14 @@ namespace Pixy {
 	
 	Repository::Repository(Version inVersion) : mVersion(inVersion) {
 	  mVersion = inVersion;
-	  mLog = 
-	  new log4cpp::FixedContextCategory(
-	    PIXY_LOG_CATEGORY,
-	     "Repository: " + mVersion.Value
-	  );
-		mLog->infoStream() << "firing up";
+	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY,"Repository " + mVersion.Value);
+		mLog->infoStream() << "constructed";
 		
   }
 	
 	Repository::~Repository() {
 		
-		mLog->infoStream() << "shutting down";
+		mLog->infoStream() << "destroyed";
 		
 		PatchEntry* lEntry = 0;
 		while (!mEntries.empty()) {
@@ -57,10 +53,11 @@ namespace Pixy {
   Repository::registerEntry(PATCHOP Op,
                             std::string Local, 
                             std::string Remote,
-                            std::string Temp 
+                            std::string Temp,
+                            std::string Checksum
                             )
   {
-    mLog->infoStream() << "registering entry of type " <<
+    mLog->debugStream() << "registering entry of type " <<
       ( (Op == CREATE) ? "CREATE" : (Op == MODIFY) ? "MODIFY" : "DELETE" );
       //<< " with src: " << Local << " and dest: " << Remote;
      
@@ -70,6 +67,7 @@ namespace Pixy {
     lEntry->Local = Local;
     lEntry->Remote = Remote;
     lEntry->Temp = Temp;
+    lEntry->Checksum = Checksum;
     lEntry->Repo = this;
      
     mEntries.push_back(lEntry);
@@ -89,9 +87,12 @@ namespace Pixy {
     return entries;
   }
   
-  std::vector<PatchEntry*>&
+  const std::vector<PatchEntry*>&
   Repository::getEntries() {
-  
     return mEntries;
-  }  
+  }
+  
+  const Version& Repository::getVersion() {
+    return mVersion;
+  }
 };

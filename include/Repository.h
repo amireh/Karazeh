@@ -57,6 +57,8 @@ struct Version {
     this->Major = atoi(elems[0].c_str());
     this->Minor = atoi(elems[1].c_str());
     this->Build = atoi(elems[2].c_str());
+    this->PathValue = elems[0] + "_" + elems[1] + "_" + elems[2];
+    
   };
   
   inline Version(int inMajor, int inMinor, int inBuild) {
@@ -66,6 +68,9 @@ struct Version {
     std::stringstream ss;
     ss << "VERSION " << Major << "." << Minor << "." << Build;
     this->Value = ss.str();
+    ss.str("");
+    ss << Major << "_" << Minor << "_" << Build;
+    this->PathValue = ss.str();
   };
   
   inline ~Version() { };
@@ -84,6 +89,7 @@ struct Version {
     this->Minor = src.Minor;
     this->Build = src.Build;
     this->Value = src.Value;
+    this->PathValue = src.PathValue;
   }
   
   inline bool operator==(const Version& rhs) {
@@ -112,6 +118,7 @@ struct Version {
   int Minor;
   int Build;
   std::string Value;
+  std::string PathValue;
 };
 
 /*! \class Repository
@@ -132,17 +139,20 @@ class Repository {
     registerEntry(PATCHOP op,
                   std::string local, 
                   std::string remote = "", 
-                  std::string temp = "");
+                  std::string temp = "",
+                  std::string checksum = "");
 
 		/*! \brief
 		 *  Returns all the entries registered in this repository.
 		 */
-		std::vector<PatchEntry*>& getEntries();
+		const std::vector<PatchEntry*>& getEntries();
 		
 		/*! \brief
 		 *  Returns all entries belonging to the given operation.
 		 */
 		std::vector<PatchEntry*> getEntries(PATCHOP op);
+		
+		const Version& getVersion();
 		
 	protected:
 	  std::vector<PatchEntry*> mEntries;

@@ -26,7 +26,7 @@
 
 #include "Pixy.h"
 #include "Repository.h"
-#include <vector>
+#include <list>
 #include <map>
 #include <sstream>
 #include <fstream>
@@ -78,7 +78,7 @@ class Patcher {
 		bool doPatch(void(*callback)(int));
 		
 	protected:
-	  std::vector<Repository*> mRepos;
+	  std::list<Repository*> mRepos;
     std::string mPatchListPath;
     std::ifstream mPatchList;
     Version mCurrentVersion, mTargetVersion;

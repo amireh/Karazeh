@@ -111,29 +111,30 @@ namespace Pixy {
         
         // build up target URL
         url = mHost + lEntry->Remote;
-        
-        // make sure that the file does not exist locally, because it shouldn't
-        if (op == CREATE && exists(lEntry->Local)) {
-          mLog->errorStream() 
-          << "File to be created already exists! " << lEntry->Local;
-          
-          Launcher::getSingleton().evtFetchComplete(false);
-          lEntry = 0;
-          lEntries.pop_back();
-          continue;
+
+        // TODO: check if file has been downloaded before
+        bool downloaded = false;
+        if (exists(lEntry->Temp)) { 
+          // compare the checksum to verify the file
+          MD5 md5;
+          if (md5.digestFile((char*)lEntry->Temp.c_str()) == lEntry->Checksum) {
+            // no need to download
+            downloaded = true;
+            mLog->debugStream() << "File already downloaded, skipping";
+          } else
+            mLog->infoStream() << "MD5 mismatch, re-downloading " << lEntry->Temp;
         }
         
         // TODO: re-try in case of download failure
-        fetchFile(url, (op == CREATE) ? lEntry->Local : lEntry->Temp);
+        if (!downloaded)
+          fetchFile(url, lEntry->Temp);
         
         lEntry = 0;
         lEntries.pop_back();
       };
       
     }
-    
-    mLog->infoStream() << "downloaded all Create and Modify files";
-    
+        
     if (callback)
       (*callback)(0);
       
@@ -205,7 +206,7 @@ namespace Pixy {
       /* always cleanup */ 
       curl_easy_cleanup(curl);
       
-      std::cout << "done fecthing file\n";
+      std::cout << "done fetching file\n";
     }
   }
 };
