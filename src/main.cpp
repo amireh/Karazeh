@@ -23,31 +23,26 @@
  
 #include "Launcher.h"
 
-using namespace Pixy;
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
 #else
 	int main( int argc, char **argv ) {
 #endif
-		
-		Launcher *Launcher = Launcher::getSingletonPtr();
-		
+    
 		try {
-			Launcher->go();
+			Pixy::Launcher::getSingleton().go((argc > 1));
 		}
-		catch ( Ogre::Exception& ex ) {
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-			MessageBox( NULL, ex.getFullDescription().c_str(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL );
+		catch ( std::exception& e ) {
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
+			MessageBox( NULL, e.what().c_str(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL );
 #else
-			std::cerr << "An exception has occured: " << ex.getFullDescription();
+			std::cerr << "an exception has occured: " << e.what();
 #endif
-		} catch (std::exception& e) {
-			Ogre::String errMsg = e.what();
 		}
 		
-		delete Launcher;
+		delete Pixy::Launcher::getSingletonPtr();
 		
 		return 0;
 	}

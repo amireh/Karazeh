@@ -24,6 +24,7 @@
 #ifndef H_Utility_H
 #define H_Utility_H
 
+#include "Pixy.h"
 #include <typeinfo>
 
 namespace Pixy {
@@ -32,7 +33,7 @@ class Utility {
 
   public:
 
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
+#if PIXY_PLATFORM == PIXY_PLATFORM_APPLE
 #include <CoreFoundation/CoreFoundation.h>
 	
 	// This function will locate the path to our application on OS X,

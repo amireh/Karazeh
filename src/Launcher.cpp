@@ -23,134 +23,80 @@
  
 #include "Launcher.h"
 #include "PixyLogLayout.h"
+#include "Renderers/Ogre/OgreRenderer.h"
 
-using namespace Ogre;
 namespace Pixy
 {
 	Launcher* Launcher::mLauncher;
-	
+
+  void handle_interrupt(int param)
+  {
+    printf("Something wrong happened, attempting to cleanup: %d\n", param);
+    Launcher::getSingleton().requestShutdown();
+  }
+  	
 	Launcher::Launcher() :
-	mRoot(NULL),
-	mInputMgr(NULL),
+	mRenderer(0),
+	mInputMgr(0),
 	fShutdown(false) {
+	  signal(SIGINT, handle_interrupt);
+	  signal(SIGTERM, handle_interrupt);
+	  signal(SIGKILL, handle_interrupt);
+	  
+	  goFunc = &Launcher::goVanilla;
 	}
 	
 	Launcher::~Launcher() {
 
-    delete mDownloader;
-    
+    delete Downloader::getSingletonPtr();
+    delete Patcher::getSingletonPtr();
+        
 		if( mInputMgr )
 		    delete mInputMgr;
-		
-		if( mRoot )
-		    delete mRoot;
-		
+
+    if (mRenderer)
+      delete mRenderer;
+    		
 		mLog->infoStream() << "++++++ Elementum cleaned up successfully ++++++";
 		if (mLog)
 		  delete mLog;
 		  
 		log4cpp::Category::shutdown();
-		mRoot = NULL; mInputMgr = NULL;
+		mRenderer = NULL; mInputMgr = NULL;
 	}
 
-  void Launcher::loadRenderSystems() 
-  {
-    bool rendererInstalled = false;
-    // try using Direct3D on Windows
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 
-    try { 
-      mRoot->loadPlugin("RenderSystem_Direct3D9"); 
-      mRoot->setRenderSystem(mRoot->getRenderSystemByName("Direct3D9 Rendering Subsystem"));
-      rendererInstalled = true;
-    } catch (Ogre::Exception& e) {
-      mLog->errorStream() << "Unable to create D3D9 RenderSystem: " << e.getFullDescription();
-    } catch(std::exception& e) { 
-      mLog->errorStream() << "Unable to create D3D9 RenderSystem: " << e.what(); 
-    }
-#endif
 
-    std::string lPluginsPath;
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-    lPluginsPath = macBundlePath() + "/Contents/Plugins/";
-#elif OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-    lPluginsPath = ".\\";
-#else
-    lPluginsPath = "./";
-#endif
-    // try using OpenGL
-    try {
-      mRoot->loadPlugin(lPluginsPath + "RenderSystem_GL");
-      if (!rendererInstalled) {
-        mRoot->setRenderSystem(mRoot->getRenderSystemByName("OpenGL Rendering Subsystem"));
-        rendererInstalled = true;
-      }
-    } 
-    catch(Ogre::Exception& e) { 
-      mLog->errorStream() << "Unable to create OpenGL RenderSystem: " << e.getFullDescription(); 
-    } 
 
-  }
   
-	void Launcher::go() {
+	void Launcher::go(bool withRenderer) {
 	
 		// init logger
 		initLogger();
 		
-		// setup paths
-	  using std::ostringstream;
-	  ostringstream lPathResources, lPathPlugins, lPathCfg, lPathOgreCfg, lPathLog;
-#if OGRE_PLATFORM == OGRE_PLATFORM_WINDOWS
-	  lPathResources << PROJECT_ROOT << PROJECT_RESOURCES << "\\config\\resources_win32.cfg";
-    lPathPlugins << "..\\resources\\config\\plugins.cfg";
-    lPathCfg << "..\\resources\\config\\";
-	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";	
-	  lPathLog << PROJECT_LOG_DIR << "\\Ogre.log";	
-#elif OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-	  lPathResources << macBundlePath() << "/Contents/Resources/config/resources_osx.cfg";
-	  lPathPlugins << macBundlePath() << "/Contents/Resources/config/plugins.cfg";
-	  lPathCfg << macBundlePath() << "/Contents/Resources/config/";
-	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";	
-	  lPathLog << macBundlePath() << "/Contents/Logs/Ogre.log";    
-#else
-	  lPathResources << PROJECT_ROOT << PROJECT_RESOURCES << "/config/resources_linux.cfg";
-    lPathPlugins << PROJECT_ROOT << PROJECT_RESOURCES << "/config/plugins.cfg";
-    lPathCfg << PROJECT_ROOT << PROJECT_RESOURCES << "/config/";
-	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";	
-	  lPathLog << PROJECT_LOG_DIR << "/Ogre.log";
-#endif
-    
-    mConfigPath = lPathCfg.str();
-    
-		mRoot = OGRE_NEW Root(lPathPlugins.str(), lPathOgreCfg.str(), lPathLog.str());
-		if (!mRoot) {
-			throw Ogre::Exception( Ogre::Exception::ERR_INTERNAL_ERROR, 
-								  "Error - Couldn't initalize OGRE!", 
-								  std::string(PIXY_APP_NAME) + " - Error");
-		}
-		loadRenderSystems();
-	  
-		// Setup and configure game
-		if( !this->configureGame() ) {
-		    // If game can't be configured, throw exception and quit application
-		    throw Ogre::Exception( Ogre::Exception::ERR_INTERNAL_ERROR,
-								  "Error - Couldn't Configure Renderwindow",
-								  std::string(PIXY_APP_NAME) + " - Error" );
-		    return;
-		}
+		goFunc = &Launcher::goVanilla;
+		if (withRenderer) {
+		  goFunc = &Launcher::goWithRenderer;
+		  
+	    mRenderer = new OgreRenderer();
+	    bool res = mRenderer->setup();
+	    
+	    if (!res) {
+	      mLog->errorStream() << "could not initialise renderer!";
+	      return;
+	    }
+		
+		  int width, height = 0;
+		  size_t windowHnd = 0;
+		  mRenderer->getWindowHandle(&windowHnd);
+		  mRenderer->getWindowExtents(&width, &height);
+		
+		  // Setup input & register as listener
+		  mInputMgr = InputManager::getSingletonPtr();
+		  mInputMgr->initialise( windowHnd, width, height );
 
-	  // Setup input & register as listener
-		mInputMgr = InputManager::getSingletonPtr();
-		mRenderWindow = mRoot->getAutoCreatedWindow();
-		mInputMgr->initialise( mRenderWindow );
-		WindowEventUtilities::addWindowEventListener( mRenderWindow, this );
-				
-		this->setupResources(lPathResources.str());
-		
-		mInputMgr->addKeyListener( this, "Launcher" );
-		mInputMgr->addMouseListener( this, "Launcher" );
-		
-		// Change to first state
-		//this->changeState( Intro::getSingletonPtr() );
+		  mInputMgr->addKeyListener( mRenderer, mRenderer->getName() );
+		  mInputMgr->addMouseListener( mRenderer, mRenderer->getName() );
+		}
 		
 		mDownloader = Downloader::getSingletonPtr();
 		boost::thread mThread(launchDownloader);
@@ -162,29 +108,29 @@ namespace Pixy
 		lTimeCurrentFrame = 0;
 		lTimeSinceLastFrame = 0;
 
-    mRoot->getTimer()->reset();
+    //mRoot->getTimer()->reset();
     
 		// main game loop
-		while( !fShutdown ) {
-			
-	    // calculate time since last frame and remember current time for next frame
-	    lTimeCurrentFrame = mRoot->getTimer()->getMilliseconds();
-	    lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
-	    lTimeLastFrame = lTimeCurrentFrame;
-		
-	    // update input manager
-	    mInputMgr->capture();
-		
-	    // cpdate current state
-	    //mStates.back()->update( lTimeSinceLastFrame );
-
-			WindowEventUtilities::messagePump();
-
-			// render next frame
-		  mRoot->renderOneFrame();
-		}
+		while( !fShutdown )
+			(this->*goFunc)();
 		
 	}
+	
+	void Launcher::goWithRenderer() {
+    // calculate time since last frame and remember current time for next frame
+    /*lTimeCurrentFrame = mRoot->getTimer()->getMilliseconds();
+    lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
+    lTimeLastFrame = lTimeCurrentFrame;*/
+	
+    // update input manager
+    mInputMgr->capture();
+    
+    mRenderer->update(0);	
+	};
+	
+	void Launcher::goVanilla() {
+	  // nothing to do here really
+	};
 	
 	void Launcher::launchDownloader() {
 	  try { 
@@ -196,104 +142,11 @@ namespace Pixy
 	  }
 	}
 	
-	bool Launcher::configureGame() {
-		
-		mLog->infoStream() << "configuring video settings";
-		// Load config settings from ogre.cfg
-		//if( !mRoot->restoreConfig() ) {
-		  Ogre::RenderSystem* mRS = mRoot->getRenderSystem();
-		  mRS->setConfigOption("Full Screen", "No");
-		  mRS->setConfigOption("Video Mode", "640 x 480");
-		    // If there is no config file, show the configuration dialog
-		    /*if( !mRoot->showConfigDialog() ) {
-		        return false;
-		    }*/
-		//}
-		
-		// Initialise and create a default rendering window
-		mRenderWindow = mRoot->initialise( true, PIXY_APP_NAME );
-		
-		// Initialise resources
-		//ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-		
-		// Create needed scenemanagers
-		Ogre::SceneManager *mSceneMgr = mRoot->createSceneManager( "DefaultSceneManager", "LauncherScene" );
-		Ogre::Camera *mCamera = mSceneMgr->createCamera("LauncherCamera");
-		mRenderWindow->addViewport(mCamera, -1);
-		
-		return true;
-	}
-	
-	void Launcher::setupResources(std::string inPath) {
-
-		// Load resource paths from config file
-		ConfigFile cf;
-		cf.load( inPath );
-		
-		// Go through all settings in the file
-		ConfigFile::SectionIterator itSection = cf.getSectionIterator();
-		
-		String sSection, sType, sArch;
-		while( itSection.hasMoreElements() ) {
-		    sSection = itSection.peekNextKey();
-			
-		    ConfigFile::SettingsMultiMap *mapSettings = itSection.getNext();
-		    ConfigFile::SettingsMultiMap::iterator itSetting = mapSettings->begin();
-		    while( itSetting != mapSettings->end() ) {
-		        sType = itSetting->first;
-		        sArch = itSetting->second;
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-				ResourceGroupManager::getSingleton().addResourceLocation( String(macBundlePath() + "/" + sArch), sType, sSection);
-#else
-				ResourceGroupManager::getSingleton().addResourceLocation( sArch, sType, sSection);
-#endif
-				
-		        ++itSetting;
-		    }
-		}
-		ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-	}
-	
 	void Launcher::requestShutdown() {
 		fShutdown = true;
 	}
 	
-	bool Launcher::keyPressed( const OIS::KeyEvent &e ) {
-		// Call keyPressed of current state
-		//mStates.back()->keyPressed( e );
-		
-		return true;
-	}
-	
-	bool Launcher::keyReleased( const OIS::KeyEvent &e ) {
-		// Call keyReleased of current state
-		//mStates.back()->keyReleased( e );
-		if (e.key == OIS::KC_ESCAPE)
-		  this->requestShutdown();
-		  
-		return true;
-	}
-	
-	bool Launcher::mouseMoved( const OIS::MouseEvent &e ) {
-		// Call mouseMoved of current state
-		//mStates.back()->mouseMoved( e );
-		
-		return true;
-	}
-	
-	bool Launcher::mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-		// Call mousePressed of current state
-		//mStates.back()->mousePressed( e, id );
-		
-		return true;
-	}
-	
-	bool Launcher::mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-		// Call mouseReleased of current state
-		//mStates.back()->mouseReleased( e, id );
-		
-		return true;
-	}
+
 	
 	Launcher* Launcher::getSingletonPtr() {
 		if( !mLauncher ) {
@@ -311,9 +164,9 @@ namespace Pixy
 	void Launcher::initLogger() {
 
 		std::string lLogPath = PROJECT_LOG_DIR;
-#if OGRE_PLATFORM == OGRE_PLATFORM_WINDOWS
+#if PIXY_PLATFORM == PIXY_PLATFORM_WINDOWS
 		lLogPath += "\\Launcher.log";
-#elif OGRE_PLATFORM == OGRE_PLATFORM_APPLE
+#elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
 		lLogPath = macBundlePath() + "/Contents/Logs/Launcher.log";
 #else
 		lLogPath += "/Launcher.log";		

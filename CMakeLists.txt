@@ -11,7 +11,8 @@ PKG_CHECK_MODULES(log4cpp REQUIRED log4cpp)
 PKG_CHECK_MODULES(libcurl REQUIRED libcurl)
 FIND_PACKAGE(Boost COMPONENTS filesystem thread REQUIRED)
 
-AUX_SOURCE_DIRECTORY(src Launcher_SRCS)                   
+AUX_SOURCE_DIRECTORY(src Launcher_SRCS)
+AUX_SOURCE_DIRECTORY(src/Renderers/Ogre Launcher_SRCS)                   
 
 INCLUDE_DIRECTORIES(include
                     ${OGRE_INCLUDE_DIRS}

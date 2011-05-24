@@ -22,6 +22,7 @@
  */
  
 #include "InputManager.h"
+#include <sstream>
 
 namespace Pixy
 {
@@ -56,19 +57,19 @@ namespace Pixy
 		}
 	}
 
-	void InputManager::initialise( Ogre::RenderWindow *renderWindow ) {
+	void InputManager::initialise( size_t windowHnd, int width, int height ) {
 		if( !mInputSystem ) {
 		    // Setup basic variables
 		    OIS::ParamList paramList;
-		    size_t windowHnd = 0;
+		    //size_t windowHnd = 0;
 		    std::ostringstream windowHndStr;
 
 		    // Get window handle
-	#if defined OIS_WIN32_PLATFORM
+/*	#if defined OIS_WIN32_PLATFORM
 		    renderWindow->getCustomAttribute( "WINDOW", &windowHnd );
 	#elif defined OIS_LINUX_PLATFORM
 		    renderWindow->getCustomAttribute( "WINDOW", &windowHnd );
-	#endif
+	#endif*/
 
 		    // Fill parameter list
 		    windowHndStr << windowHnd;
@@ -86,7 +87,7 @@ namespace Pixy
 			// Get window size
 			unsigned int width, height, depth;
 			int left, top;
-			renderWindow->getMetrics( width, height, depth, left, top );
+			//renderWindow->getMetrics( width, height, depth, left, top );
 
 			// Set mouse region
 			this->setWindowExtents( width, height );

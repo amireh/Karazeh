@@ -26,16 +26,11 @@
 
 #include <exception>
 #include <stdint.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <map>
-#include <Ogre.h>
-#include <OgrePlatform.h>
-#include <OgreConfigFile.h>
-#include <OgreWindowEventUtilities.h>
-#include <OgreException.h>
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-#include "OSX/macUtils.h"
-#endif
 #include "Pixy.h"
+#include "Renderer.h"
 #include "InputManager.h"
 #include "Downloader.h"
 #include <boost/thread.hpp>
@@ -43,23 +38,10 @@
 namespace Pixy
 {
 
-	class Launcher : public OIS::KeyListener, OIS::MouseListener, Ogre::WindowEventListener {
+	class Launcher {
 	public:
 		~Launcher( void );
-		
-		//! Loads StateGame game state to start the game.
-		/*! 
-		 *	
-		 */
-		void go();
-				
-		//!	Shuts down the system, consequently shutting down all running game states.
-		/*! 
-		 *	\note
-		 *	
-		 */
-		void requestShutdown();
-		
+
 		//! Retrieves a pointer to the Singleton instance of this class.
 		/*!
 		 *	@return
@@ -67,6 +49,19 @@ namespace Pixy
 		 */
 		static Launcher* getSingletonPtr();
 		static Launcher& getSingleton();
+				
+		//! Loads StateGame game state to start the game.
+		/*! 
+		 *	
+		 */
+		void go(bool withRenderer);
+				
+		//!	Shuts down the system, consequently shutting down all running game states.
+		/*! 
+		 *	\note
+		 *	
+		 */
+		void requestShutdown();
 		
 		static void launchDownloader();
 		
@@ -84,74 +79,19 @@ namespace Pixy
 		Launcher(const Launcher&) {}
 		Launcher& operator=(const Launcher&);
 		
-		//! Prepares Ogre for use by the game components
-		/*! 
-		 *	\note
-		 *	This method is called internally within startGame().
-		 *
-		 *	Ogre Root, RenderWindow, Resource Groups, and SceneManager
-		 *	are set up here.
-		 */
-		bool configureGame();
+		void (Launcher::*goFunc)();
+		
+		void goWithRenderer();
+		void goVanilla();
 		
 		void loadRenderSystems();
-		
-		//! Loads resources for use by the Ogre engine
-		/*! 
-		 *	\note
-		 *	This method is called internally within startGame().
-		 *
-		 *	Parses configuration scripts and re/stores settings.
-		 */
-		void setupResources(std::string inResourcesPath);
-		
-		//! OIS key input event handler/dispatcher method
-		/*! 
-		 *	\note
-		 *	Events received here are dispatched to the
-		 *	current running GameState for processing.
-		 */
-		bool keyPressed( const OIS::KeyEvent &e );
-
-		//! OIS key input event handler/dispatcher method
-		/*! 
-		 *	\note
-		 *	Events received here are dispatched to the
-		 *	current running GameState for processing.
-		 */
-		bool keyReleased( const OIS::KeyEvent &e );
-		
-		//! OIS mouse input event handler/dispatcher method
-		/*! 
-		 *	\note
-		 *	Events received here are dispatched to the
-		 *	current running GameState for processing.
-		 */	
-		bool mouseMoved( const OIS::MouseEvent &e );
-
-		//! OIS mouse input event handler/dispatcher method
-		/*! 
-		 *	\note
-		 *	Events received here are dispatched to the
-		 *	current running GameState for processing.
-		 */	
-		bool mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id );
-
-		//! OIS mouse input event handler/dispatcher method
-		/*! 
-		 *	\note
-		 *	Events received here are dispatched to the
-		 *	current running GameState for processing.
-		 */		
-		bool mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
-		
+	
 		/*! Starts off the logger
 		 *
 		 */
 		void initLogger();
 		
-		Ogre::Root			    *mRoot;
-		Ogre::RenderWindow	*mRenderWindow;
+		Renderer *mRenderer;
 		InputManager		    *mInputMgr;
 		
 		unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;

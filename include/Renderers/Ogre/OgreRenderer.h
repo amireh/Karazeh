@@ -21,20 +21,30 @@
  *
  */
 
-#ifndef H_Renderer_H
-#define H_Renderer_H
+#ifndef H_OgreRenderer_H
+#define H_OgreRenderer_H
+
+#include "Renderer.h"
+#include <Ogre.h>
+#include <OgreConfigFile.h>
+#include <OgreWindowEventUtilities.h>
+#include <OgreException.h>
+#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
+#include "OSX/macUtils.h"
+#endif
+#include "Renderers/Ogre/OgreSdkTrays.h"
 
 namespace Pixy {
 	
-	/*	\class Renderer
+	/*	\class OgreRenderer
 	 *	\brief
 	 *	
 	 */
-	class Renderer {
+	class OgreRenderer : public Renderer, Ogre::WindowEventListener {
 		
 	public:
-	  Renderer();
-		virtual ~Renderer();
+	  OgreRenderer();
+		virtual ~OgreRenderer();
 		
 		/* \brief
 		 *
@@ -55,19 +65,33 @@ namespace Pixy {
 		 *
 		 */
  		virtual bool cleanup();
-		
-		void keyPressed( const OIS::KeyEvent &e );
-		void keyReleased( const OIS::KeyEvent &e );		
-		void mouseMoved( const OIS::MouseEvent &e );
-		void mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id );
-		void mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 
+		virtual void getWindowHandle(size_t *windowHnd);
+		virtual void getWindowExtents(int *width, int *height);
+				
+    virtual void injectError(PATCHERROR errorCode, std::string errorMsg);
+    virtual void injectError(PATCHNOTICE noticeCode, std::string noticeMsg);
+
+		virtual bool keyPressed( const OIS::KeyEvent &e );
+		virtual bool keyReleased( const OIS::KeyEvent &e );		
+		virtual bool mouseMoved( const OIS::MouseEvent &e );
+		virtual bool mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id );
+		virtual bool mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 		
 	protected:
-
+    Ogre::Root *mRoot;
+    Ogre::RenderWindow *mRenderWindow;
+    Ogre::Viewport* mViewport;
+		Ogre::OverlayManager *mOverlayMgr;
+		OgreBites::SdkTrayManager *mTrayMgr;
+		
+		void setupResources(std::string inPath);
+		bool configureGame();
+		void loadRenderSystems();
+		
 	private:
-		Renderer(const Renderer& src);
-		Renderer& operator=(const Renderer& rhs);
+		OgreRenderer(const OgreRenderer& src);
+		OgreRenderer& operator=(const OgreRenderer& rhs);
 	};
 }
 #endif

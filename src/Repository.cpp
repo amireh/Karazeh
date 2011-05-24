@@ -60,9 +60,9 @@ namespace Pixy {
                             std::string Temp 
                             )
   {
-    mLog->infoStream() << "Registering patch entry of type " <<
-      ( (Op == CREATE) ? "CREATE" : (Op == MODIFY) ? "MODIFY" : "DELETE" )
-      << " with src: " << Local << " and dest: " << Remote;
+    mLog->infoStream() << "registering entry of type " <<
+      ( (Op == CREATE) ? "CREATE" : (Op == MODIFY) ? "MODIFY" : "DELETE" );
+      //<< " with src: " << Local << " and dest: " << Remote;
      
     PatchEntry *lEntry = new PatchEntry();
     

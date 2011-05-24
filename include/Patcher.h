@@ -43,7 +43,11 @@ typedef enum {
   CANNOT_DELETE,
   CANNOT_CREATE,
   CANNOT_MODIFY  
-} PATCHERR;
+} PATCHERROR;
+
+typedef enum {
+
+} PATCHNOTICE;
 
 class Patcher {
   typedef void (Patcher::*t_proc)(PatchEntry*);
@@ -87,7 +91,8 @@ class Patcher {
     void processDelete(PatchEntry* inEntry);
     void processModify(PatchEntry* inEntry);
     
-    std::vector<PATCHERR> mErrors;
+    std::vector<PATCHERROR> mErrors;
+    std::vector<PATCHNOTICE> mNotices;
     
   private:
 	  Patcher();
