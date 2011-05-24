@@ -1,3 +1,7 @@
 * create files (done)
 * modify files (done)
 * delete files (done)
+* decouple Renderer
+* create Ogre Renderer
+* thread all main operations to keep the renderer active
+* feedback between Renderer and Patcher/Downloader

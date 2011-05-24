@@ -123,6 +123,7 @@ namespace Pixy {
           continue;
         }
         
+        // TODO: re-try in case of download failure
         fetchFile(url, (op == CREATE) ? lEntry->Local : lEntry->Temp);
         
         lEntry = 0;

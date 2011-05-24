@@ -164,22 +164,30 @@ namespace Pixy {
       std::cout << "Line: " << line << "\n";
       fflush(stdout);
       
-      // make sure the line has at least 2 fields
+      // make sure the line has at least 2 fields (DELETE case)
       std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
       if (elements.size() < 2) {
         mLog->errorStream() << "malformed line: '" << line << "', skipping";
         continue;
       }
       
-      // parse the operation type
+      // parse the operation type and make sure the required fields exist
       PATCHOP op;
-      if (elements[0] == "C")
+      if (elements[0] == "C") {
         op = CREATE;
-      else if (elements[0] == "D")
+        if (elements.size() < 3) { // CREATE entries must have at least 3 fields
+          mLog->errorStream() << "malformed CREATE line: '" << line << "', skipping";
+          continue;
+        }
+      } else if (elements[0] == "D") {
         op = DELETE;
-      else if (elements[0] == "M")
+      } else if (elements[0] == "M") {
         op = MODIFY;
-      else {
+        if (elements.size() < 4) { // MODIFY entries must have at least 4 fields
+          mLog->errorStream() << "malformed MODIFY line: '" << line << "', skipping";
+          continue;
+        }
+      } else {
         mLog->errorStream() << "undefined operation symbol: " << elements[0];
         continue;
       }
@@ -214,7 +222,6 @@ namespace Pixy {
 	};
 	
 	bool Patcher::doPatch(void(*callback)(int)) {
-	  
 	  
 	  try {
 	    buildRepositories();
