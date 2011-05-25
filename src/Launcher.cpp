@@ -24,6 +24,7 @@
 #include "Launcher.h"
 #include "PixyLogLayout.h"
 #include "Renderers/Ogre/OgreRenderer.h"
+#include "Renderers/CEGUI/CEGUIRenderer.h"
 
 namespace Pixy
 {
@@ -68,16 +69,28 @@ namespace Pixy
 
 
   
-	void Launcher::go(bool withRenderer) {
+	void Launcher::go(const char* inRendererName) {
 	
 		// init logger
 		initLogger();
 		
 		goFunc = &Launcher::goVanilla;
-		if (withRenderer) {
+		bool validRenderer = false;
+		if (inRendererName != 0) {
+		  validRenderer = true;
+		  if (strcmp(inRendererName, "Ogre") == 0)
+		    mRenderer = new OgreRenderer();
+		  else if (strcmp(inRendererName, "CEGUI") == 0)
+		    mRenderer = new CEGUIRenderer();
+		  else {
+		    mLog->errorStream() << "Invalid renderer! " << inRendererName << ", going vanilla";
+		    validRenderer = false;
+		  }
+		}
+		
+		if (validRenderer) {
 		  goFunc = &Launcher::goWithRenderer;
 		  
-	    mRenderer = new OgreRenderer();
 	    bool res = mRenderer->setup();
 	    
 	    if (!res) {
@@ -85,7 +98,8 @@ namespace Pixy
 	      return;
 	    }
 		
-		  int width, height = 0;
+		  int width = 0;
+		  int height = 0;
 		  size_t windowHnd = 0;
 		  mRenderer->getWindowHandle(&windowHnd);
 		  mRenderer->getWindowExtents(&width, &height);
@@ -96,6 +110,8 @@ namespace Pixy
 
 		  mInputMgr->addKeyListener( mRenderer, mRenderer->getName() );
 		  mInputMgr->addMouseListener( mRenderer, mRenderer->getName() );
+		  
+		  mRenderer->deferredSetup();
 		}
 		
 		mDownloader = Downloader::getSingletonPtr();
@@ -103,13 +119,9 @@ namespace Pixy
 		
 		// lTimeLastFrame remembers the last time that it was checked
 		// we use it to calculate the time since last frame
-		
-		lTimeLastFrame = 0;
-		lTimeCurrentFrame = 0;
-		lTimeSinceLastFrame = 0;
+		lTimeLastFrame = boost::posix_time::microsec_clock::universal_time();
+		lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
 
-    //mRoot->getTimer()->reset();
-    
 		// main game loop
 		while( !fShutdown )
 			(this->*goFunc)();
@@ -117,15 +129,16 @@ namespace Pixy
 	}
 	
 	void Launcher::goWithRenderer() {
-    // calculate time since last frame and remember current time for next frame
-    /*lTimeCurrentFrame = mRoot->getTimer()->getMilliseconds();
+
+    lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
     lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
-    lTimeLastFrame = lTimeCurrentFrame;*/
+    lTimeLastFrame = lTimeCurrentFrame;
 	
     // update input manager
     mInputMgr->capture();
     
-    mRenderer->update(0);	
+    mRenderer->update(lTimeSinceLastFrame.total_milliseconds());	
+    
 	};
 	
 	void Launcher::goVanilla() {
@@ -209,14 +222,21 @@ namespace Pixy
 	
 	void Launcher::evtValidateStarted() {
 	  std::cout << "Validating version...\n";
+	  if (mRenderer)
+	    mRenderer->injectStatus("Validating");
 	}
 	void Launcher::evtValidateComplete(bool needsUpdate) {
 	  if (needsUpdate) {
+	    if (mRenderer)
+	      bool res = mRenderer->injectPrompt("Application is out of date, would you like to update it now?");
+	      
 	    std::cout << "Application needs updating\n";
-	    Patcher::getSingleton().doPatch(NULL);
 	  }
-	  else
+	  else {
+	    if (mRenderer)
+	      mRenderer->injectStatus("Application is up to date");
 	    std::cout << "Application is up to date\n";
+	  }
 	}
 	void Launcher::evtFetchStarted() {
 	  std::cout << "Downloading patch...\n";

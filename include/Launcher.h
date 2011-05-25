@@ -34,6 +34,7 @@
 #include "InputManager.h"
 #include "Downloader.h"
 #include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Pixy
 {
@@ -54,7 +55,7 @@ namespace Pixy
 		/*! 
 		 *	
 		 */
-		void go(bool withRenderer);
+		void go(const char* inRendererName = 0);
 				
 		//!	Shuts down the system, consequently shutting down all running game states.
 		/*! 
@@ -94,7 +95,9 @@ namespace Pixy
 		Renderer *mRenderer;
 		InputManager		    *mInputMgr;
 		
-		unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
+		//unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
+		boost::posix_time::ptime  lTimeLastFrame, lTimeCurrentFrame;
+		boost::posix_time::time_duration lTimeSinceLastFrame;
 		
 		//! do we want to shutdown?
 		bool fShutdown;

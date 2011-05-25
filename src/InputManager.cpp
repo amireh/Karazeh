@@ -23,6 +23,7 @@
  
 #include "InputManager.h"
 #include <sstream>
+#include <iostream>
 
 namespace Pixy
 {
@@ -64,13 +65,6 @@ namespace Pixy
 		    //size_t windowHnd = 0;
 		    std::ostringstream windowHndStr;
 
-		    // Get window handle
-/*	#if defined OIS_WIN32_PLATFORM
-		    renderWindow->getCustomAttribute( "WINDOW", &windowHnd );
-	#elif defined OIS_LINUX_PLATFORM
-		    renderWindow->getCustomAttribute( "WINDOW", &windowHnd );
-	#endif*/
-
 		    // Fill parameter list
 		    windowHndStr << windowHnd;
 		    paramList.insert( std::make_pair( std::string( "WINDOW" ), windowHndStr.str() ) );
@@ -83,11 +77,6 @@ namespace Pixy
 
 			mMouse = static_cast<OIS::Mouse*>( mInputSystem->createInputObject( OIS::OISMouse, true ) );
 			mMouse->setEventCallback( this );
-
-			// Get window size
-			unsigned int width, height, depth;
-			int left, top;
-			//renderWindow->getMetrics( width, height, depth, left, top );
 
 			// Set mouse region
 			this->setWindowExtents( width, height );
@@ -195,6 +184,8 @@ namespace Pixy
 		const OIS::MouseState &mouseState = mMouse->getMouseState();
 		mouseState.width  = width;
 		mouseState.height = height;
+		
+		std::cout << "set window extents to " << width << "x" << height << "\n";
 	}
 
 	OIS::Mouse* InputManager::getMouse( void ) {

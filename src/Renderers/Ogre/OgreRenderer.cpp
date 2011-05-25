@@ -25,6 +25,7 @@
 #include "Launcher.h"
 
 using namespace Ogre;
+using namespace OgreBites;
 namespace Pixy {
 	
 	OgreRenderer::OgreRenderer() {
@@ -38,6 +39,9 @@ namespace Pixy {
 		
 		mLog->infoStream() << "shutting down";
 		
+		if (fSetup)
+		  cleanup();
+		  
 		if( mRoot )
 		    delete mRoot;
 		    
@@ -91,6 +95,7 @@ namespace Pixy {
 		  Ogre::RenderSystem* mRS = mRoot->getRenderSystem();
 		  mRS->setConfigOption("Full Screen", "No");
 		  mRS->setConfigOption("Video Mode", "640 x 480");
+		  //mRS->setConfigOption("VSync", "Yes");
 		    // If there is no config file, show the configuration dialog
 		    /*if( !mRoot->showConfigDialog() ) {
 		        return false;
@@ -106,7 +111,9 @@ namespace Pixy {
 		// Create needed scenemanagers
 		Ogre::SceneManager *mSceneMgr = mRoot->createSceneManager( "DefaultSceneManager", "KarazehScene" );
 		Ogre::Camera *mCamera = mSceneMgr->createCamera("KarazehCamera");
-		mRenderWindow->addViewport(mCamera, -1);
+		mViewport = mRenderWindow->addViewport(mCamera);
+		mCamera->setAspectRatio((Ogre::Real)mViewport->getActualWidth() / (Ogre::Real)mViewport->getActualHeight());
+		mCamera = 0; mSceneMgr = 0;
 		
 		return true;
 	}
@@ -122,21 +129,21 @@ namespace Pixy {
 		
 		String sSection, sType, sArch;
 		while( itSection.hasMoreElements() ) {
-		    sSection = itSection.peekNextKey();
-			
-		    ConfigFile::SettingsMultiMap *mapSettings = itSection.getNext();
-		    ConfigFile::SettingsMultiMap::iterator itSetting = mapSettings->begin();
-		    while( itSetting != mapSettings->end() ) {
-		        sType = itSetting->first;
-		        sArch = itSetting->second;
+      sSection = itSection.peekNextKey();
+	
+      ConfigFile::SettingsMultiMap *mapSettings = itSection.getNext();
+      ConfigFile::SettingsMultiMap::iterator itSetting = mapSettings->begin();
+      while( itSetting != mapSettings->end() ) {
+        sType = itSetting->first;
+        sArch = itSetting->second;
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-				ResourceGroupManager::getSingleton().addResourceLocation( String(macBundlePath() + "/" + sArch), sType, sSection);
+			  ResourceGroupManager::getSingleton().addResourceLocation( String(macBundlePath() + "/" + sArch), sType, sSection);
 #else
-				ResourceGroupManager::getSingleton().addResourceLocation( sArch, sType, sSection);
+			  ResourceGroupManager::getSingleton().addResourceLocation( sArch, sType, sSection);
 #endif
 				
-		        ++itSetting;
-		    }
+        ++itSetting;
+	    }
 		}
 		ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 	}
@@ -146,8 +153,8 @@ namespace Pixy {
 	};
 	
 	void OgreRenderer::getWindowExtents(int *width, int *height) {
-	  *width = 640;
-	  *height = 480;
+	  (*width) = 640;
+	  (*height) = 480;
 	};
 			  
 	bool OgreRenderer::setup() {
@@ -194,8 +201,10 @@ namespace Pixy {
 		    return false;
 		}
 		
-		mRenderWindow = mRoot->getAutoCreatedWindow();
+		//mRenderWindow = mRoot->getAutoCreatedWindow();
 		WindowEventUtilities::addWindowEventListener( mRenderWindow, this );
+		
+		mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
 		
 		this->setupResources(lPathResources.str());
 		
@@ -203,34 +212,60 @@ namespace Pixy {
 	};
 	
 	bool OgreRenderer::deferredSetup() {
-	
+		mTrayMgr = 
+		new SdkTrayManager(
+		  "TrayManager", 
+		  mRenderWindow, 
+		  InputManager::getSingletonPtr()->getMouse(), this);
+		
+		//mTrayMgr->getTrayContainer(TL_NONE)->hide();
+	  //mTrayMgr->setTrayPadding(10);	
+	  
+	  mOverlayMgr->getByName("Karazeh/UI")->show();
+	  mTrayMgr->createLabel(TL_LEFT, "Status", "Status: ");
+	  
+	  mTrayMgr->createProgressBar(TL_LEFT, "Progess", "Progress", 320, 20);
+	  mTrayMgr->adjustTrays();
+	  
 	};
 	
 	bool OgreRenderer::cleanup() {
-	
+	  delete mTrayMgr;
 	};
 	
 	void OgreRenderer::update(unsigned long lTimeElapsed) {
-			WindowEventUtilities::messagePump();
+    
+		WindowEventUtilities::messagePump();
 
-			// render next frame
-		  mRoot->renderOneFrame();
+    mFrameEvt.timeSinceLastFrame = mFrameEvt.timeSinceLastEvent = lTimeElapsed;		
+    mTrayMgr->frameRenderingQueued(mFrameEvt);
+    
+		// render next frame
+	  mRoot->renderOneFrame();
 	}
 	
-	void OgreRenderer::injectError(PATCHERROR errorCode, std::string errorMsg) {
+	void OgreRenderer::injectError(PATCHERROR errorCode, std::string inMsg) {
 	}
-  void OgreRenderer::injectError(PATCHNOTICE noticeCode, std::string noticeMsg) {
+  void OgreRenderer::injectNotice(PATCHNOTICE noticeCode, std::string inMsg) {
+    mTrayMgr->showOkDialog("Notice", inMsg);
   }
+  
+  bool OgreRenderer::injectPrompt(std::string inMsg) {
+    //mTrayMgr->showYesNoDialog("Notice", inMsg);
+    mTrayMgr->showOkDialog("Notice", inMsg);
+  }
+  void OgreRenderer::injectStatus(std::string inMsg) {
+    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(inMsg);
+  }
+  void OgreRenderer::injectProgress(int progress) {
+  
+  }
+  
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
-		// Call keyPressed of current state
-		//mStates.back()->keyPressed( e );
-		
 		return true;
 	}
 	
 	bool OgreRenderer::keyReleased( const OIS::KeyEvent &e ) {
-		// Call keyReleased of current state
-		//mStates.back()->keyReleased( e );
 		if (e.key == OIS::KC_ESCAPE)
 		  Launcher::getSingleton().requestShutdown();
 		  
@@ -238,23 +273,35 @@ namespace Pixy {
 	}
 	
 	bool OgreRenderer::mouseMoved( const OIS::MouseEvent &e ) {
-		// Call mouseMoved of current state
-		//mStates.back()->mouseMoved( e );
+		OIS::MouseState state = e.state;
+    OIS::MouseEvent orientedEvt((OIS::Object*)e.device, state);
+		if (mTrayMgr->injectMouseMove(e)) return true;
 		
 		return true;
 	}
 	
 	bool OgreRenderer::mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-		// Call mousePressed of current state
-		//mStates.back()->mousePressed( e, id );
+	  OIS::MouseState state = e.state;
+	  OIS::MouseEvent orientedEvt((OIS::Object*)e.device, state);
+	  if (mTrayMgr->injectMouseDown(orientedEvt, id)) return true;
 		
 		return true;
 	}
 	
 	bool OgreRenderer::mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-		// Call mouseReleased of current state
-		//mStates.back()->mouseReleased( e, id );
+	  OIS::MouseState state = e.state;
+	  OIS::MouseEvent orientedEvt((OIS::Object*)e.device, state);
+	  
+	  if (mTrayMgr->injectMouseUp(orientedEvt, id)) return true;
 		
 		return true;
 	}
+	
+  void OgreRenderer::buttonHit(OgreBites::Button* b) {
+    /*
+		if (b->getName() == "TrayManager/YesButton")   // enter configuration screen
+		{
+		  Patcher::getSingleton().doPatch(0);
+		}*/
+  };	
 };

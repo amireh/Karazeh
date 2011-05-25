@@ -6,3 +6,4 @@
 * thread all main operations to keep the renderer active
 * feedback between Renderer and Patcher/Downloader
 * decouple logger
+* check version sig in external resource against the compiled one and choose the highest

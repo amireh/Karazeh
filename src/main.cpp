@@ -32,7 +32,7 @@ INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
 #endif
     
 		try {
-			Pixy::Launcher::getSingleton().go((argc > 1));
+			Pixy::Launcher::getSingleton().go((argc > 1) ? argv[1] : 0);
 		}
 		catch ( std::exception& e ) {
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32

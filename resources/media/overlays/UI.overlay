@@ -1,0 +1,56 @@
+// The name of the overlay comes first
+
+Karazeh/UI
+{
+
+  container Panel(UI/Containers/Status)
+  {
+	  metrics_mode pixels
+	  horz_align left
+	  vert_align top
+	  
+	  width 300
+	  height 100
+	  left 0
+	  top 0
+	  
+    element TextArea(UI/Text/Status)
+    {
+      metrics_mode pixels
+      
+      font_name SdkTrays/Caption
+      colour 0.9 0.9 0.9
+      colour_bottom 0.7 0.7 0.7
+      alignment left
+      char_height 22
+      space_width 11
+      
+      horz_align left
+      vert_align top
+      
+      top 0
+      left 0
+      width 300
+      height 100
+      
+      caption Status: 	  
+    }
+  }
+  
+
+  // -- Logo --
+  container Panel(UI/Containers/Logo)
+  {
+	  metrics_mode pixels
+	  material Vertigo/Logo
+	  horz_align center
+	  top -100
+	  width 640
+	  height 640
+	  
+  }
+   
+}
+
+
+

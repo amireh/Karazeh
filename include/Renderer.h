@@ -65,7 +65,10 @@ namespace Pixy {
 		virtual void getWindowExtents(int *width, int *height)=0;
 		
 		virtual void injectError(PATCHERROR errorCode, std::string errorMsg)=0;
-    virtual void injectError(PATCHNOTICE noticeCode, std::string noticeMsg)=0;
+    virtual void injectNotice(PATCHNOTICE noticeCode, std::string noticeMsg)=0;
+    virtual bool injectPrompt(std::string promptMsg)=0;
+    virtual void injectStatus(std::string statusMsg)=0;
+    virtual void injectProgress(int progress)=0;
     
 		//! OIS key input event handler/dispatcher method
 		/*! 

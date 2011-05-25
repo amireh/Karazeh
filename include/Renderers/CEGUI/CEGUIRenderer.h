@@ -21,34 +21,25 @@
  *
  */
 
-#ifndef H_OgreRenderer_H
-#define H_OgreRenderer_H
+#ifndef H_CEGUIRenderer_H
+#define H_CEGUIRenderer_H
 
 #include "Renderer.h"
-#include <Ogre.h>
-#include <OgreConfigFile.h>
-#include <OgreWindowEventUtilities.h>
-#include <OgreException.h>
-#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
-#include "OSX/macUtils.h"
-#endif
-#include "Renderers/Ogre/OgreSdkTrays.h"
+#include <CEGUI.h>
+#include <CEGUI/RendererModules/Ogre/CEGUIOgreRenderer.h>
 
 namespace Pixy {
 	
-	/*	\class OgreRenderer
+	/*	\class CEGUIRenderer
 	 *	\brief
 	 *	
 	 */
-	class OgreRenderer : 
-	  public Renderer, 
-	  public Ogre::WindowEventListener, 
-	  public OgreBites::SdkTrayListener
+	class CEGUIRenderer :  public Renderer
 	{
 		
 	public:
-	  OgreRenderer();
-		virtual ~OgreRenderer();
+	  CEGUIRenderer();
+		virtual ~CEGUIRenderer();
 		
 		/* \brief
 		 *
@@ -85,23 +76,17 @@ namespace Pixy {
 		virtual bool mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 		virtual bool mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 		
-		virtual void buttonHit(OgreBites::Button* b);
 	protected:
-    Ogre::Root *mRoot;
-    Ogre::RenderWindow *mRenderWindow;
-    Ogre::Viewport* mViewport;
-		Ogre::OverlayManager *mOverlayMgr;
-		OgreBites::SdkTrayManager *mTrayMgr;
-		
-		Ogre::FrameEvent mFrameEvt;
-		
 		void setupResources(std::string inPath);
-		bool configureGame();
-		void loadRenderSystems();
-		
+    
+    CEGUI::System *mSystem;
+    CEGUI::WindowManager *mWindowMgr;
+    CEGUI::SchemeManager *mSchemeMgr;
+    CEGUI::FontManager *mFontMgr;
+        
 	private:
-		OgreRenderer(const OgreRenderer& src);
-		OgreRenderer& operator=(const OgreRenderer& rhs);
+		CEGUIRenderer(const CEGUIRenderer& src);
+		CEGUIRenderer& operator=(const CEGUIRenderer& rhs);
 	};
 }
 #endif

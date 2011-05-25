@@ -1,0 +1,17 @@
+material Vertigo/Logo
+{
+  technique
+  {
+    pass
+    {
+      ambient 0 0 0
+      scene_blend alpha_blend
+      
+      texture_unit
+      {
+        texture logo.png
+        //colour_op alpha_blend
+      }
+    }
+  }
+}
