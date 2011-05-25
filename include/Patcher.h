@@ -40,9 +40,11 @@ namespace Pixy {
 
 typedef enum {
   NO_SUCH_FILE,
+  FILE_ALREADY_EXISTS,
+  FILE_ALREADY_PATCHED,
   CANNOT_DELETE,
   CANNOT_CREATE,
-  CANNOT_MODIFY  
+  CANNOT_MODIFY
 } PATCHERROR;
 
 typedef enum {
@@ -50,7 +52,7 @@ typedef enum {
 } PATCHNOTICE;
 
 class Patcher {
-  typedef void (Patcher::*t_proc)(PatchEntry*);
+  typedef void (Patcher::*t_proc)(PatchEntry*, bool);
   typedef std::map<PATCHOP, t_proc> t_procmap;
   public:
     ~Patcher( void );
@@ -87,12 +89,18 @@ class Patcher {
     
     t_procmap mProcessors;
     
-    void processCreate(PatchEntry* inEntry);
-    void processDelete(PatchEntry* inEntry);
-    void processModify(PatchEntry* inEntry);
+    void processCreate(PatchEntry* inEntry, bool fCommit);
+    void processDelete(PatchEntry* inEntry, bool fCommit);
+    void processModify(PatchEntry* inEntry, bool fCommit);
     
-    std::vector<PATCHERROR> mErrors;
-    std::vector<PATCHNOTICE> mNotices;
+    /*! \brief
+     *  Validates the PatchEntries in the repository: if there's a CREATE
+     *  operation and the file already exists, or if there's a DELETE operation
+     *  when the file doesn't exist, we cannot commit this patch; it's invalid.
+     */
+    bool preprocess(Repository* inRepo);
+    
+    void updateVersion();
     
   private:
 	  Patcher();

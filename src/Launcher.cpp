@@ -31,7 +31,7 @@ namespace Pixy
 
   void handle_interrupt(int param)
   {
-    printf("Something wrong happened, attempting to cleanup: %d\n", param);
+    printf("Signal %d received, shutdown is forced; attempting to cleanup. Please see the log.\n", param);
     Launcher::getSingleton().requestShutdown();
   }
   	
@@ -193,7 +193,7 @@ namespace Pixy
 		lCat->infoStream() 
 		<< "\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+";
 		lCat->infoStream() 
-		<< "\n+                           " << PIXY_APP_NAME << " " << PIXY_APP_VERSION << "                                    +";
+		<< "\n+                                 " << PIXY_APP_NAME << "                                    +";
 		lCat->infoStream() 
 		<< "\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n";
 		
@@ -206,11 +206,6 @@ namespace Pixy
 		
 		mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Launcher");
 	}
-	
-	const std::string Launcher::getVersion() {
-	  return std::string(PIXY_APP_VERSION);
-	};
-	
 	
 	void Launcher::evtValidateStarted() {
 	  std::cout << "Validating version...\n";

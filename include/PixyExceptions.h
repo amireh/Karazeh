@@ -75,6 +75,43 @@ namespace Pixy {
 		{ }
 	};
 	
+	class PatchEntry;
+	class PatchException : public std::runtime_error {
+	public:
+	  inline PatchException(const std::string& s, PatchEntry* e)
+	  : std::runtime_error(s)
+	  { Entry = e; };
+	  PatchEntry* Entry;
+	};
+	/*
+	 * raised when a CREATE op is told to create an already existing file
+	 */
+	class FileAlreadyCreated : public PatchException {
+	public:
+		inline FileAlreadyCreated(const std::string& s, PatchEntry* e)
+		: PatchException(s, e)
+		{ }
+	};	
+
+	/*
+	 * raised when a DELETE op is told to delete a non-existent file
+	 */
+	class FileDoesNotExist : public PatchException {
+	public:
+		inline FileDoesNotExist(const std::string& s, PatchEntry* e )
+		: PatchException(s, e)
+		{ }
+	};
+	
+	/*
+	 * raised when a MODIFY op is told to patch an up-to-date file
+	 */
+	class FileAlreadyModified : public PatchException {
+	public:
+		inline FileAlreadyModified(const std::string& s, PatchEntry* e)
+		: PatchException(s, e)
+		{ }
+	};	
 }
 
 #endif

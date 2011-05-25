@@ -34,7 +34,36 @@ namespace Pixy {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Patcher");
 		mLog->infoStream() << "firing up";
 		
+		using boost::filesystem::exists;
+		using std::fstream;
+
+		// get our current version, and set a default one
 		mCurrentVersion = Version(std::string(PIXY_APP_VERSION));
+		fstream res;
+		if (!exists(PIXY_RESOURCE_PATH)) {
+      res.open(PIXY_RESOURCE_PATH, fstream::out);
+
+      if (!res.is_open() || !res.good()) {
+      		
+		  } else {
+		    res.write(PIXY_APP_VERSION, sizeof(PIXY_APP_VERSION));
+		    res.close();
+		  }
+		  
+		} else {
+      res.open(PIXY_RESOURCE_PATH, fstream::in);
+      
+		  if (res.is_open() && res.good()) {
+		    std::string v;
+		    getline(res, v);
+		    mCurrentVersion = Version(v);
+		    res.close();
+		  } else {
+		    // TODO: inject renderer with error: missing data file
+		  }
+		}
+		
+		mLog->infoStream() << "Application version: " << mCurrentVersion.Value;
 		mPatchListPath = std::string(PROJECT_TEMP_DIR) + "patchlist.txt";
 		
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
@@ -247,6 +276,23 @@ namespace Pixy {
     
 	};
 	
+	bool Patcher::preprocess(Repository* inRepo) {
+	  std::vector<PatchEntry*> entries = inRepo->getEntries();
+    bool success = true;
+    std::vector<PatchEntry*>::const_iterator entry;
+    for (entry = entries.begin(); entry != entries.end() && success; ++entry)
+      try {
+        (this->*mProcessors[(*entry)->Op])((*entry), false);
+      } catch (FileDoesNotExist* e) {
+        success = false;
+        // TODO: inject renderer with the error
+      } catch (FileAlreadyCreated* e) {
+        success = false;
+      }
+    
+    return success;
+	};
+	
 	bool Patcher::doPatch(void(*callback)(int)) {
 	  
 	  try {
@@ -266,17 +312,25 @@ namespace Pixy {
 	    mLog->infoStream() << "----";
 	    mLog->infoStream() << "Patching to " << (*repo)->getVersion().Value;
 	    
+	    // validate the repository
+	    if (!preprocess(*repo)) {
+	      // we cannot patch
+	      // TODO: inform renderer
+	      break;
+	    }
+	    
 	    // download the patch files
 	    Downloader::getSingleton().fetchRepository(*repo);
 	    
-	    // process them
-	    std::vector<PatchEntry*> entries = (*repo)->getEntries();
-	    
+	    // TODO: perform a check before committing any changes so we can rollback
+	    std::vector<PatchEntry*> entries = (*repo)->getEntries();	    
 	    std::vector<PatchEntry*>::const_iterator entry;
 	    for (entry = entries.begin(); entry != entries.end(); ++entry)
-	      (this->*mProcessors[(*entry)->Op])((*entry));
-	      
+        (this->*mProcessors[(*entry)->Op])((*entry), true);
+	    
       mLog->infoStream() << "Application successfully patched to " << (*repo)->getVersion().Value;
+      mCurrentVersion = (*repo)->getVersion();
+      this->updateVersion();
 	  }
 	  
 	  // we're done, let's clean up.. delete the whole tmp directory
@@ -290,60 +344,98 @@ namespace Pixy {
 	  return true;
 	}
 	
-	void Patcher::processCreate(PatchEntry* inEntry) {
+	void Patcher::processCreate(PatchEntry* inEntry, bool fCommit) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;
 	  using boost::filesystem::rename;
 	  
-	  mLog->debugStream() << "creating a file";
-	  
 	  // TODO: boost error checking
 	  
 	  path local(inEntry->Local);
 	  path temp(inEntry->Temp);
 	  
-	  // make sure the file doesn't already exist, if it does.. delete it
-	  if (exists(local) && !is_directory(local)) {
-	    remove(local);
+	  // make sure the file doesn't already exist, if it does.. abort
+	  if (exists(local)) {
+	    mLog->errorStream() << "file to be created already exists! aborting...";
+	    throw new FileAlreadyCreated("Could not create file!", inEntry);
 	  }
+	  
+	  if (!fCommit)
+	    return;
+	    
+	  mLog->debugStream() << "creating a file";
 	  
 	  // let's see if its parent directory exists, otherwise we create it
 	  if (!is_directory(local.parent_path()))
 	    create_directory(local.parent_path());
-	    
+	  
 	  // now we move the file
 	  rename(temp, local);
 	};
 	
-	void Patcher::processDelete(PatchEntry* inEntry) {
+	void Patcher::processDelete(PatchEntry* inEntry, bool fCommit) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;
-
-	  mLog->debugStream() << "deleting a file";
 	  
 	  path local(inEntry->Local);
-	  // TODO: boost error checking
-	  if (exists(local))
-	    if (is_directory(local))
-	      boost::filesystem::remove_all(local);
-	    else
-	      boost::filesystem::remove(local);
-	  else {
+	  
+	  // make sure the file exists!
+	  if (!exists(local)) {
 	    mLog->errorStream() << "no such file to delete! " << local;
+	    throw new FileDoesNotExist("Could not delete file!", inEntry);
 	  }
+	  	  
+    if (!fCommit)
+	    return;
+	  
+	  mLog->debugStream() << "deleting a file";
+	  
+	  // TODO: boost error checking
+    if (is_directory(local))
+      boost::filesystem::remove_all(local);
+    else
+      boost::filesystem::remove(local);
 	};
 	
-	void Patcher::processModify(PatchEntry* inEntry) {
+	void Patcher::processModify(PatchEntry* inEntry, bool fCommit) {
 	  using boost::filesystem::path;
+	  using boost::filesystem::rename;
+	  using boost::filesystem::copy_file;
+	  
+	  if (!fCommit)
+	    return;
 	  
 	  mLog->debugStream() << "modifying a file";
 	  
 	  // TODO: boost error checking
-	  patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
+	  // __DEBUG__
+	  std::string tmp = inEntry->Temp;
+	  tmp += ".foobar";
+	  
+	  //patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
+	  copy_file(inEntry->Local, tmp);
+	  patch(tmp.c_str(), tmp.c_str(), inEntry->Temp.c_str());
 	  remove(path(inEntry->Temp));
+	  remove(path(inEntry->Local));
+	  rename(tmp, inEntry->Local);
+	  
+	  
+	  // TODO: check if the file was already patched
+	};
+	
+	void Patcher::updateVersion() {
+	  using std::fstream;
+	  fstream res;
+	  res.open(PIXY_RESOURCE_PATH, fstream::out);
+	  if (!res.is_open() || !res.good()) {
+	    mLog->errorStream() << "couldn't open version resource file " << PIXY_RESOURCE_PATH << ", aborting version update";
+	    return;
+	  }
+	  res.write(mCurrentVersion.Value.c_str(), mCurrentVersion.Value.size());
+	  res.close();
 	};
 };

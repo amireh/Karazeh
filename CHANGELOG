@@ -1,0 +1,13 @@
+-= Version 0.1 =-
+* Implemented the Patcher using boost::filesystem and bspatch, supporting 3 operations:
+  # CREATE
+  # DELETE
+  # MODIFY
+* Implemented the Downloader using libcurl to fetch the patchlist and the entries  
+* Added Repositories to represent the state of the application at every version
+* CREATE operations now stage files in a temp directory just like MODIFY
+* Patcher carries out all operations now
+* SIGINT and SIGKILL are now intercepted to cleanup before exit
+* operation processors now throw custom exceptions if there was an error
+* Patcher validates the repository's entries before committing the changes
+

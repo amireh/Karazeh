@@ -36,6 +36,7 @@
 #define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
 #define PIXY_APP_NAME "Karazeh" // used in RenderWindow title
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
+#define PIXY_RESOURCE_PATH "Karazeh.dat"
 #define PIXY_PERSISTENT 1
 
 /* Finds the current platform 
