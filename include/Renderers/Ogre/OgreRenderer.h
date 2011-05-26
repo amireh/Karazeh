@@ -72,12 +72,6 @@ namespace Pixy {
 
 		virtual void getWindowHandle(size_t *windowHnd);
 		virtual void getWindowExtents(int *width, int *height);
-				
-		virtual bool injectError(Event* inEvt);
-    virtual bool injectNotice(Event* inEvt);
-    virtual bool injectPrompt(Event* inEvt);
-    virtual bool injectStatus(Event* inEvt);
-    virtual bool injectProgress(Event* inEvt);
 
 		virtual bool keyPressed( const OIS::KeyEvent &e );
 		virtual bool keyReleased( const OIS::KeyEvent &e );		
@@ -96,6 +90,10 @@ namespace Pixy {
 		
 		Ogre::FrameEvent mFrameEvt;
 		
+		OgreBites::TextBox* mStatusBox;
+		OgreBites::ProgressBar* mProgress;
+		
+		bool evtUnableToConnect(Event* inEvt);
 		bool evtValidateStarted(Event* inEvt);
 		bool evtValidateComplete(Event* inEvt);
 		bool evtFetchStarted(Event* inEvt);
@@ -104,6 +102,7 @@ namespace Pixy {
 		bool evtPatchFailed(Event* inEvt);
 		bool evtPatchComplete(Event* inEvt);
 		bool evtApplicationPatched(Event* inEvt);
+		
 		
 		void setupResources(std::string inPath);
 		bool configureGame();

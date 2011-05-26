@@ -65,13 +65,7 @@ namespace Pixy {
 		
 		virtual void getWindowHandle(size_t *windowHnd)=0;
 		virtual void getWindowExtents(int *width, int *height)=0;
-		
-		virtual bool injectError(Event* inEvt)=0;
-    virtual bool injectNotice(Event* inEvt)=0;
-    virtual bool injectPrompt(Event* inEvt)=0;
-    virtual bool injectStatus(Event* inEvt)=0;
-    virtual bool injectProgress(Event* inEvt)=0;
-    
+		   
 		//! OIS key input event handler/dispatcher method
 		/*! 
 		 *	\note
@@ -116,7 +110,16 @@ namespace Pixy {
     log4cpp::Category* mLog;
     bool fSetup;
     std::string mName;
-    
+
+		bool evtValidateStarted(Event* inEvt);
+		bool evtValidateComplete(Event* inEvt);
+		bool evtFetchStarted(Event* inEvt);
+		bool evtFetchComplete(Event* inEvt);
+		bool evtPatchStarted(Event* inEvt);
+		bool evtPatchFailed(Event* inEvt);
+		bool evtPatchComplete(Event* inEvt);
+		bool evtApplicationPatched(Event* inEvt);
+		    
 	private:
 		Renderer(const Renderer& src);
 		Renderer& operator=(const Renderer& rhs);

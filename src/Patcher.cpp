@@ -26,7 +26,7 @@
 #include "EventManager.h"
 //#include "Launcher.h"
 
-extern "C" int patch(const char* src, const char* dest, const char* diff);
+extern "C" int bspatch(const char* src, const char* dest, const char* diff);
 
 namespace Pixy {
 	Patcher* Patcher::__instance;
@@ -34,6 +34,8 @@ namespace Pixy {
 	Patcher::Patcher() {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Patcher");
 		mLog->infoStream() << "firing up";
+		
+		mEvtMgr = EventManager::getSingletonPtr();
 		
 		using boost::filesystem::exists;
 		using std::fstream;
@@ -71,7 +73,7 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
 		
-		bindToName("DoPatch", this, &Patcher::evtDoPatch);
+		bindToName("Patch", this, &Patcher::patch);
   }
 	
 	Patcher::~Patcher() {
@@ -93,6 +95,8 @@ namespace Pixy {
 
 		if (mLog)
 		  delete mLog;
+		  
+		mEvtMgr = 0;
 	}
 	
 	Patcher* Patcher::getSingletonPtr() {
@@ -111,11 +115,11 @@ namespace Pixy {
     processEvents();
   }
   
-	bool Patcher::validateVersion() {
+	bool Patcher::validate() {
 	  
 	  //Launcher::getSingleton().evtValidateStarted();
-	  Event* lEvt = EventManager::getSingleton().createEvt("ValidateStarted");
-	  EventManager::getSingleton().hook(lEvt);
+	  Event* lEvt = mEvtMgr->createEvt("ValidateStarted");
+	  mEvtMgr->hook(lEvt);
 	  lEvt = 0;
 	  
 	  // download the patch list
@@ -125,6 +129,8 @@ namespace Pixy {
 	    mLog->errorStream()
 	      << "could not retrieve patch list, aborting validation. Cause: " 
 	      << e.what();
+	    
+	    mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
 	    return false;
 	  }
 
@@ -160,9 +166,9 @@ namespace Pixy {
     mPatchList.close();
     
     //Launcher::getSingleton().evtValidateComplete(needPatch);
-    lEvt = EventManager::getSingleton().createEvt("ValidateComplete");
+    lEvt = mEvtMgr->createEvt("ValidateComplete");
 	  lEvt->setProperty("NeedUpdate", (needPatch) ? "Yes" : "No");
-	  EventManager::getSingleton().hook(lEvt);
+	  mEvtMgr->hook(lEvt);
 	  lEvt = 0;
     
     return true;
@@ -312,16 +318,14 @@ namespace Pixy {
     return success;
 	};
 	
-	bool Patcher::evtDoPatch(Event* inEvt) {
+	bool Patcher::patch(Event* inEvt) {
 	  
 	  try {
 	    buildRepositories();
-	  } catch (BadVersion& e) {
-	  
-	  } catch (BadFileStream& e) {
-	  
-	  } catch (std::exception& e) {
-	  
+	  } catch (BadVersion* e) {
+      mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
+	  } catch (BadFileStream* e) {
+	    mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
 	  }
 	    
 	  mLog->infoStream() << "Total patches: " << mRepos.size();
@@ -333,18 +337,18 @@ namespace Pixy {
 	    mLog->infoStream() << "----";
 	    mLog->infoStream() << "Patching to " << (*repo)->getVersion().Value;
 	    
-      lEvt = EventManager::getSingleton().createEvt("PatchStarted");
+      lEvt = mEvtMgr->createEvt("PatchStarted");
       lEvt->setProperty("Version", (*repo)->getVersion().Value);
-      EventManager::getSingleton().hook(lEvt);
+      mEvtMgr->hook(lEvt);
       lEvt = 0;
       	    
 	    // validate the repository
 	    if (!preprocess(*repo)) {
 	      // we cannot patch
 	      // TODO: inform renderer (DONE)
-        lEvt = EventManager::getSingleton().createEvt("PatchFailed");
+        lEvt = mEvtMgr->createEvt("PatchFailed");
         lEvt->setProperty("Version", (*repo)->getVersion().Value);
-	      EventManager::getSingleton().hook(lEvt);
+	      mEvtMgr->hook(lEvt);
 	      lEvt = 0;
 	      
 	      success = false;
@@ -369,8 +373,8 @@ namespace Pixy {
 	  }
 	  
 	  if (success) {
-      lEvt = EventManager::getSingleton().createEvt("ApplicationPatched");
-	    EventManager::getSingleton().hook(lEvt);
+      lEvt = mEvtMgr->createEvt("ApplicationPatched");
+	    mEvtMgr->hook(lEvt);
 	    lEvt = 0;
 	  }
 	  
@@ -378,8 +382,8 @@ namespace Pixy {
 	  
 	  // we're done, let's clean up.. delete the whole tmp directory
 	  // TODO: boost error checking
-	  mLog->infoStream() << "cleaning up temp";
-	  boost::filesystem::remove_all(PROJECT_TEMP_DIR);
+	  //mLog->infoStream() << "cleaning up temp";
+	  //boost::filesystem::remove_all(PROJECT_TEMP_DIR);
 	  
 	  return true;
 	}
@@ -442,9 +446,15 @@ namespace Pixy {
 	};
 	
 	void Patcher::processModify(PatchEntry* inEntry, bool fCommit) {
+	  using boost::filesystem::exists;
 	  using boost::filesystem::path;
 	  using boost::filesystem::rename;
 	  using boost::filesystem::copy_file;
+	  
+	  if (!exists(inEntry->Local)) {
+	    mLog->errorStream() << "No such file to modify! " << inEntry->Local;
+      throw new FileDoesNotExist("No such file to modify!", inEntry);	  
+	  }
 	  
 	  if (!fCommit)
 	    return;
@@ -456,9 +466,10 @@ namespace Pixy {
 	  std::string tmp = inEntry->Temp;
 	  tmp += ".foobar";
 	  
+	  
 	  //patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
 	  copy_file(inEntry->Local, tmp);
-	  patch(tmp.c_str(), tmp.c_str(), inEntry->Temp.c_str());
+	  bspatch(tmp.c_str(), tmp.c_str(), inEntry->Temp.c_str());
 	  remove(path(inEntry->Temp));
 	  remove(path(inEntry->Local));
 	  rename(tmp, inEntry->Local);
@@ -478,9 +489,9 @@ namespace Pixy {
 	  res.write(mCurrentVersion.Value.c_str(), mCurrentVersion.Value.size());
 	  res.close();
 	  
-    Event* lEvt = EventManager::getSingleton().createEvt("PatchComplete");
+    Event* lEvt = mEvtMgr->createEvt("PatchComplete");
     lEvt->setProperty("Version", mCurrentVersion.Value);
-    EventManager::getSingleton().hook(lEvt);
+    mEvtMgr->hook(lEvt);
     lEvt = 0;
 	};
 };

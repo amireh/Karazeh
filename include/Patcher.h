@@ -25,6 +25,7 @@
 #define H_Patcher_H
 
 #include "Pixy.h"
+#include "EventManager.h"
 #include "EventListener.h"
 #include "Repository.h"
 #include <list>
@@ -62,7 +63,7 @@ class Patcher : public EventListener {
 	  static Patcher& getSingleton();
 		
 		void update();
-		
+
 	  /*! 
 	   * \brief
 	   *  Validates current application version against the latest version
@@ -78,15 +79,17 @@ class Patcher : public EventListener {
 	   * \warn
 	   *  MUST be called before fetchPatchData()
 	   */
-	  bool validateVersion();
-	  
+	  bool validate();
+	      
+    bool patch(Event* inEvt);
+    		  
 	protected:
 	  std::list<Repository*> mRepos;
     std::string mPatchListPath;
     std::ifstream mPatchList;
     Version mCurrentVersion, mTargetVersion;
     
-    bool evtDoPatch(Event* inEvt);
+
     
     void buildRepositories();
     
@@ -109,6 +112,8 @@ class Patcher : public EventListener {
 	  Patcher();
 	  Patcher(const Patcher&) {}
 	  Patcher& operator=(const Patcher&);
+	  
+	  EventManager* mEvtMgr;
 	  
     static Patcher *__instance;
     log4cpp::Category* mLog;

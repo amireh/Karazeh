@@ -23,6 +23,7 @@
  
 #include "Renderers/Ogre/OgreRenderer.h"
 #include "Launcher.h"
+#include "Patcher.h"
 
 using namespace Ogre;
 using namespace OgreBites;
@@ -208,6 +209,7 @@ namespace Pixy {
 		
 		this->setupResources(lPathResources.str());
 		
+		bindToName("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
 		bindToName("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
 		bindToName("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
 		bindToName("PatchStarted", this, &OgreRenderer::evtPatchStarted);
@@ -229,10 +231,11 @@ namespace Pixy {
 	  
 	  mOverlayMgr->getByName("Karazeh/UI")->show();
 	  //mTrayMgr->createLabel(TL_CENTER, "StatusLabel", "Status");
-	  mTrayMgr->createTextBox(TL_CENTER, "Status", "Status", 320, 120);
+	  mStatusBox = mTrayMgr->createTextBox(TL_CENTER, "Status", "Status", 320, 160);
 	  
 	  mTrayMgr->createButton(TL_CENTER, "Launch", "Launch");
-	  mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
+	  mTrayMgr->createButton(TL_CENTER, "Patch", "Patch");
+	  mProgress = mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 	  
 	};
@@ -261,7 +264,9 @@ namespace Pixy {
 	bool OgreRenderer::evtValidateStarted(Event* inEvt) {
 	  mLog->infoStream() << "Handling evt: " << inEvt->getName();
 	  
-	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Validating...");
+	  mStatusBox->setCaption("Validating...");
+    mStatusBox->setText("Downloading latest patch information");
+    
 	  return true;
 	}
 	bool OgreRenderer::evtValidateComplete(Event* inEvt) {
@@ -269,15 +274,18 @@ namespace Pixy {
 	  
 	  if (inEvt->getProperty("NeedUpdate") == "Yes") {
 	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
-	    //static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is not up to date");
+	    mStatusBox->setText("Application needs updating.");
 	  } else {
-	    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is up to date");
+	    mStatusBox->setText("Application is up to date");
 	  }
 	  return true;
 	}
+	
 	bool OgreRenderer::evtPatchStarted(Event* inEvt) {
-	  std::string lCap = "Updating to version " + inEvt->getProperty("Version");
-	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(lCap);
+
+	  mStatusBox->setCaption("Updating");
+	  mStatusBox->setText("Updating to version " + inEvt->getProperty("Version"));
+	  
 	  return true;
 	}
 	
@@ -286,8 +294,12 @@ namespace Pixy {
       + inEvt->getProperty("Version")
       + ". Reinstalling the application is required as the current version "
       + "seems corrupt.";
-      
-    mTrayMgr->showOkDialog("Patch Error", lMsg);
+    
+    //mTrayMgr->showOkDialog("Patch Error", lMsg);
+    
+    mStatusBox->setCaption("Update failed.");
+    //mStatusBox->setText("Please verify your installation or re-install if this problem persists.");
+    mStatusBox->setText(lMsg);
       
     return true;
 	}
@@ -296,6 +308,10 @@ namespace Pixy {
     std::string lMsg = "Application was successfully updated to "
       + inEvt->getProperty("Version");
 	  mTrayMgr->showOkDialog("Patch Successful", lMsg);
+	  
+	  mStatusBox->setCaption("Updated");
+	  mStatusBox->setText(lMsg);
+	  
 		return true;
   }
   
@@ -303,27 +319,12 @@ namespace Pixy {
     std::string lMsg = "All updates were successful.";
 	  mTrayMgr->showOkDialog("Application up to date", lMsg); 
 	  
-	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is up to date.");
+	  mStatusBox->setCaption("Application is up to date.");
+	  mStatusBox->setText(lMsg);
+	  
     return true;
   }
   
-	bool OgreRenderer::injectError(Event* inEvt){
-	  return true;
-	}
-  bool OgreRenderer::injectNotice(Event* inEvt){
-    mTrayMgr->showOkDialog("Notice", inEvt->getProperty("Message"));
-    return true;
-  }
-  bool OgreRenderer::injectPrompt(Event* inEvt){
-    return true;
-  }
-  bool OgreRenderer::injectStatus(Event* inEvt) {
-    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(inEvt->getProperty("Message"));
-    return true;
-  }
-  bool OgreRenderer::injectProgress(Event* inEvt){
-    return true;
-  }
   
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
 		return true;
@@ -362,17 +363,28 @@ namespace Pixy {
 	}
 	
 	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
-	  mLog->debugStream() << "moo yes no closed and yes hit? " << (yesHit ? "yes" : "no"); 
+
 	  if (yesHit) {
-      Event* lEvt = EventManager::getSingleton().createEvt("DoPatch");
+      Event* lEvt = EventManager::getSingleton().createEvt("Patch");
 	    EventManager::getSingleton().hook(lEvt);
 	    lEvt = 0;
 	  }
+	  
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
     if (b->getName() == "Launch") {
       Launcher::getSingleton().launchExternalApp("./Launcher", "Launcher");
+    } else if (b->getName() == "Patch") {
+      Patcher::getSingleton().validate();
     }
+
+  };
+  
+  bool OgreRenderer::evtUnableToConnect(Event* inEvt) {
+    mStatusBox->setCaption("Error");
+    mStatusBox->setText("Unable to connect to patch server, please verify your internet connectivity.");
+    
+    return true;
   };
   
 };

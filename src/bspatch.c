@@ -55,7 +55,7 @@ static off_t offtin(u_char *buf)
 }
 
 //int patch(int argc,char * argv[])
-int patch(const char* src, const char* dest, const char* diff)
+int bspatch(const char* src, const char* dest, const char* diff)
 {
 	FILE * f, * cpf, * dpf, * epf;
 	BZFILE * cpfbz2, * dpfbz2, * epfbz2;

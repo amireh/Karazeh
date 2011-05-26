@@ -155,7 +155,7 @@ namespace Pixy
 	
 	void Launcher::launchDownloader() {
 	  try { 
-	    Patcher::getSingleton().validateVersion();
+	    Patcher::getSingleton().validate();
 	  } catch (BadVersion* e) {
 	    //mLog->errorStream() << "version mismatch!";
 	    std::cout << "version mismatch!";
