@@ -228,9 +228,11 @@ namespace Pixy {
 	  //mTrayMgr->setTrayPadding(10);	
 	  
 	  mOverlayMgr->getByName("Karazeh/UI")->show();
-	  mTrayMgr->createLabel(TL_LEFT, "Status", "Status: ");
+	  //mTrayMgr->createLabel(TL_CENTER, "StatusLabel", "Status");
+	  mTrayMgr->createTextBox(TL_CENTER, "Status", "Status", 320, 120);
 	  
-	  mTrayMgr->createProgressBar(TL_LEFT, "Progess", "Progress", 320, 20);
+	  mTrayMgr->createButton(TL_CENTER, "Launch", "Launch");
+	  mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 	  
 	};
@@ -368,6 +370,9 @@ namespace Pixy {
 	  }
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
+    if (b->getName() == "Launch") {
+      Launcher::getSingleton().launchExternalApp("./Launcher", "Launcher");
+    }
   };
   
 };

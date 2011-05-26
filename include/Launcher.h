@@ -57,7 +57,9 @@ namespace Pixy
 		 *	
 		 */
 		void go(const char* inRendererName = 0);
-				
+		
+		void launchExternalApp(std::string inPath, std::string inAppName);
+		
 		//!	Shuts down the system, consequently shutting down all running game states.
 		/*! 
 		 *	\note

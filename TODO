@@ -4,6 +4,6 @@
 * decouple Renderer (done)
 * create Ogre Renderer (done)
 * thread all main operations to keep the renderer active
-* feedback between Renderer and Patcher/Downloader
+* feedback between Renderer and Patcher/Downloader (done)
 * decouple logger
 * check version sig in external resource against the compiled one and choose the highest

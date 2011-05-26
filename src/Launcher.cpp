@@ -258,4 +258,15 @@ namespace Pixy
 	void Launcher::evtPatchComplete(bool success) {
 	  std::cout << "Patching is complete\n";
 	}
+	
+	void Launcher::launchExternalApp(std::string inPath, std::string inAppName) {
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
+    ShellExecute(inPath);
+#else
+    execl(inPath.c_str(), inAppName.c_str(), "Ogre", NULL);
+    
+    //system(inPath.c_str());
+    //exit(0);
+#endif
+	}
 } // end of namespace Pixy
