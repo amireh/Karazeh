@@ -64,12 +64,6 @@ namespace Pixy {
 		virtual void getWindowHandle(size_t *windowHnd);
 		virtual void getWindowExtents(int *width, int *height);
 				
-    virtual void injectError(PATCHERROR errorCode, std::string errorMsg);
-    virtual void injectNotice(PATCHNOTICE noticeCode, std::string noticeMsg);
-    virtual bool injectPrompt(std::string promptMsg);
-    virtual void injectStatus(std::string statusMsg);
-    virtual void injectProgress(int progress);
-
 		virtual bool keyPressed( const OIS::KeyEvent &e );
 		virtual bool keyReleased( const OIS::KeyEvent &e );		
 		virtual bool mouseMoved( const OIS::MouseEvent &e );

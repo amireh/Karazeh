@@ -32,7 +32,8 @@ namespace Pixy {
 typedef enum {
   CREATE, //! creates a file locally from a given remote file URL
   DELETE, //! deletes a file locally
-  MODIFY //! patches a file locally from a given remote diff URL
+  MODIFY, //! patches a file locally from a given remote diff URL
+  RENAME
 } PATCHOP;
 
 class Repository;
@@ -76,9 +77,14 @@ struct PatchEntry {
   // only used in the case of MODIFY, it represents where the diff patch was downloaded to
   std::string Temp;
   
-  // a handle to the repository we belong to
+  // a handle to the repository this entry belongs to
   Repository* Repo;
   
+  /*
+   * MD5 checksum used to verify the integrity of downloaded files.
+   * In the case of MODIFY entries, the checksum is that of the downloaded diff file,
+   * and in the case of CREATE, it's of the downloaded file.
+   */
   std::string Checksum;
 };
 

@@ -40,23 +40,11 @@
 
 namespace Pixy {
 
-typedef enum {
-  NO_SUCH_FILE,
-  FILE_ALREADY_EXISTS,
-  FILE_ALREADY_PATCHED,
-  CANNOT_DELETE,
-  CANNOT_CREATE,
-  CANNOT_MODIFY
-} PATCHERROR;
-
-typedef enum {
-
-} PATCHNOTICE;
-
 class Patcher : public EventListener {
-  typedef void (Patcher::*t_proc)(PatchEntry*, bool);
-  typedef std::map<PATCHOP, t_proc> t_procmap;
   public:
+    typedef void (Patcher::*t_proc)(PatchEntry*, bool);
+    typedef std::map<PATCHOP, t_proc> t_procmap;
+    
     virtual ~Patcher( void );
     
 	  static Patcher* getSingletonPtr();
@@ -86,10 +74,7 @@ class Patcher : public EventListener {
 	protected:
 	  std::list<Repository*> mRepos;
     std::string mPatchListPath;
-    //std::ifstream mPatchList;
     Version mCurrentVersion, mTargetVersion;
-    
-
     
     void buildRepositories();
     
@@ -98,6 +83,7 @@ class Patcher : public EventListener {
     void processCreate(PatchEntry* inEntry, bool fCommit);
     void processDelete(PatchEntry* inEntry, bool fCommit);
     void processModify(PatchEntry* inEntry, bool fCommit);
+    void processRename(PatchEntry* inEntry, bool fCommit);
     
     /*! \brief
      *  Validates the PatchEntries in the repository: if there's a CREATE
@@ -106,7 +92,7 @@ class Patcher : public EventListener {
      */
     bool preprocess(Repository* inRepo);
     
-    void updateVersion();
+    void updateVersion(const Version& inVersion);
     
   private:
 	  Patcher();

@@ -72,6 +72,7 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(RENAME, &Patcher::processRename));
 		
 		bind("Patch", this, &Patcher::patch);
   }
@@ -255,6 +256,12 @@ namespace Pixy {
           mLog->errorStream() << "malformed MODIFY line: '" << line << "', skipping";
           continue;
         }
+      } else if (elements[0] == "R") {
+        op = RENAME;
+        if (elements.size() < 3) { // RENAME entries must have at least 3 fields
+          mLog->errorStream() << "malformed RENAME line: '" << line << "', skipping";
+          continue;
+        }        
       } else {
         mLog->errorStream() << "undefined operation symbol: " << elements[0];
         continue;
@@ -265,11 +272,10 @@ namespace Pixy {
       
       using boost::filesystem::path;
       path lTempPath;
-      if (op != DELETE) {
+      if (op == CREATE || op == MODIFY) {
         // "temp" paths follow the following scheme:
         // TMP_DIR/REPO_VERSION/REMOTE_FILE_NAME.EXT
-        
-        
+
         lTempPath = path(
           std::string(PROJECT_TEMP_DIR)  + 
           lRepo->getVersion().PathValue + "/" +
@@ -291,6 +297,10 @@ namespace Pixy {
           break;
         case DELETE:
           lRepo->registerEntry(op, elements[1]);
+          break;
+        case RENAME:
+          elements[2] = PROJECT_ROOT + elements[2];
+          lRepo->registerEntry(op, elements[1], elements[2]);
           break;
       }
       
@@ -375,15 +385,20 @@ namespace Pixy {
       mLog->infoStream()
         << "Application successfully patched to "
         << (*repo)->getVersion().Value;
-      mCurrentVersion = (*repo)->getVersion();
-      this->updateVersion();
+      
+      this->updateVersion((*repo)->getVersion());
 
+      Event* lEvt = mEvtMgr->createEvt("PatchComplete");
+      lEvt->setProperty("Version", mCurrentVersion.Value);
+      mEvtMgr->hook(lEvt);
+      lEvt = 0;
 	  }
 	  
 	  if (success) {
       lEvt = mEvtMgr->createEvt("ApplicationPatched");
 	    mEvtMgr->hook(lEvt);
 	    lEvt = 0;
+	    
 	  }
 	  
 	  lEvt = 0;
@@ -493,7 +508,45 @@ namespace Pixy {
 	  // TODO: check if the file was already patched
 	};
 	
-	void Patcher::updateVersion() {
+	void Patcher::processRename(PatchEntry* inEntry, bool fCommit) {
+	  using boost::filesystem::exists;
+	  using boost::filesystem::is_directory;
+	  using boost::filesystem::create_directory;
+	  using boost::filesystem::path;
+	  using boost::filesystem::rename;
+	  using boost::filesystem::copy_file;
+	  
+	  // TODO: boost error checking
+	  
+	  path dest(inEntry->Local);
+	  path src(inEntry->Remote);
+	  
+    // the source must exist and the destination must not
+	  if (!exists(src)) {
+	    mLog->errorStream() << "file to be moved doesn't exist! " << src << " aborting...";
+	    throw new FileDoesNotExist("Could not move file!", inEntry);
+	  }
+	  
+	  if (exists(dest)) {
+	    mLog->errorStream() << "destination of rename already exists! " << dest << " aborting...";
+	    throw new FileAlreadyCreated("Could not move file!", inEntry);
+	  }
+	  
+	  if (!fCommit)
+	    return;
+	  
+	  // create the parent directory if it doesn't exist
+	  if (!is_directory(dest.parent_path()))
+	    create_directory(dest.parent_path());
+	  
+	  mLog->debugStream() << "renaming a file " << src << " to " << dest;
+	  
+	  rename(src, dest);
+	};
+	
+	void Patcher::updateVersion(const Version& inVersion) {
+	  mCurrentVersion = Version(inVersion);
+	  
 	  using std::fstream;
 	  fstream res;
 	  res.open(PIXY_RESOURCE_PATH, fstream::out);
@@ -504,9 +557,5 @@ namespace Pixy {
 	  res.write(mCurrentVersion.Value.c_str(), mCurrentVersion.Value.size());
 	  res.close();
 	  
-    Event* lEvt = mEvtMgr->createEvt("PatchComplete");
-    lEvt->setProperty("Version", mCurrentVersion.Value);
-    mEvtMgr->hook(lEvt);
-    lEvt = 0;
 	};
 };
