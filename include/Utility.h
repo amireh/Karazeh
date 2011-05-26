@@ -74,7 +74,7 @@ class Utility {
   }
 
 	template<typename T>
-	inline std::string stringify(const T& x)
+	inline static std::string stringify(const T& x)
 	{
 		std::ostringstream o;
 		if (!(o << x))
@@ -85,7 +85,7 @@ class Utility {
 	
 	// helper; converts an integer-based type to a string
 	template<typename T>
-	inline void convert(const std::string& inString, T& inValue,
+	inline static void convert(const std::string& inString, T& inValue,
 						bool failIfLeftoverChars = true)
 	{
 		std::istringstream _buffer(inString);
@@ -95,7 +95,7 @@ class Utility {
 	}
 	
 	template<typename T>
-	inline T convertTo(const std::string& inString,
+	inline static T convertTo(const std::string& inString,
 					   bool failIfLeftoverChars = true)
 	{
 		T _value;

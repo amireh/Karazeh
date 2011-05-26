@@ -99,6 +99,7 @@ namespace Pixy {
 		bool evtFetchStarted(Event* inEvt);
 		bool evtFetchComplete(Event* inEvt);
 		bool evtPatchStarted(Event* inEvt);
+		bool evtPatchProgress(Event* inEvt);
 		bool evtPatchFailed(Event* inEvt);
 		bool evtPatchComplete(Event* inEvt);
 		bool evtApplicationPatched(Event* inEvt);

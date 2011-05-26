@@ -213,6 +213,7 @@ namespace Pixy {
 		bindToName("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
 		bindToName("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
 		bindToName("PatchStarted", this, &OgreRenderer::evtPatchStarted);
+		bindToName("PatchProgress", this, &OgreRenderer::evtPatchProgress);
 		bindToName("PatchFailed", this, &OgreRenderer::evtPatchFailed);
 		bindToName("PatchComplete", this, &OgreRenderer::evtPatchComplete);
 		bindToName("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
@@ -375,7 +376,7 @@ namespace Pixy {
     if (b->getName() == "Launch") {
       Launcher::getSingleton().launchExternalApp("./Launcher", "Launcher");
     } else if (b->getName() == "Patch") {
-      Patcher::getSingleton().validate();
+      //Patcher::getSingleton().validate();
     }
 
   };
@@ -387,4 +388,10 @@ namespace Pixy {
     return true;
   };
   
+  bool OgreRenderer::evtPatchProgress(Event* inEvt) {
+    int p = Utility::convertTo<int>(inEvt->getProperty("Progress"));
+    mProgress->setProgress(p);
+    mLog->infoStream() << "Patching : %" <<p << " done "; 
+    return true;
+  }
 };

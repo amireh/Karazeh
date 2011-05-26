@@ -37,7 +37,7 @@
 #define PIXY_APP_NAME "Karazeh" // used in RenderWindow title
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
 #define PIXY_RESOURCE_PATH "Karazeh.dat"
-#define PIXY_PERSISTENT 1
+//#define PIXY_PERSISTENT
 
 /* Finds the current platform 
  * Note: proudly stolen from Ogre3D code in OgrePlatform.h */

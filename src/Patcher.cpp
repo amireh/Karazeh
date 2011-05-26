@@ -49,7 +49,7 @@ namespace Pixy {
       if (!res.is_open() || !res.good()) {
       		
 		  } else {
-		    res.write(PIXY_APP_VERSION, sizeof(PIXY_APP_VERSION));
+		    res << PIXY_APP_VERSION;
 		    res.close();
 		  }
 		  
@@ -116,6 +116,7 @@ namespace Pixy {
   }
   
 	bool Patcher::validate() {
+	  mLog->debugStream() << "validating version";
 	  
 	  //Launcher::getSingleton().evtValidateStarted();
 	  Event* lEvt = mEvtMgr->createEvt("ValidateStarted");
@@ -137,6 +138,7 @@ namespace Pixy {
     /*
      * Find out the latest version
      */
+    std::ifstream mPatchList;
     mPatchList.open(mPatchListPath.c_str());
 
     if (!mPatchList.is_open() || !mPatchList.good()) {
@@ -177,7 +179,10 @@ namespace Pixy {
 	void Patcher::buildRepositories() {
     using std::string;
     
+    mLog->debugStream() << "building repositories";
+    
     string line;
+    std::ifstream mPatchList;
     mPatchList.open(mPatchListPath.c_str());
 
     if (!mPatchList.is_open()) {
@@ -198,7 +203,7 @@ namespace Pixy {
         continue;
       
       std::cout << "Line: " << line << "\n";
-      } else if (line.substr(0, 7) == "VERSION") { // 2) it's a version signature
+      } else if (line.find("VERSION") != string::npos) { // 2) it's a version signature
         if (Version(line) == mCurrentVersion) {
           // we're done parsing, this is our current version
           located = true;
@@ -206,7 +211,7 @@ namespace Pixy {
           break;
         } else {
           // this is another version we need to patch up to
-          mLog->debugStream() << "New version found: creating a repository..." << line;
+          mLog->debugStream() << "New version found: creating a repository... " << line;
           
           // create a new repository for this version
           Repository *lRepo = new Repository(Version(line));
@@ -299,6 +304,7 @@ namespace Pixy {
       throw new BadVersion("could not locate our version in patch list " + mCurrentVersion.Value);
     }
     
+    mLog->debugStream() << "repositories built";
 	};
 	
 	bool Patcher::preprocess(Repository* inRepo) {
@@ -394,6 +400,7 @@ namespace Pixy {
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;
 	  using boost::filesystem::rename;
+	  using boost::filesystem::copy_file;
 	  
 	  // TODO: boost error checking
 	  
@@ -402,21 +409,27 @@ namespace Pixy {
 	  
 	  // make sure the file doesn't already exist, if it does.. abort
 	  if (exists(local)) {
-	    mLog->errorStream() << "file to be created already exists! aborting...";
+	    mLog->errorStream() << "file to be created already exists! " << local << " aborting...";
 	    throw new FileAlreadyCreated("Could not create file!", inEntry);
 	  }
 	  
 	  if (!fCommit)
 	    return;
 	    
-	  mLog->debugStream() << "creating a file";
+	  mLog->debugStream() << "creating a file " << local;
 	  
-	  // let's see if its parent directory exists, otherwise we create it
+	  // create the parent directory if it doesn't exist
 	  if (!is_directory(local.parent_path()))
 	    create_directory(local.parent_path());
 	  
 	  // now we move the file
-	  rename(temp, local);
+	  
+	  // TODO: fix this, we shouldn't be copying, we should be moving
+	  // bug #1: attempting to create 1+ files from the same remote source
+	  // will result in undefined behaviour as the remote file is stored in the
+	  // temp location and it's being removed on the first creation
+	  //rename(temp, local);
+	  copy_file(temp,local);
 	};
 	
 	void Patcher::processDelete(PatchEntry* inEntry, bool fCommit) {
@@ -436,7 +449,7 @@ namespace Pixy {
     if (!fCommit)
 	    return;
 	  
-	  mLog->debugStream() << "deleting a file";
+	  mLog->debugStream() << "deleting a file " << local;
 	  
 	  // TODO: boost error checking
     if (is_directory(local))
@@ -459,7 +472,7 @@ namespace Pixy {
 	  if (!fCommit)
 	    return;
 	  
-	  mLog->debugStream() << "modifying a file";
+	  mLog->debugStream() << "modifying a file " << inEntry->Local;
 	  
 	  // TODO: boost error checking
 	  // __DEBUG__
@@ -470,7 +483,7 @@ namespace Pixy {
 	  //patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
 	  copy_file(inEntry->Local, tmp);
 	  bspatch(tmp.c_str(), tmp.c_str(), inEntry->Temp.c_str());
-	  remove(path(inEntry->Temp));
+	  //remove(path(inEntry->Temp));
 	  remove(path(inEntry->Local));
 	  rename(tmp, inEntry->Local);
 	  

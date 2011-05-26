@@ -86,7 +86,7 @@ class Patcher : public EventListener {
 	protected:
 	  std::list<Repository*> mRepos;
     std::string mPatchListPath;
-    std::ifstream mPatchList;
+    //std::ifstream mPatchList;
     Version mCurrentVersion, mTargetVersion;
     
 

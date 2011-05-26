@@ -23,6 +23,8 @@
  
 #include "Downloader.h"
 #include "Launcher.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace Pixy {
 	Downloader* Downloader::__instance;
@@ -61,16 +63,20 @@ namespace Pixy {
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;	
+	  
+	  mLog->debugStream() << "fetching patch list";
+	  
 	  // first of all, we need to prepare the filesystem; directories etc
 	  if (exists(path(PROJECT_TEMP_DIR))) {
 	    // if it exists but not a directory... something is wrong, remove it
       if (!is_directory(path(PROJECT_TEMP_DIR)))
+        // TODO: do something here, throw an exception maybe
         mLog->warnStream() << "TMP path exists but is not a directory";
       
     } else {
       // it doesn't exist, let's create our directory
-      create_directory(path(PROJECT_TEMP_DIR));
       mLog->infoStream() << "TMP path doesn't exist, creating it";
+      create_directory(path(PROJECT_TEMP_DIR));
     }
     
 	  std::string url = mHost + "/patchlist.txt";
@@ -100,6 +106,8 @@ namespace Pixy {
     
     // download all CREATE and MODIFY entries' remote files
     int i;
+    int nrEntries = inRepo->getEntries().size();
+    int idx = 0;
     for (i = 0; i < 2; ++i) {
       PATCHOP op = (i == 0) ? CREATE : MODIFY;
       
@@ -128,6 +136,13 @@ namespace Pixy {
         // TODO: re-try in case of download failure
         if (!downloaded)
           fetchFile(url, lEntry->Temp);
+        
+        ++idx;
+        
+        Event* lEvt = EventManager::getSingleton().createEvt("PatchProgress");
+        lEvt->setProperty("Progress", Utility::stringify(idx * 1.0f / nrEntries * 100.0f));
+        EventManager::getSingleton().hook(lEvt);
+        lEvt = 0;
         
         lEntry = 0;
         lEntries.pop_back();
