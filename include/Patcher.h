@@ -25,6 +25,7 @@
 #define H_Patcher_H
 
 #include "Pixy.h"
+#include "EventListener.h"
 #include "Repository.h"
 #include <list>
 #include <map>
@@ -51,7 +52,7 @@ typedef enum {
 
 } PATCHNOTICE;
 
-class Patcher {
+class Patcher : public EventListener {
   typedef void (Patcher::*t_proc)(PatchEntry*, bool);
   typedef std::map<PATCHOP, t_proc> t_procmap;
   public:
@@ -59,6 +60,8 @@ class Patcher {
     
 	  static Patcher* getSingletonPtr();
 	  static Patcher& getSingleton();
+		
+		void update();
 		
 	  /*! 
 	   * \brief
@@ -77,13 +80,13 @@ class Patcher {
 	   */
 	  bool validateVersion();
 	  
-		bool doPatch(void(*callback)(int));
-		
 	protected:
 	  std::list<Repository*> mRepos;
     std::string mPatchListPath;
     std::ifstream mPatchList;
     Version mCurrentVersion, mTargetVersion;
+    
+    bool evtDoPatch(Event* inEvt);
     
     void buildRepositories();
     

@@ -23,7 +23,8 @@
  
 #include "Patcher.h"
 #include "Downloader.h"
-#include "Launcher.h"
+#include "EventManager.h"
+//#include "Launcher.h"
 
 extern "C" int patch(const char* src, const char* dest, const char* diff);
 
@@ -69,6 +70,8 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
+		
+		bindToName("DoPatch", this, &Patcher::evtDoPatch);
   }
 	
 	Patcher::~Patcher() {
@@ -103,10 +106,17 @@ namespace Pixy {
 	Patcher& Patcher::getSingleton() {
 		return *getSingletonPtr();
 	}
-
+  
+  void Patcher::update() {
+    processEvents();
+  }
+  
 	bool Patcher::validateVersion() {
 	  
-	  Launcher::getSingleton().evtValidateStarted();
+	  //Launcher::getSingleton().evtValidateStarted();
+	  Event* lEvt = EventManager::getSingleton().createEvt("ValidateStarted");
+	  EventManager::getSingleton().hook(lEvt);
+	  lEvt = 0;
 	  
 	  // download the patch list
 	  try {
@@ -129,9 +139,13 @@ namespace Pixy {
     }
     
     bool needPatch = false;
+    bool versionFound = false;
     std::string line;
-    
-    getline(mPatchList,line);
+    while (!versionFound) {
+      getline(mPatchList, line);
+      if (line.find("VERSION") != string::npos)
+        versionFound = true;
+    }
     mTargetVersion = Version(line);
     if (mCurrentVersion != mTargetVersion) {
       mLog->infoStream() 
@@ -145,7 +159,11 @@ namespace Pixy {
 
     mPatchList.close();
     
-    Launcher::getSingleton().evtValidateComplete(needPatch);
+    //Launcher::getSingleton().evtValidateComplete(needPatch);
+    lEvt = EventManager::getSingleton().createEvt("ValidateComplete");
+	  lEvt->setProperty("NeedUpdate", (needPatch) ? "Yes" : "No");
+	  EventManager::getSingleton().hook(lEvt);
+	  lEvt = 0;
     
     return true;
 	};
@@ -173,6 +191,7 @@ namespace Pixy {
       if (line == "" || line == "-") { // 1) it's trash
         continue;
       
+      std::cout << "Line: " << line << "\n";
       } else if (line.substr(0, 7) == "VERSION") { // 2) it's a version signature
         if (Version(line) == mCurrentVersion) {
           // we're done parsing, this is our current version
@@ -293,7 +312,7 @@ namespace Pixy {
     return success;
 	};
 	
-	bool Patcher::doPatch(void(*callback)(int)) {
+	bool Patcher::evtDoPatch(Event* inEvt) {
 	  
 	  try {
 	    buildRepositories();
@@ -307,40 +326,61 @@ namespace Pixy {
 	    
 	  mLog->infoStream() << "Total patches: " << mRepos.size();
 	  
+	  bool success = true;
+	  Event* lEvt;
 	  std::list<Repository*>::const_iterator repo;
 	  for (repo = mRepos.begin(); repo != mRepos.end(); ++repo) {
 	    mLog->infoStream() << "----";
 	    mLog->infoStream() << "Patching to " << (*repo)->getVersion().Value;
 	    
+      lEvt = EventManager::getSingleton().createEvt("PatchStarted");
+      lEvt->setProperty("Version", (*repo)->getVersion().Value);
+      EventManager::getSingleton().hook(lEvt);
+      lEvt = 0;
+      	    
 	    // validate the repository
 	    if (!preprocess(*repo)) {
 	      // we cannot patch
-	      // TODO: inform renderer
+	      // TODO: inform renderer (DONE)
+        lEvt = EventManager::getSingleton().createEvt("PatchFailed");
+        lEvt->setProperty("Version", (*repo)->getVersion().Value);
+	      EventManager::getSingleton().hook(lEvt);
+	      lEvt = 0;
+	      
+	      success = false;
 	      break;
 	    }
 	    
 	    // download the patch files
 	    Downloader::getSingleton().fetchRepository(*repo);
 	    
-	    // TODO: perform a check before committing any changes so we can rollback
+	    // TODO: perform a check before committing any changes so we can rollback (DONE)
 	    std::vector<PatchEntry*> entries = (*repo)->getEntries();	    
 	    std::vector<PatchEntry*>::const_iterator entry;
 	    for (entry = entries.begin(); entry != entries.end(); ++entry)
         (this->*mProcessors[(*entry)->Op])((*entry), true);
-	    
-      mLog->infoStream() << "Application successfully patched to " << (*repo)->getVersion().Value;
+	       	    
+      mLog->infoStream()
+        << "Application successfully patched to "
+        << (*repo)->getVersion().Value;
       mCurrentVersion = (*repo)->getVersion();
       this->updateVersion();
+
 	  }
+	  
+	  if (success) {
+      lEvt = EventManager::getSingleton().createEvt("ApplicationPatched");
+	    EventManager::getSingleton().hook(lEvt);
+	    lEvt = 0;
+	  }
+	  
+	  lEvt = 0;
 	  
 	  // we're done, let's clean up.. delete the whole tmp directory
 	  // TODO: boost error checking
 	  mLog->infoStream() << "cleaning up temp";
 	  boost::filesystem::remove_all(PROJECT_TEMP_DIR);
 	  
-	  if (callback)
-	    (*callback)(0);
-	    
 	  return true;
 	}
 	
@@ -437,5 +477,10 @@ namespace Pixy {
 	  }
 	  res.write(mCurrentVersion.Value.c_str(), mCurrentVersion.Value.size());
 	  res.close();
+	  
+    Event* lEvt = EventManager::getSingleton().createEvt("PatchComplete");
+    lEvt->setProperty("Version", mCurrentVersion.Value);
+    EventManager::getSingleton().hook(lEvt);
+    lEvt = 0;
 	};
 };

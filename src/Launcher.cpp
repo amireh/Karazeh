@@ -74,14 +74,16 @@ namespace Pixy
 		// init logger
 		initLogger();
 		
+		EventManager::getSingletonPtr();
+		
 		goFunc = &Launcher::goVanilla;
 		bool validRenderer = false;
 		if (inRendererName != 0) {
 		  validRenderer = true;
 		  if (strcmp(inRendererName, "Ogre") == 0)
 		    mRenderer = new OgreRenderer();
-		  else if (strcmp(inRendererName, "CEGUI") == 0)
-		    mRenderer = new CEGUIRenderer();
+		  /*else if (strcmp(inRendererName, "CEGUI") == 0)
+		    mRenderer = new CEGUIRenderer();*/
 		  else {
 		    mLog->errorStream() << "Invalid renderer! " << inRendererName << ", going vanilla";
 		    validRenderer = false;
@@ -122,6 +124,8 @@ namespace Pixy
 		lTimeLastFrame = boost::posix_time::microsec_clock::universal_time();
 		lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
 
+    mLog->infoStream() << "my current thread id: " << boost::this_thread::get_id();
+    
 		// main game loop
 		while( !fShutdown )
 			(this->*goFunc)();
@@ -129,7 +133,8 @@ namespace Pixy
 	}
 	
 	void Launcher::goWithRenderer() {
-
+    EventManager::getSingleton().update();
+    
     lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
     lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
     lTimeLastFrame = lTimeCurrentFrame;
@@ -137,12 +142,15 @@ namespace Pixy
     // update input manager
     mInputMgr->capture();
     
+    Patcher::getSingleton().update();
     mRenderer->update(lTimeSinceLastFrame.total_milliseconds());	
     
 	};
 	
 	void Launcher::goVanilla() {
 	  // nothing to do here really
+	  EventManager::getSingleton().update();
+	  Patcher::getSingleton().update();
 	};
 	
 	void Launcher::launchDownloader() {
@@ -222,11 +230,11 @@ namespace Pixy
 	
 	void Launcher::evtValidateStarted() {
 	  std::cout << "Validating version...\n";
-	  if (mRenderer)
-	    mRenderer->injectStatus("Validating");
+	  /*if (mRenderer)
+	    mRenderer->injectStatus("Validating");*/
 	}
 	void Launcher::evtValidateComplete(bool needsUpdate) {
-	  if (needsUpdate) {
+	  /*if (needsUpdate) {
 	    if (mRenderer)
 	      bool res = mRenderer->injectPrompt("Application is out of date, would you like to update it now?");
 	      
@@ -236,7 +244,7 @@ namespace Pixy
 	    if (mRenderer)
 	      mRenderer->injectStatus("Application is up to date");
 	    std::cout << "Application is up to date\n";
-	  }
+	  }*/
 	}
 	void Launcher::evtFetchStarted() {
 	  std::cout << "Downloading patch...\n";

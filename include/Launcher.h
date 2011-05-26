@@ -31,6 +31,7 @@
 #include <map>
 #include "Pixy.h"
 #include "Renderer.h"
+#include "EventManager.h"
 #include "InputManager.h"
 #include "Downloader.h"
 #include <boost/thread.hpp>

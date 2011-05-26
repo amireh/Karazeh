@@ -27,6 +27,8 @@
 #include "Pixy.h"
 #include "InputManager.h"
 #include "Patcher.h"
+#include "EventManager.h"
+#include "EventListener.h"
 
 namespace Pixy {
 	
@@ -34,7 +36,7 @@ namespace Pixy {
 	 *	\brief
 	 *	
 	 */
-	class Renderer : public OIS::KeyListener, public OIS::MouseListener {
+	class Renderer : public OIS::KeyListener, public OIS::MouseListener, public Pixy::EventListener {
 		
 	public:
 	  inline Renderer() { mLog = 0; fSetup = false; mName = "Renderer"; };
@@ -64,11 +66,11 @@ namespace Pixy {
 		virtual void getWindowHandle(size_t *windowHnd)=0;
 		virtual void getWindowExtents(int *width, int *height)=0;
 		
-		virtual void injectError(PATCHERROR errorCode, std::string errorMsg)=0;
-    virtual void injectNotice(PATCHNOTICE noticeCode, std::string noticeMsg)=0;
-    virtual bool injectPrompt(std::string promptMsg)=0;
-    virtual void injectStatus(std::string statusMsg)=0;
-    virtual void injectProgress(int progress)=0;
+		virtual bool injectError(Event* inEvt)=0;
+    virtual bool injectNotice(Event* inEvt)=0;
+    virtual bool injectPrompt(Event* inEvt)=0;
+    virtual bool injectStatus(Event* inEvt)=0;
+    virtual bool injectProgress(Event* inEvt)=0;
     
 		//! OIS key input event handler/dispatcher method
 		/*! 

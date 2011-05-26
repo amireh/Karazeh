@@ -73,11 +73,11 @@ namespace Pixy {
 		virtual void getWindowHandle(size_t *windowHnd);
 		virtual void getWindowExtents(int *width, int *height);
 				
-    virtual void injectError(PATCHERROR errorCode, std::string errorMsg);
-    virtual void injectNotice(PATCHNOTICE noticeCode, std::string noticeMsg);
-    virtual bool injectPrompt(std::string promptMsg);
-    virtual void injectStatus(std::string statusMsg);
-    virtual void injectProgress(int progress);
+		virtual bool injectError(Event* inEvt);
+    virtual bool injectNotice(Event* inEvt);
+    virtual bool injectPrompt(Event* inEvt);
+    virtual bool injectStatus(Event* inEvt);
+    virtual bool injectProgress(Event* inEvt);
 
 		virtual bool keyPressed( const OIS::KeyEvent &e );
 		virtual bool keyReleased( const OIS::KeyEvent &e );		
@@ -86,6 +86,7 @@ namespace Pixy {
 		virtual bool mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 		
 		virtual void buttonHit(OgreBites::Button* b);
+		virtual void yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit);
 	protected:
     Ogre::Root *mRoot;
     Ogre::RenderWindow *mRenderWindow;
@@ -95,9 +96,20 @@ namespace Pixy {
 		
 		Ogre::FrameEvent mFrameEvt;
 		
+		bool evtValidateStarted(Event* inEvt);
+		bool evtValidateComplete(Event* inEvt);
+		bool evtFetchStarted(Event* inEvt);
+		bool evtFetchComplete(Event* inEvt);
+		bool evtPatchStarted(Event* inEvt);
+		bool evtPatchFailed(Event* inEvt);
+		bool evtPatchComplete(Event* inEvt);
+		bool evtApplicationPatched(Event* inEvt);
+		
 		void setupResources(std::string inPath);
 		bool configureGame();
 		void loadRenderSystems();
+		
+		bool fShowingOkDialog;
 		
 	private:
 		OgreRenderer(const OgreRenderer& src);

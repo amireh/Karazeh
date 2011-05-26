@@ -208,6 +208,12 @@ namespace Pixy {
 		
 		this->setupResources(lPathResources.str());
 		
+		bindToName("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
+		bindToName("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
+		bindToName("PatchStarted", this, &OgreRenderer::evtPatchStarted);
+		bindToName("PatchFailed", this, &OgreRenderer::evtPatchFailed);
+		bindToName("PatchComplete", this, &OgreRenderer::evtPatchComplete);
+		bindToName("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
 	  return true;
 	};
 	
@@ -234,31 +240,87 @@ namespace Pixy {
 	};
 	
 	void OgreRenderer::update(unsigned long lTimeElapsed) {
+    processEvents();
     
 		WindowEventUtilities::messagePump();
 
+    if (fShowingOkDialog) {
+      mTrayMgr->showOkDialog("Notice", "moo");
+      fShowingOkDialog = false;
+    }
+    
     mFrameEvt.timeSinceLastFrame = mFrameEvt.timeSinceLastEvent = lTimeElapsed;		
     mTrayMgr->frameRenderingQueued(mFrameEvt);
     
 		// render next frame
 	  mRoot->renderOneFrame();
 	}
-	
-	void OgreRenderer::injectError(PATCHERROR errorCode, std::string inMsg) {
+
+	bool OgreRenderer::evtValidateStarted(Event* inEvt) {
+	  mLog->infoStream() << "Handling evt: " << inEvt->getName();
+	  
+	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Validating...");
+	  return true;
 	}
-  void OgreRenderer::injectNotice(PATCHNOTICE noticeCode, std::string inMsg) {
-    mTrayMgr->showOkDialog("Notice", inMsg);
+	bool OgreRenderer::evtValidateComplete(Event* inEvt) {
+	  mLog->infoStream() << "Handling evt: " << inEvt->getName();
+	  
+	  if (inEvt->getProperty("NeedUpdate") == "Yes") {
+	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
+	    //static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is not up to date");
+	  } else {
+	    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is up to date");
+	  }
+	  return true;
+	}
+	bool OgreRenderer::evtPatchStarted(Event* inEvt) {
+	  std::string lCap = "Updating to version " + inEvt->getProperty("Version");
+	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(lCap);
+	  return true;
+	}
+	
+	bool OgreRenderer::evtPatchFailed(Event* inEvt) {
+    std::string lMsg = "There was a problem patching to version "
+      + inEvt->getProperty("Version")
+      + ". Reinstalling the application is required as the current version "
+      + "seems corrupt.";
+      
+    mTrayMgr->showOkDialog("Patch Error", lMsg);
+      
+    return true;
+	}
+	
+	bool OgreRenderer::evtPatchComplete(Event* inEvt) {
+    std::string lMsg = "Application was successfully updated to "
+      + inEvt->getProperty("Version");
+	  mTrayMgr->showOkDialog("Patch Successful", lMsg);
+		return true;
   }
   
-  bool OgreRenderer::injectPrompt(std::string inMsg) {
-    //mTrayMgr->showYesNoDialog("Notice", inMsg);
-    mTrayMgr->showOkDialog("Notice", inMsg);
+  bool OgreRenderer::evtApplicationPatched(Event* inEvt) {
+    std::string lMsg = "All updates were successful.";
+	  mTrayMgr->showOkDialog("Application up to date", lMsg); 
+	  
+	  static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption("Application is up to date.");
+    return true;
   }
-  void OgreRenderer::injectStatus(std::string inMsg) {
-    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(inMsg);
-  }
-  void OgreRenderer::injectProgress(int progress) {
   
+	bool OgreRenderer::injectError(Event* inEvt){
+	  return true;
+	}
+  bool OgreRenderer::injectNotice(Event* inEvt){
+    mTrayMgr->showOkDialog("Notice", inEvt->getProperty("Message"));
+    return true;
+  }
+  bool OgreRenderer::injectPrompt(Event* inEvt){
+    return true;
+  }
+  bool OgreRenderer::injectStatus(Event* inEvt) {
+    static_cast<Label*>(mTrayMgr->getWidget("Status"))->setCaption(inEvt->getProperty("Message"));
+    return true;
+  }
+  bool OgreRenderer::injectProgress(Event* inEvt){
+    return true;
   }
   
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
@@ -297,11 +359,15 @@ namespace Pixy {
 		return true;
 	}
 	
+	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
+	  mLog->debugStream() << "moo yes no closed and yes hit? " << (yesHit ? "yes" : "no"); 
+	  if (yesHit) {
+      Event* lEvt = EventManager::getSingleton().createEvt("DoPatch");
+	    EventManager::getSingleton().hook(lEvt);
+	    lEvt = 0;
+	  }
+	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
-    /*
-		if (b->getName() == "TrayManager/YesButton")   // enter configuration screen
-		{
-		  Patcher::getSingleton().doPatch(0);
-		}*/
-  };	
+  };
+  
 };

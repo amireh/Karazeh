@@ -14,7 +14,7 @@ FIND_PACKAGE(Boost COMPONENTS filesystem thread date_time REQUIRED)
 
 AUX_SOURCE_DIRECTORY(src Launcher_SRCS)
 AUX_SOURCE_DIRECTORY(src/Renderers/Ogre Launcher_SRCS)
-AUX_SOURCE_DIRECTORY(src/Renderers/CEGUI Launcher_SRCS)                     
+#AUX_SOURCE_DIRECTORY(src/Renderers/CEGUI Launcher_SRCS)                     
 
 INCLUDE_DIRECTORIES(include
                     ${OGRE_INCLUDE_DIRS}
