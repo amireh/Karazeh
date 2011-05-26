@@ -33,12 +33,15 @@ namespace Pixy {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Downloader");
 		mLog->infoStream() << "firing up";
 		
-		curl_global_init(CURL_GLOBAL_ALL);
 		mHost = "http://127.0.0.1/";
 		mPort = "80";
+		
+		curl_global_init(CURL_GLOBAL_ALL);
   }
 	
 	Downloader::~Downloader() {
+		
+		curl_global_cleanup();
 		
 		mLog->infoStream() << "shutting down";
 		

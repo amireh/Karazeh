@@ -1,21 +1,23 @@
 /*
- *  This file is part of Vertigo.
- *
- *  Vertigo - a cross-platform arcade game powered by Ogre3D.
- *  Copyright (C) 2011  Ahmad Amireh <ahmad@amireh.net>
- * 
- *  Vertigo is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Vertigo is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Vertigo.  If not, see <http://www.gnu.org/licenses/>.
+ *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
+ *  
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  Software is furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in 
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE. 
  *
  */
 
@@ -29,14 +31,11 @@ namespace Pixy {
 	
 	EventManager::EventManager() {
 		mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "EvtMgr"); 
-		//mIdCounter = 0;
 		mLog->infoStream() << "up and running";
-		//cout << "EventManager: up and running\n";
 	}
 	
 	EventManager::~EventManager()
 	{
-		//std::cout << "EventManager: shutting down\n";
 		mLog->infoStream() << "shutting down";
 		// clean up events
 		while (!mEventPool.empty()) {
@@ -53,15 +52,12 @@ namespace Pixy {
 
 		mInstance = 0;
 
-		mFullSubscribers.clear();
-		mNameSubscribers.clear();
-		mCatSubscribers.clear();
+		mSubscribers.clear();
 		
 		if (mLog)
 			delete mLog;
 		
 		mLog = 0;
-		//mIdCounter = 0;
 	};
 	
 	//! Retrieve the singleton instance of this class
@@ -77,17 +73,17 @@ namespace Pixy {
 		delete mInstance;
 	}
 	
-	void EventManager::subscribeToName(std::string inName, EventListener* inListener)
+	void EventManager::subscribe(std::string inName, EventListener* inListener)
 	{
 		//std::cout << "subscribing a listener to events named `" << inName << "'";
 		
 		// is the event registered yet?
-		name_subscription_t::iterator _itr = mNameSubscribers.find(inName);
+		name_subscription_t::iterator _itr = mSubscribers.find(inName);
 		
-		if (_itr == mNameSubscribers.end()) {
+		if (_itr == mSubscribers.end()) {
 			// event doesn't exist in our map yet, register it
 			vector<EventListener*> _listeners;
-			_itr = mNameSubscribers.insert(make_pair(inName, _listeners)).first;
+			_itr = mSubscribers.insert(make_pair(inName, _listeners)).first;
 		}
 		
 		// is the listener already registered?
@@ -100,102 +96,17 @@ namespace Pixy {
 		_itr->second.push_back(inListener);
 	};
 	
-	void EventManager::subscribeToCat(std::string inCategory, EventListener* inListener)
-	{
-		//std::cout << "subscribing a listener to category `" << inCategory << "'";
-		
-		// is the event registered yet?
-		cat_subscription_t::iterator _itr = mCatSubscribers.find(inCategory);
-		
-		if (_itr == mCatSubscribers.end()) {
-			// event doesn't exist in our map yet, register it
-			vector<EventListener*> _listeners;
-			_itr = mCatSubscribers.insert(make_pair(inCategory, _listeners)).first;
-		}
-		
-		// is the listener already registered?
-		if (alreadySubscribed(inListener, &_itr->second))
-			return;
-		
-		// it's safe to subscribe this Listener
-		_itr->second.push_back(inListener);
-	};
-	
-	void EventManager::subscribeToAll(EventListener* inListener) {
-		if (alreadySubscribed(inListener, &mFullSubscribers))
-			return;
-		
-		mFullSubscribers.push_back(inListener);
-	}
 	
 	void EventManager::hook(Event* inEvt)
 	{
-		/* \------------------------------------------ *\
-		 *
-		 *  @ mPos : a map iterator pointing to the position
-		 *      at which the Event will be inserted
-		 *
-		 *  @ evtItr : iterator used to find and hold
-		 *      the Event we will be processing
-		 *
-		 *  @ posItr : iterator used to determine mPos
-		 *
-		 *  @ fFound : flag indicates whether a position was
-		 *      found for a Minor event
-		 *
-		 * \------------------------------------------- */
-		
-		deque<Event*>::iterator mPos, posItr;
-		
-		int evtRank = inEvt->getWeight();
-		
-		// if the queue is empty, hook to front
-		if (mEvents.empty()) {
-			mPos = mEvents.begin();
-			
-		} 
-		else if (evtRank == MINOR_EVT)
-		{
-			// if the first event in the queue is a major one, then
-			// there is no need to iterate; we've found our position
-			if (mEvents.front()->getWeight() == MAJOR_EVT)
-				mPos = mEvents.begin();
-			
-			else
-			{
-				bool fFound = false;
-				posItr = mEvents.begin();
-				for (posItr; posItr != mEvents.end(); ++posItr)
-				{
-					// keep traversing until we find a Major event to push before
-					if ((*posItr)->getWeight() == MAJOR_EVT)
-					{
-						mPos = posItr;
-						fFound = true;
-						break;
-					}
-				}
-				
-				if (!fFound)
-					mPos = mEvents.end();
-			}
-		}
-		else // the event is a major one; add to the rear
-		{
-			mPos = mEvents.end();
-		}
-		
-		mEvents.insert(mPos, inEvt);
-		//std::cout << inEvt << " is hooked";
+		mEvents.push_back(inEvt);
 	}; // hook()
-	
 	
 	void EventManager::update()
 	{
 		if (!mEvents.empty())
 		{
 			dispatch(mEvents.front());
-			//mLog->debugStream() << mEvents.front() << " was dispatched";
 			dequeue();
 		}
 	}; // update()
@@ -236,28 +147,11 @@ namespace Pixy {
 		
 		vector<EventListener*>* evtListeners = 0;
 		vector<EventListener*>::const_iterator _listener;
-		cat_subscription_t::iterator _catFinder;
 		name_subscription_t::iterator _nameFinder;
-		
-		// if event is a request (outgoing to server)
-		// then notify only the network manager
-		/*if (inEvt->getType() == EVT_REQ && mNetworkDispatcher) {
-			mNetworkDispatcher->enqueue(inEvt);
-			return;
-		}
-		*/
-		////mLog->debugStream() << "dispatching event: " << inEvt->getId() << " from server";
-		
-		// call full subscribed listeners
-		evtListeners = &mFullSubscribers;
-		_listener = evtListeners->begin();
-		for (_listener; _listener != evtListeners->end(); ++_listener)
-			(*_listener)->enqueue(inEvt);
-		
-		
+
 		// are there any listeners for this named event?
-		_nameFinder = mNameSubscribers.find(inEvt->getName());
-		if (_nameFinder != mNameSubscribers.end()) {
+		_nameFinder = mSubscribers.find(inEvt->getName());
+		if (_nameFinder != mSubscribers.end()) {
 			// there are listeners interested in this named event
 			// notify them
 			evtListeners = &_nameFinder->second;
@@ -267,49 +161,22 @@ namespace Pixy {
 			
 		}
 		
-		// are there any listeners for this category?
-		_catFinder = mCatSubscribers.find(inEvt->getCategory());
-		if (_catFinder != mCatSubscribers.end()) {
-			
-			// there are, notify them
-			evtListeners = &_catFinder->second;
-			_listener = evtListeners->begin();
-			for (_listener; _listener != evtListeners->end(); ++_listener)
-				(*_listener)->enqueue(inEvt);
-		}
-
 	} // dispatch()
 
 	void EventManager::dequeue() {
 		// remove from queue
 		//mLog->debugStream() << "dequeuing event";
 		Event* evt = mEvents.front();
-		if (evt->getNrHandlers() == 0) {
+		if (evt->_getNrHandlers() == 0) {
 			mLog->warnStream() << "WARN - " << evt << " has no handlers! Releasing...";
-			releaseEvt(evt);
+			this->_releaseEvt(evt);
 			return;
 		}
 		mEvents.pop_front();
 
 	}
-	
-	void EventManager::subscribeNetworkDispatcher(EventListener* inInstance) {
-		mNetworkDispatcher = inInstance;
-	}
 
-	Event* EventManager::createEvt(std::string inName) {
-		Event* lEvt = new Event(inName);
-		mEventPool.push_back(lEvt);
-		return lEvt;
-	}
-	/*
-	EntityEvent* EventManager::createEntityEvt(std::string inName) {
-		EntityEvent* lEvt = new EntityEvent(inName);
-		mEventPool.push_back(lEvt);
-		return lEvt;
-	}	
-	*/
-	void EventManager::releaseEvt(Event* inEvt) {
+	void EventManager::_releaseEvt(Event* inEvt) {
 		//mLog->debugStream() << "EventPool size: " << mEventPool.size() << " Events queue size: " << mEvents.size();
 		
 		 // remove from pool
@@ -327,13 +194,11 @@ namespace Pixy {
 				break;
 			}
 		
-		
-		 // destroy!!
+		// destroy!!
 		//mLog->debugStream() << "destroying " << inEvt;
 		delete inEvt;
 		
-		//mLog->debugStream() << "EventPool size: " << mEventPool.size() << " Events queue size: " << mEvents.size();
-    inEvt = NULL;
+    inEvt = 0;
 	}
 	
 	bool EventManager::alreadySubscribed(EventListener* inListener, vector<EventListener*>* inList) {
@@ -347,22 +212,8 @@ namespace Pixy {
 	}
 	
 	
-	void EventManager::unsubscribeFromName(std::string inName, EventListener* inListener) {
-		////mLog->debugStream() << "detaching listener from name subscriptions";
-		detachListener(inListener, &(mNameSubscribers.find(inName)->second));
-
-	}
-	
-	void EventManager::unsubscribeFromCat(std::string inCategory, EventListener* inListener) {
-		////mLog->debugStream() << "detaching listener from category subscriptions";
-		detachListener(inListener, &(mCatSubscribers.find(inCategory)->second));
-
-	}
-
-	void EventManager::unsubscribe(EventListener* inListener) {
-		////mLog->debugStream() << "detaching listener from full subscriptions";
-		detachListener(inListener, &mFullSubscribers);
-			
+	void EventManager::unsubscribe(std::string inName, EventListener* inListener) {
+		detachListener(inListener, &(mSubscribers.find(inName)->second));
 
 	}
 	
@@ -376,10 +227,5 @@ namespace Pixy {
 				break;
 			}
 	}
-	
-	void EventManager::_clearQueue() {
-	  mLog->debugStream() << "clearing events queue!";
-	  while (!mEvents.empty())
-	    dequeue();
-	};
+
 }

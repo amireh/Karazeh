@@ -209,14 +209,14 @@ namespace Pixy {
 		
 		this->setupResources(lPathResources.str());
 		
-		bindToName("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
-		bindToName("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
-		bindToName("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
-		bindToName("PatchStarted", this, &OgreRenderer::evtPatchStarted);
-		bindToName("PatchProgress", this, &OgreRenderer::evtPatchProgress);
-		bindToName("PatchFailed", this, &OgreRenderer::evtPatchFailed);
-		bindToName("PatchComplete", this, &OgreRenderer::evtPatchComplete);
-		bindToName("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
+		bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
+		bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
+		bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
+		bind("PatchStarted", this, &OgreRenderer::evtPatchStarted);
+		bind("PatchProgress", this, &OgreRenderer::evtPatchProgress);
+		bind("PatchFailed", this, &OgreRenderer::evtPatchFailed);
+		bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
+		bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
 	  return true;
 	};
 	

@@ -73,7 +73,7 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
 		
-		bindToName("Patch", this, &Patcher::patch);
+		bind("Patch", this, &Patcher::patch);
   }
 	
 	Patcher::~Patcher() {
@@ -88,6 +88,8 @@ namespace Pixy {
 		}
 		lRepo = 0;
 
+    mProcessors.clear();
+    
 #ifndef PIXY_PERSISTENT
     // TODO: boost error checking
     boost::filesystem::remove_all(PROJECT_TEMP_DIR);
@@ -119,7 +121,7 @@ namespace Pixy {
 	  mLog->debugStream() << "validating version";
 	  
 	  //Launcher::getSingleton().evtValidateStarted();
-	  Event* lEvt = mEvtMgr->createEvt("ValidateStarted");
+	  Event* lEvt = mEvtMgr->createEvt<Event>("ValidateStarted");
 	  mEvtMgr->hook(lEvt);
 	  lEvt = 0;
 	  

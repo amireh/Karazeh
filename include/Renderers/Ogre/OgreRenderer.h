@@ -93,17 +93,14 @@ namespace Pixy {
 		OgreBites::TextBox* mStatusBox;
 		OgreBites::ProgressBar* mProgress;
 		
-		bool evtUnableToConnect(Event* inEvt);
-		bool evtValidateStarted(Event* inEvt);
-		bool evtValidateComplete(Event* inEvt);
-		bool evtFetchStarted(Event* inEvt);
-		bool evtFetchComplete(Event* inEvt);
-		bool evtPatchStarted(Event* inEvt);
-		bool evtPatchProgress(Event* inEvt);
-		bool evtPatchFailed(Event* inEvt);
-		bool evtPatchComplete(Event* inEvt);
-		bool evtApplicationPatched(Event* inEvt);
-		
+		virtual bool evtUnableToConnect(Event* inEvt);
+		virtual bool evtValidateStarted(Event* inEvt);
+		virtual bool evtValidateComplete(Event* inEvt);
+		virtual bool evtPatchStarted(Event* inEvt);
+		virtual bool evtPatchProgress(Event* inEvt);
+		virtual bool evtPatchFailed(Event* inEvt);
+		virtual bool evtPatchComplete(Event* inEvt);
+		virtual bool evtApplicationPatched(Event* inEvt);
 		
 		void setupResources(std::string inPath);
 		bool configureGame();

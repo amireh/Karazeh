@@ -1,21 +1,23 @@
 /*
- *  This file is part of Vertigo.
- *
- *  Vertigo - a cross-platform arcade game powered by Ogre3D.
- *  Copyright (C) 2011  Ahmad Amireh <ahmad@amireh.net>
- * 
- *  Vertigo is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Vertigo is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Vertigo.  If not, see <http://www.gnu.org/licenses/>.
+ *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
+ *  
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  Software is furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in 
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE. 
  *
  */
 
@@ -24,80 +26,41 @@
 namespace Pixy {
 	
 	EventListener::EventListener() {
-		mFBHandler = 0;
-		mFullBindings.clear();
-		mCatBindings.clear();
-		mNameBindings.clear();
+		mBindings.clear();
 		mTracker.clear();
-		while (!mEvents.empty())
-			mEvents.pop();
+		//while (!mEvents.empty())
+		//	mEvents.pop();
 	}
 	
 	EventListener::~EventListener() {
 
 		// unbind ourself from the EventManager
-		// full bindings
-		EventManager::getSingletonPtr()->unsubscribe(this);
-		// category bindings
-		cat_bind_t::iterator lCategory = mCatBindings.begin();
-		for (lCategory;
-			 lCategory != mCatBindings.end();
-			 ++lCategory) {
-			EventManager::getSingletonPtr()->unsubscribeFromCat(lCategory->first, this);
-		}
-		// finally, name bindings
-		name_bind_t::iterator lEvent = mNameBindings.begin();
+		name_bind_t::iterator lEvent = mBindings.begin();
 		for (lEvent;
-			 lEvent != mNameBindings.end();
+			 lEvent != mBindings.end();
 			 ++lEvent) {
-			EventManager::getSingletonPtr()->unsubscribeFromName(lEvent->first, this);
+			EventManager::getSingletonPtr()->unsubscribe(lEvent->first, this);
 		}
 		
 		// now destroy our handler objects
-		// destroy general bindings
-		if (!mFullBindings.empty()) {
-			handler_list_t::iterator _handler = mFullBindings.begin();
-			for (_handler; _handler != mFullBindings.end(); ++_handler)
-				delete *_handler;
-			
-			mFullBindings.clear();
-		}
-		
-		// destroy name specific bindings		
-		if (!mNameBindings.empty()) {
-			name_bind_t::iterator _itr = mNameBindings.begin();
-			for (_itr; _itr != mNameBindings.end(); ++_itr) {
+		if (!mBindings.empty()) {
+			name_bind_t::iterator _itr = mBindings.begin();
+			for (_itr; _itr != mBindings.end(); ++_itr) {
 				handler_list_t::iterator _handler = _itr->second.begin();
 				for (_handler; _handler != _itr->second.end(); ++_handler)
 					delete *_handler;
 			}
-			mNameBindings.clear();
+			mBindings.clear();
 		}
-		
-		// destroy category bindings
-		if (!mCatBindings.empty()) {
-			cat_bind_t::iterator _itr = mCatBindings.begin();
-			for (_itr; _itr != mCatBindings.end(); ++_itr) {
-				handler_list_t::iterator _handler = _itr->second.begin();
-				for (_handler; _handler != _itr->second.end(); ++_handler)
-					delete *_handler;
-			}
-			mCatBindings.clear();
-		}
-		
 		
 		// clean up any events
-		while (!mEvents.empty())
+		while (!mEvents.empty()) {
+		  mEvents.front()->_removeHandler();
 			mEvents.pop();
+	  }
 		
 		if (!mTracker.empty())
 			mTracker.clear();
-		
-		if (mFBHandler)
-			delete mFBHandler;
-		
-		mFBHandler = 0;
-
 	}
 	
 	void EventListener::enqueue(Event* inEvt) {
@@ -109,7 +72,7 @@ namespace Pixy {
 			// inform the event that there's a listener using it
 			// so it can destruct properly when *all* listeners
 			// are done processing it
-			inEvt->addHandler();
+			inEvt->_addHandler();
 			
 			// enqueue it for processing
 			/*
@@ -121,11 +84,6 @@ namespace Pixy {
 			*/
 			mEvents.push(inEvt);
 		}
-		/*
-		else
-			if (mFBHandler)
-				mFBHandler->call(inEvt); // call fallback handler, if any
-		*/
 	}
 	
 	void EventListener::processEvents() {
@@ -133,8 +91,6 @@ namespace Pixy {
 		if (mEvents.empty())
 			return;
 		
-		//std::cout << "handling events\n";
-		// we do, grab the first
 		Event* mEvt = mEvents.front();
 		
 		// let's track our Event handlers for calling
@@ -151,37 +107,13 @@ namespace Pixy {
 			// on ALL events (mCatBindings["Event"])
 			
 			vector< handler_list_t* > mHandlers;
-			full_bind_t::iterator	lFullTracker;
-			cat_bind_t::iterator	lCatTracker;
 			name_bind_t::iterator	lNameTracker;
-			
-			/*
-			_bindTracker = mBindings.find(mEvt->getUID());
-			if (_bindTracker != mBindings.end())
-				mHandlers.push_back(&(_bindTracker->second));
-			*/
-			
-			// enqueue full bindings
-			mHandlers.push_back(&(mFullBindings));
-			
-			// enqueue category bindings
-			lCatTracker = mCatBindings.find(mEvt->getCategory());
-			if (lCatTracker != mCatBindings.end())
-				mHandlers.push_back(&(lCatTracker->second));
-			
-			// enqueue name bindings
-			lNameTracker = mNameBindings.find(mEvt->getName());
-			if (lNameTracker != mNameBindings.end()) {
+
+			lNameTracker = mBindings.find(mEvt->getName());
+			if (lNameTracker != mBindings.end()) {
 				mHandlers.push_back(&(lNameTracker->second));
 			}
-			
-			
-			/*std::cout << "tracking ["
-			<< mHandlers[0]->size() << "] specific handlers, ["
-			<< mHandlers[1]->size() << "] category handlers, [\n";
-			//<< mHandlers[2]->size() << "] all event handlers\n";*/
-			
-			
+						
 			// now do the actual tracking...
 			handler_list_t::iterator _handler;
 			for (int i=0; i<mHandlers.size(); ++i) {
@@ -210,9 +142,10 @@ namespace Pixy {
 			    ++_handler;
 			  
 			
-		} catch (std::exception& e) { // discard
+		} catch (std::exception& e) { // abort
 			//Utility::getLogger().errorStream() << "** EvtListener: handler error! " << e.what() << "\n";
 			std::cerr << "** EvtListener: handler error! " << e.what() << "\n";
+			mTracker.clear();
 		}
 		
 		if (mTracker.empty()) {
@@ -220,7 +153,7 @@ namespace Pixy {
 			// remove it and reset our tracker
 			//std::cout << "no more handlers to call, detaching from event\n";
 			
-			mEvents.front()->removeHandler(); // inform the event that a handler is done
+			mEvents.front()->_removeHandler(); // inform the event that a handler is done
 			/*
 			//std::cout 
 			<< "EvtListener: removing event " 
@@ -248,8 +181,6 @@ namespace Pixy {
 		list<Handler*>::iterator _itr = mTracker.begin();
 		for (_itr; _itr != mTracker.end(); ++_itr)
 			if ((*_itr) == inHandler) {
-			  //std::cout << "erasing handler\n";
-			  //inHandler->call(mEvents.front());
 				mTracker.erase(_itr);
 				break;
 		  }
@@ -267,12 +198,7 @@ namespace Pixy {
 	}
 	
 	bool EventListener::listeningTo(Event* inEvt) {
-		
-		return (!mFullBindings.empty() ||
-				mCatBindings.find(inEvt->getCategory()) != mCatBindings.end() ||
-				mNameBindings.find(inEvt->getName()) != mNameBindings.end()
-		);
-		
+		return (mBindings.find(inEvt->getName()) != mBindings.end()	);
 	}
 	
 }

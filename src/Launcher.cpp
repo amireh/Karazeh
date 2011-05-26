@@ -51,18 +51,22 @@ namespace Pixy
 
     delete Downloader::getSingletonPtr();
     delete Patcher::getSingletonPtr();
-        
+    
+    
 		if( mInputMgr )
 		    delete mInputMgr;
 
     if (mRenderer)
       delete mRenderer;
+    
+    EventManager::shutdown();
     		
 		mLog->infoStream() << "++++++ " << PIXY_APP_NAME << " cleaned up successfully ++++++";
 		if (mLog)
 		  delete mLog;
 		  
 		log4cpp::Category::shutdown();
+		
 		mRenderer = NULL; mInputMgr = NULL;
 	}
 

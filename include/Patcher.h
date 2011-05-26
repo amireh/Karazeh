@@ -57,7 +57,7 @@ class Patcher : public EventListener {
   typedef void (Patcher::*t_proc)(PatchEntry*, bool);
   typedef std::map<PATCHOP, t_proc> t_procmap;
   public:
-    ~Patcher( void );
+    virtual ~Patcher( void );
     
 	  static Patcher* getSingletonPtr();
 	  static Patcher& getSingleton();
