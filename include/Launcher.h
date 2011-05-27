@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <map>
 #include "Pixy.h"
+#include "KarazehConfig.h"
 #include "Renderer.h"
 #include "EventManager.h"
 #include "InputManager.h"

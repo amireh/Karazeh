@@ -23,8 +23,12 @@
  
 #include "Launcher.h"
 #include "PixyLogLayout.h"
+#ifdef KARAZEH_RENDERER_OGRE
 #include "Renderers/Ogre/OgreRenderer.h"
-#include "Renderers/CEGUI/CEGUIRenderer.h"
+#endif
+#ifdef KARAZEH_RENDERER_Qt
+#include "Renderers/Qt/QtRenderer.h"
+#endif
 
 namespace Pixy
 {
@@ -94,11 +98,15 @@ namespace Pixy
 		bool validRenderer = false;
 		if (inRendererName != 0) {
 		  validRenderer = true;
+#ifdef KARAZEH_RENDERER_OGRE		  
 		  if (strcmp(inRendererName, "Ogre") == 0)
 		    mRenderer = new OgreRenderer();
-		  /*else if (strcmp(inRendererName, "CEGUI") == 0)
-		    mRenderer = new CEGUIRenderer();*/
-		  else {
+#elif defined(KARAZEH_RENDERER_Qt)		    
+		  if (strcmp(inRendererName, "Qt") == 0)
+		    mRenderer = new QtRenderer();
+#endif
+
+		  if (!mRenderer) {
 		    mLog->errorStream() << "Invalid renderer! " << inRendererName << ", going vanilla";
 		    validRenderer = false;
 		  }

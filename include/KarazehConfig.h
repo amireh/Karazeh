@@ -1,0 +1,2 @@
+#define KARAZEH_RENDERER_OGRE
+/* #undef KARAZEH_RENDERER_Qt */

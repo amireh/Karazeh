@@ -1,0 +1,2 @@
+#cmakedefine KARAZEH_RENDERER_OGRE
+#cmakedefine KARAZEH_RENDERER_Qt
