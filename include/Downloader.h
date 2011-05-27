@@ -125,7 +125,7 @@ class Downloader {
         };
         ~Fetcher() { };
         
-        bool operator()(std::string url, std::string out, int retries=0);
+        bool operator()(std::string url, std::string out, int retries=0, CURL* curl=0);
         static size_t write_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
         static size_t read_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
         static int progress_func(void* something, double t, double d, double ultotal, double ulnow);

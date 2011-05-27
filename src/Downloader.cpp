@@ -126,6 +126,7 @@ namespace Pixy {
     int i;
     int nrEntries = inRepo->getEntries().size();
     int idx = 0;
+    CURL *curl = curl_easy_init();
     for (i = 0; i < 2; ++i) {
       PATCHOP op = (i == 0) ? CREATE : MODIFY;
       
@@ -154,7 +155,7 @@ namespace Pixy {
         // TODO: re-try in case of download failure
         if (!downloaded) {
           //fetchFile(url, lEntry->Temp);
-          mFetcher(url, lEntry->Temp, nrRetries);
+          mFetcher(url, lEntry->Temp, nrRetries, curl);
         }
         
         ++idx;
@@ -169,6 +170,7 @@ namespace Pixy {
       };
       
     }
+    curl_easy_cleanup(curl);
     
       
     return true;
@@ -201,14 +203,19 @@ namespace Pixy {
     return 0;
   }
     
-  bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries) {
+  bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries, CURL* curl) {
     std::cout << "fetching URL: " << url << " => " << out << "...\n";
 
-    CURL *curl;
+    //CURL *curl;
     CURLcode res;
     FILE *outfile;
-   
-    curl = curl_easy_init();
+    bool external = true; // external handle? do we have to clean up?
+    
+    if (!curl) {
+      curl = curl_easy_init();
+      external = false;
+    }
+    
     if(curl)
     {
       // TODO: make sure the directory exists and create it if it doesn't
@@ -241,7 +248,8 @@ namespace Pixy {
       }
       
       /* always cleanup */ 
-      curl_easy_cleanup(curl);
+      if (!external)
+        curl_easy_cleanup(curl);
 
       std::cout << "done fetching file\n";
       
