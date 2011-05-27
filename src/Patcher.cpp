@@ -70,7 +70,7 @@ namespace Pixy {
 		}
 		
 		mLog->infoStream() << "Application version: " << mCurrentVersion.Value;
-		mPatchListPath = std::string(PROJECT_TEMP_DIR) + "patchlist.txt";
+		mPatchScriptPath = std::string(PROJECT_TEMP_DIR) + "patch.txt";
 		
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
@@ -134,7 +134,7 @@ namespace Pixy {
 	  
 	  // download the patch list
 	  try {
-	    Downloader::getSingleton()._fetchPatchList(mPatchListPath);
+	    Downloader::getSingleton()._fetchPatchScript(mPatchScriptPath);
 	  } catch (BadPatchURL& e) {
 	    mLog->errorStream()
 	      << "could not retrieve patch list, aborting validation. Cause: " 
@@ -147,10 +147,10 @@ namespace Pixy {
     /*
      * Find out the latest version
      */
-    std::ifstream mPatchList;
-    mPatchList.open(mPatchListPath.c_str());
+    std::ifstream mPatchScript;
+    mPatchScript.open(mPatchScriptPath.c_str());
 
-    if (!mPatchList.is_open() || !mPatchList.good()) {
+    if (!mPatchScript.is_open() || !mPatchScript.good()) {
       mLog->errorStream() << "could not read patch list!";
       throw BadFileStream("unable to read patch list!");
     }
@@ -159,7 +159,7 @@ namespace Pixy {
     bool versionFound = false;
     std::string line;
     while (!versionFound) {
-      getline(mPatchList, line);
+      getline(mPatchScript, line);
       if (line.find("VERSION") != string::npos)
         versionFound = true;
     }
@@ -174,7 +174,7 @@ namespace Pixy {
       mLog->infoStream() << "Application is up to date.";
     }
 
-    mPatchList.close();
+    mPatchScript.close();
     
     //Launcher::getSingleton().evtValidateComplete(needPatch);
     lEvt = mEvtMgr->createEvt("ValidateComplete");
@@ -194,10 +194,10 @@ namespace Pixy {
     mLog->debugStream() << "building repositories";
     
     string line;
-    std::ifstream mPatchList;
-    mPatchList.open(mPatchListPath.c_str());
+    std::ifstream mPatchScript;
+    mPatchScript.open(mPatchScriptPath.c_str());
 
-    if (!mPatchList.is_open()) {
+    if (!mPatchScript.is_open()) {
       mLog->errorStream() << "could not read patch list!";
       throw BadFileStream("unable to read patch list!");
     }
@@ -206,9 +206,9 @@ namespace Pixy {
      * the entries in between
      */
     bool located = false;
-    while ( !located && mPatchList.good() )
+    while ( !located && mPatchScript.good() )
     {
-      getline(mPatchList,line);
+      getline(mPatchScript,line);
       
       // determine what kind of script entry it is:
       if (line == "" || line == "-") { // 1) garbage
@@ -296,7 +296,7 @@ namespace Pixy {
       lRepo = 0;
     } // patchlist file parsing loop
     
-    mPatchList.close();
+    mPatchScript.close();
     
     // this really shouldn't happen
     if (!located) {

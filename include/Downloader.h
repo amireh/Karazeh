@@ -61,7 +61,7 @@ class Downloader {
      *  \note
      *  This is called internally in the Patcher::validate() routine.
      */
-	  void _fetchPatchList(std::string out);
+	  void _fetchPatchScript(std::string out);
 	  
 	  /*!
 	   * \brief

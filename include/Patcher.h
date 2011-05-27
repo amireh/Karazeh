@@ -117,7 +117,7 @@ class Patcher : public EventListener {
     
 	protected:
 	  std::list<Repository*> mRepos;
-    std::string mPatchListPath;
+    std::string mPatchScriptPath;
     Version mCurrentVersion, mTargetVersion;
     
     /*! \brief

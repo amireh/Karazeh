@@ -66,13 +66,13 @@ namespace Pixy {
 		return *getSingletonPtr();
 	}
 	
-	void Downloader::_fetchPatchList(std::string out) {
+	void Downloader::_fetchPatchScript(std::string out) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;	
 	  
-	  mLog->debugStream() << "fetching patch list";
+	  mLog->debugStream() << "fetching patch script";
 	  
 	  // first of all, we need to prepare the filesystem; directories etc
 	  if (exists(path(PROJECT_TEMP_DIR))) {
@@ -121,7 +121,6 @@ namespace Pixy {
 	    nrRetries = 0;
 	  
     mLog->infoStream() << "downloading patch files";
-    Launcher::getSingleton().evtFetchStarted();
     
     // download all CREATE and MODIFY entries' remote files
     int i;
