@@ -33,8 +33,11 @@ namespace Pixy {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Downloader");
 		mLog->infoStream() << "firing up";
 		
-		mHost = "http://127.0.0.1/";
-		mPort = "80";
+		//mHosts.push_back("http://127.0.0.1/");
+		mHosts.push_back("http://www.vertigo-game.com/patches/");
+    mPatchScriptName = "patch.txt";
+		
+		mActiveHost = 0;
 		
 		curl_global_init(CURL_GLOBAL_ALL);
   }
@@ -42,6 +45,8 @@ namespace Pixy {
 	Downloader::~Downloader() {
 		
 		curl_global_cleanup();
+		mActiveHost = 0;
+		mHosts.clear();
 		
 		mLog->infoStream() << "shutting down";
 		
@@ -61,7 +66,7 @@ namespace Pixy {
 		return *getSingletonPtr();
 	}
 	
-	void Downloader::fetchPatchList(std::string out) {
+	void Downloader::_fetchPatchList(std::string out) {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
@@ -82,28 +87,39 @@ namespace Pixy {
       create_directory(path(PROJECT_TEMP_DIR));
     }
     
-	  std::string url = mHost + "/patchlist.txt";
-	  // get the patch list
-	  try {
-      fetchFile(url, out);
-    } catch (std::exception &e) {
-      mLog->errorStream() << "could not download patch list! error: " << e.what();
-      throw new BadPatchURL("could not download patch list from '" + url + "'");
+    mLog->infoStream() << "resolving patch server...";
+    // find an active host
+    std::list<std::string>::const_iterator _host = mHosts.begin();
+    while (!mActiveHost) {
+      mActiveHost = (std::string*)&(*_host);
+      bool res;
+      //try {
+        std::string url = (*mActiveHost) + mPatchScriptName;
+        mLog->debugStream() << "server: " << url;
+        res = mFetcher(url, out, 3);
+        //fetchFile(url, out);
+      //} catch (BadRequest& e) {
+      if (!res) {
+        mActiveHost = 0;
+        if ((++_host) == mHosts.end())
+          throw BadPatchURL("could not find an active host");
+      }
     }
     
 	};
 	
 
-
   bool 
-  Downloader::fetchRepository(Repository *inRepo, 
-                             int nrRetries, 
-                             void (*callback)(int))
+  Downloader::_fetchRepository(Repository *inRepo, 
+                             int nrRetries)
   {
 	  using boost::filesystem::exists;
 	  using boost::filesystem::is_directory;
 	  using boost::filesystem::create_directory;
-	    
+	  
+	  if (nrRetries < 0)
+	    nrRetries = 0;
+	  
     mLog->infoStream() << "downloading patch files";
     Launcher::getSingleton().evtFetchStarted();
     
@@ -121,7 +137,7 @@ namespace Pixy {
         lEntry = lEntries.back();
         
         // build up target URL
-        url = mHost + lEntry->Remote;
+        url = *mActiveHost + lEntry->Remote;
 
         // TODO: check if file has been downloaded before
         bool downloaded = false;
@@ -137,8 +153,10 @@ namespace Pixy {
         }
         
         // TODO: re-try in case of download failure
-        if (!downloaded)
-          fetchFile(url, lEntry->Temp);
+        if (!downloaded) {
+          //fetchFile(url, lEntry->Temp);
+          mFetcher(url, lEntry->Temp, nrRetries);
+        }
         
         ++idx;
         
@@ -152,9 +170,7 @@ namespace Pixy {
       };
       
     }
-        
-    if (callback)
-      (*callback)(0);
+    
       
     return true;
   };
@@ -163,16 +179,7 @@ namespace Pixy {
   {
     boost::thread mWorker(mFetcher, url, out);
     mWorker.join();
-  }
-  
-  Downloader::Fetcher::Fetcher() {
-    //std::cout << "fetcher created\n";
-  }	
-  
-  Downloader::Fetcher::~Fetcher() {
-    //std::cout << "fetcher destroyed\n";
-  }
-  
+  } 
   
   size_t Downloader::Fetcher::write_func(void *ptr, size_t size, size_t nmemb, FILE *stream)
   {
@@ -190,16 +197,14 @@ namespace Pixy {
                        double ultotal,
                        double ulnow)
   {
-    printf("%f / %f (%g %%)\n", d, t, d*100.0/t); 
+    //printf("%f / %f (%g %%)\n", d, t, d*100.0/t); 
     
     return 0;
   }
     
-  void Downloader::Fetcher::operator()(std::string url, std::string out) {
+  bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries) {
     std::cout << "fetching URL: " << url << " => " << out << "...\n";
-    //printf("fetching URL: %s => %s\n", url, out);
-    //sleep(10000);
-    //return;
+
     CURL *curl;
     CURLcode res;
     FILE *outfile;
@@ -209,22 +214,39 @@ namespace Pixy {
     {
       // TODO: make sure the directory exists and create it if it doesn't
       outfile = fopen(out.c_str(), "w");
-   
+      if (!outfile) {
+        curl_easy_cleanup(curl);
+        std::cout << "ERROR! Couldn't open file for writing: " << out;
+        return false;
+      }
+      
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Fetcher::write_func);
       curl_easy_setopt(curl, CURLOPT_READFUNCTION, Fetcher::read_func);
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
       curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Fetcher::progress_func);
+      curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
       //curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, Bar);
    
-      res = curl_easy_perform(curl);
-   
+      // curl_easy_perform() returns 0 on OK
+      do {
+        std::cout << "CURL: trying...\n";
+        res = curl_easy_perform(curl);
+        std::cout << "CURL: query result = " << res; 
+      } while ((res != 0) && (--retries) > 0);
+
       fclose(outfile);
+      if (res != 0) {
+        remove(out.c_str());
+      }
+      
       /* always cleanup */ 
       curl_easy_cleanup(curl);
-      
+
       std::cout << "done fetching file\n";
+      
+      return (res == 0);      
     }
   }
 };

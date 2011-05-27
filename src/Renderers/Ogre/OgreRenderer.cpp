@@ -275,9 +275,9 @@ namespace Pixy {
 	  
 	  if (inEvt->getProperty("NeedUpdate") == "Yes") {
 	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
-	    mStatusBox->setText("Application needs updating.");
+	    mStatusBox->setText("Application needs updating. Latest version is: " + inEvt->getProperty("TargetVersion"));
 	  } else {
-	    mStatusBox->setText("Application is up to date");
+	    mStatusBox->setText("Application is up to date " + inEvt->getProperty("CurrentVersion"));
 	  }
 	  return true;
 	}
@@ -317,7 +317,7 @@ namespace Pixy {
   }
   
   bool OgreRenderer::evtApplicationPatched(Event* inEvt) {
-    std::string lMsg = "All updates were successful.";
+    std::string lMsg = "All updates were successful. Application is now " + inEvt->getProperty("Version");
 	  mTrayMgr->showOkDialog("Application up to date", lMsg); 
 	  
 	  mStatusBox->setCaption("Application is up to date.");
@@ -377,6 +377,7 @@ namespace Pixy {
       Launcher::getSingleton().launchExternalApp("./Launcher", "Launcher");
     } else if (b->getName() == "Patch") {
       //Patcher::getSingleton().validate();
+      boost::thread mThread(boost::ref(Patcher::getSingleton()));
     }
 
   };
@@ -390,7 +391,7 @@ namespace Pixy {
   
   bool OgreRenderer::evtPatchProgress(Event* inEvt) {
     int p = Utility::convertTo<int>(inEvt->getProperty("Progress"));
-    mProgress->setProgress(p);
+    mProgress->setProgress(p / 100.0f);
     mLog->infoStream() << "Patching : %" <<p << " done "; 
     return true;
   }

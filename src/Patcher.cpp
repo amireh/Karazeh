@@ -29,13 +29,16 @@
 extern "C" int bspatch(const char* src, const char* dest, const char* diff);
 
 namespace Pixy {
-	Patcher* Patcher::__instance;
+	Patcher* Patcher::__instance = NULL;
 	
 	Patcher::Patcher() {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Patcher");
 		mLog->infoStream() << "firing up";
 		
 		mEvtMgr = EventManager::getSingletonPtr();
+		
+		fValidated = false;
+		fPatched = false;
 		
 		using boost::filesystem::exists;
 		using std::fstream;
@@ -74,7 +77,7 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(RENAME, &Patcher::processRename));
 		
-		bind("Patch", this, &Patcher::patch);
+		bind("Patch", this, &Patcher::evtPatch);
   }
 	
 	Patcher::~Patcher() {
@@ -118,7 +121,10 @@ namespace Pixy {
     processEvents();
   }
   
-	bool Patcher::validate() {
+	void Patcher::validate() {
+	  if (fValidated)
+	    return;
+	  
 	  mLog->debugStream() << "validating version";
 	  
 	  //Launcher::getSingleton().evtValidateStarted();
@@ -128,14 +134,14 @@ namespace Pixy {
 	  
 	  // download the patch list
 	  try {
-	    Downloader::getSingleton().fetchPatchList(mPatchListPath);
+	    Downloader::getSingleton()._fetchPatchList(mPatchListPath);
 	  } catch (BadPatchURL& e) {
 	    mLog->errorStream()
 	      << "could not retrieve patch list, aborting validation. Cause: " 
 	      << e.what();
 	    
 	    mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
-	    return false;
+	    return;
 	  }
 
     /*
@@ -146,7 +152,7 @@ namespace Pixy {
 
     if (!mPatchList.is_open() || !mPatchList.good()) {
       mLog->errorStream() << "could not read patch list!";
-      throw new BadFileStream("unable to read patch list!");
+      throw BadFileStream("unable to read patch list!");
     }
     
     bool needPatch = false;
@@ -173,10 +179,13 @@ namespace Pixy {
     //Launcher::getSingleton().evtValidateComplete(needPatch);
     lEvt = mEvtMgr->createEvt("ValidateComplete");
 	  lEvt->setProperty("NeedUpdate", (needPatch) ? "Yes" : "No");
+	  lEvt->setProperty("TargetVersion", mTargetVersion.Value);
+	  lEvt->setProperty("CurrentVersion", mCurrentVersion.Value);
 	  mEvtMgr->hook(lEvt);
 	  lEvt = 0;
     
-    return true;
+    fValidated = true;
+    return;
 	};
 	
 	void Patcher::buildRepositories() {
@@ -190,7 +199,7 @@ namespace Pixy {
 
     if (!mPatchList.is_open()) {
       mLog->errorStream() << "could not read patch list!";
-      throw new BadFileStream("unable to read patch list!");
+      throw BadFileStream("unable to read patch list!");
     }
     	
     /* we need to locate our current version in the patch list, and track all
@@ -201,12 +210,12 @@ namespace Pixy {
     {
       getline(mPatchList,line);
       
-      // determine what kind of entry it is:
-      if (line == "" || line == "-") { // 1) it's trash
+      // determine what kind of script entry it is:
+      if (line == "" || line == "-") { // 1) garbage
         continue;
       
       std::cout << "Line: " << line << "\n";
-      } else if (line.find("VERSION") != string::npos) { // 2) it's a version signature
+      } else if (line.find("VERSION") != string::npos) { // 2) a version signature
         if (Version(line) == mCurrentVersion) {
           // we're done parsing, this is our current version
           located = true;
@@ -228,68 +237,48 @@ namespace Pixy {
       
       Repository *lRepo = mRepos.front();
       
-      // 3) it's an entry, let's parse it
+      // 3) an entry, let's parse it
       // __DEBUG__
       std::cout << "Line: " << line << "\n";
       fflush(stdout);
       
-      // make sure the line has at least 2 fields (DELETE case)
       std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
-      if (elements.size() < 2) {
-        mLog->errorStream() << "malformed line: '" << line << "', skipping";
-        continue;
-      }
       
-      // parse the operation type and make sure the required fields exist
+      if (!validateLine(elements, line)) {
+        continue;
+      };
+      
       PATCHOP op;
-      if (elements[0] == "C") {
-        op = CREATE;
-        if (elements.size() < 4) { // CREATE entries must have at least 4 fields
-          mLog->errorStream() << "malformed CREATE line: '" << line << "', skipping";
-          continue;
-        }
-      } else if (elements[0] == "D") {
-        op = DELETE;
-      } else if (elements[0] == "M") {
-        op = MODIFY;
-        if (elements.size() < 4) { // MODIFY entries must have at least 4 fields
-          mLog->errorStream() << "malformed MODIFY line: '" << line << "', skipping";
-          continue;
-        }
-      } else if (elements[0] == "R") {
-        op = RENAME;
-        if (elements.size() < 3) { // RENAME entries must have at least 3 fields
-          mLog->errorStream() << "malformed RENAME line: '" << line << "', skipping";
-          continue;
-        }        
-      } else {
-        mLog->errorStream() << "undefined operation symbol: " << elements[0];
+      try {
+        op = opFromChar(elements[0].c_str());
+      } catch (std::runtime_error& e) {
+        mLog->errorStream() << e.what() << " from " << elements[0];
         continue;
       }
       
       // "local" entry paths need to be adjusted to reflect the project root
+      // TODO: use tokens in patch script to manually specify project root
+      // and special paths
       elements[1] = PROJECT_ROOT + elements[1];
       
+      /* TODO: refactor
+       * for C and M ops we need to stage the remote files in a temp directory
+       * and so we resolve the path here according to the following scheme:
+       * TMP_DIR/REPO_VERSION/REMOTE_FILE_NAME.EXT
+       */
       using boost::filesystem::path;
       path lTempPath;
       if (op == CREATE || op == MODIFY) {
-        // "temp" paths follow the following scheme:
-        // TMP_DIR/REPO_VERSION/REMOTE_FILE_NAME.EXT
-
         lTempPath = path(
           std::string(PROJECT_TEMP_DIR)  + 
           lRepo->getVersion().PathValue + "/" +
           path(elements[2]).filename()
         ); 
         
-        // make sure the temp directory exists, otherwise create it
         if (!exists(lTempPath.parent_path()))
          create_directory(lTempPath.parent_path());
-        
-        std::cout << "Found temp path: " << lTempPath << " for repository : " << lRepo->getVersion().PathValue << "\n";
       }
       
-      // add the entries to our Patcher's list for processing
       switch(op) {
         case CREATE:
         case MODIFY:
@@ -299,7 +288,7 @@ namespace Pixy {
           lRepo->registerEntry(op, elements[1]);
           break;
         case RENAME:
-          elements[2] = PROJECT_ROOT + elements[2];
+          elements[2] = PROJECT_ROOT + elements[2]; // we assume the path is relative to the root
           lRepo->registerEntry(op, elements[1], elements[2]);
           break;
       }
@@ -307,16 +296,52 @@ namespace Pixy {
       lRepo = 0;
     } // patchlist file parsing loop
     
-    
     mPatchList.close();
     
     // this really shouldn't happen
     if (!located) {
       mLog->warnStream() << "possible file or local version corruption: could not locate our version in patch list";
-      throw new BadVersion("could not locate our version in patch list " + mCurrentVersion.Value);
+      throw BadVersion("could not locate our version in patch list " + mCurrentVersion.Value);
     }
     
     mLog->debugStream() << "repositories built";
+	};
+	
+	bool Patcher::validateLine(std::vector<std::string>& elements, std::string line) {
+
+    // minimum script entry (DELETE)
+    if (elements.size() < 2) {
+      mLog->errorStream() << "malformed line: '" << line << "', skipping";
+      return false;
+    }
+    
+    // parse the operation type and make sure the required fields exist
+    if (elements[0] == "C") {
+      if (elements.size() < 4) {
+        // CREATE entries must have at least 4 fields
+        mLog->errorStream() << "malformed CREATE line: '" << line << "', skipping";
+        return false;
+      }
+    } else if (elements[0] == "M") {
+      if (elements.size() < 4) {
+        // MODIFY entries must have at least 4 fields
+        mLog->errorStream() << "malformed MODIFY line: '" << line << "', skipping";
+        return false;
+      }
+    } else if (elements[0] == "R") {
+      if (elements.size() < 3) {
+        // RENAME entries must have at least 3 fields
+        mLog->errorStream() << "malformed RENAME line: '" << line << "', skipping";
+        return false;
+      }
+    } else {
+      mLog->errorStream() 
+        << "undefined operation symbol: " 
+        << elements[0] << " from line " << line;
+      return false;
+    }	
+
+	  return true;
 	};
 	
 	bool Patcher::preprocess(Repository* inRepo) {
@@ -326,23 +351,41 @@ namespace Pixy {
     for (entry = entries.begin(); entry != entries.end() && success; ++entry)
       try {
         (this->*mProcessors[(*entry)->Op])((*entry), false);
-      } catch (FileDoesNotExist* e) {
+      } catch (FileDoesNotExist& e) {
         success = false;
         // TODO: inject renderer with the error
-      } catch (FileAlreadyCreated* e) {
+      } catch (FileAlreadyCreated& e) {
         success = false;
       }
     
     return success;
 	};
 	
-	bool Patcher::patch(Event* inEvt) {
+	void Patcher::operator()() {
+    if (!fValidated)
+      return (void)validate();
+      
+    patch();
+	}
+	
+	bool Patcher::evtPatch(Event* inEvt) {
+	  boost::thread mWorker(boost::ref(Patcher::getSingleton()));
+	  
+	  return true;
+	}
+	
+	void Patcher::patch() {
+	  if (fPatched)
+	    return;
+	    
+	  if (!fValidated) // this really shouldn't happen, but just guard against it
+	    validate();
 	  
 	  try {
 	    buildRepositories();
-	  } catch (BadVersion* e) {
+	  } catch (BadVersion& e) {
       mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
-	  } catch (BadFileStream* e) {
+	  } catch (BadFileStream& e) {
 	    mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
 	  }
 	    
@@ -374,7 +417,7 @@ namespace Pixy {
 	    }
 	    
 	    // download the patch files
-	    Downloader::getSingleton().fetchRepository(*repo);
+	    Downloader::getSingleton()._fetchRepository(*repo);
 	    
 	    // TODO: perform a check before committing any changes so we can rollback (DONE)
 	    std::vector<PatchEntry*> entries = (*repo)->getEntries();	    
@@ -396,6 +439,7 @@ namespace Pixy {
 	  
 	  if (success) {
       lEvt = mEvtMgr->createEvt("ApplicationPatched");
+      lEvt->setProperty("Version", mCurrentVersion.Value);
 	    mEvtMgr->hook(lEvt);
 	    lEvt = 0;
 	    
@@ -408,7 +452,8 @@ namespace Pixy {
 	  //mLog->infoStream() << "cleaning up temp";
 	  //boost::filesystem::remove_all(PROJECT_TEMP_DIR);
 	  
-	  return true;
+	  fPatched = true;
+	  return;
 	}
 	
 	void Patcher::processCreate(PatchEntry* inEntry, bool fCommit) {
@@ -427,7 +472,7 @@ namespace Pixy {
 	  // make sure the file doesn't already exist, if it does.. abort
 	  if (exists(local)) {
 	    mLog->errorStream() << "file to be created already exists! " << local << " aborting...";
-	    throw new FileAlreadyCreated("Could not create file!", inEntry);
+	    throw FileAlreadyCreated("Could not create file!", inEntry);
 	  }
 	  
 	  if (!fCommit)
@@ -460,7 +505,7 @@ namespace Pixy {
 	  // make sure the file exists!
 	  if (!exists(local)) {
 	    mLog->errorStream() << "no such file to delete! " << local;
-	    throw new FileDoesNotExist("Could not delete file!", inEntry);
+	    throw FileDoesNotExist("Could not delete file!", inEntry);
 	  }
 	  	  
     if (!fCommit)
@@ -483,7 +528,7 @@ namespace Pixy {
 	  
 	  if (!exists(inEntry->Local)) {
 	    mLog->errorStream() << "No such file to modify! " << inEntry->Local;
-      throw new FileDoesNotExist("No such file to modify!", inEntry);	  
+      throw FileDoesNotExist("No such file to modify!", inEntry);	  
 	  }
 	  
 	  if (!fCommit)
@@ -524,12 +569,12 @@ namespace Pixy {
     // the source must exist and the destination must not
 	  if (!exists(src)) {
 	    mLog->errorStream() << "file to be moved doesn't exist! " << src << " aborting...";
-	    throw new FileDoesNotExist("Could not move file!", inEntry);
+	    throw FileDoesNotExist("Could not move file!", inEntry);
 	  }
 	  
 	  if (exists(dest)) {
 	    mLog->errorStream() << "destination of rename already exists! " << dest << " aborting...";
-	    throw new FileAlreadyCreated("Could not move file!", inEntry);
+	    throw FileAlreadyCreated("Could not move file!", inEntry);
 	  }
 	  
 	  if (!fCommit)
@@ -558,4 +603,19 @@ namespace Pixy {
 	  res.close();
 	  
 	};
+	
+	PATCHOP Patcher::opFromChar(const char* inC) {
+
+	  if (*inC == 'M')
+	    return MODIFY;
+	  else if (*inC == 'C')
+	    return CREATE;
+	  else if (*inC == 'D')
+	    return DELETE;
+	  else if (*inC == 'R')
+	    return RENAME;
+	  else {
+	    throw std::runtime_error("Invalid OP character!");
+	  }
+	}
 };

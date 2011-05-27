@@ -50,14 +50,27 @@ class Downloader {
 	  static Downloader* getSingletonPtr();
 	  static Downloader& getSingleton();
 
-	  void fetchPatchList(std::string out);
+    /*! \brief
+     *  Attempts to retrieve the patch list from any of the registered
+     *  patch servers.
+     *
+     *  The patch list is stored in PROJECT_TEMP_DIR, which is created if it
+     *  does not exist. Further, this method could throw a BadPatchURL exception
+     *  in the case where something goes wrong while retrieving the list.
+     *
+     *  \note
+     *  This is called internally in the Patcher::validate() routine.
+     */
+	  void _fetchPatchList(std::string out);
 	  
 	  /*!
 	   * \brief
-	   *  downloads all the files and diffs needed by every version's patch
+	   *  Downloads all the files and diffs needed by every repository only if
+	   *  they have not already been downloaded. This method transmits the
+	   *  PatchProgress which injects Renderers with the download progress.
 	   *
 	   * \remark
-	   *  When a file is downloaded, its MD5 chuksum is calculated and compared
+	   *  When a file is downloaded, its MD5 checksum is calculated and compared
 	   *  against the original remote one, in case of a mismatch, the file is
 	   *  re-downloaded up to nrRetries times, if still invalid, an exception will
 	   *  be thrown of type BadPatchFile which contains the respective PatchEntry.
@@ -67,22 +80,21 @@ class Downloader {
 	   *  already downloaded in case of interruption so the list won't have to
 	   *  be re-downloaded entirely.
 	   *
-	   * Return:
+	   * \return
 	   *  true if all files were successfully downloaded, false otherwise
 	   *
 	   * \warn
 	   *  MUST be called before the Patcher is ordered to process
 	   */
-	  bool 
-	  fetchRepository(Repository* inRepo, 
-	                  int nrRetries = 3, 
-	                  void (*callback)(int) = NULL);
+	  bool _fetchRepository(Repository* inRepo, int nrRetries = 3);
 	
 	protected:
-	  // grabs a file from url using HTTP and dumps it to out
+	  //! grabs a file from url using libcurl and dumps it to out
 	  void fetchFile(std::string url, std::string out);
 	  
-	  std::string mHost, mPort;
+	  std::list<std::string> mHosts;
+	  std::string* mActiveHost;
+	  std::string mPatchScriptName;
 	  
   private:
 	  Downloader();
@@ -92,9 +104,14 @@ class Downloader {
     static Downloader *__instance;
     log4cpp::Category* mLog;
     
+    /*! \class Fetcher
+     *  \brief
+     *  The Fetcher performs all the libcurl requests and does the downloading.
+     *  Fetcher instances are spawned in boost::threads.
+     */
     class Fetcher {
       public:
-        Fetcher();
+        Fetcher() { };
         Fetcher(const Fetcher& src) {
           clone(src);
         };
@@ -106,19 +123,17 @@ class Downloader {
           
           return (*this);
         };
-        virtual ~Fetcher();
+        ~Fetcher() { };
         
-        void operator()(std::string url, std::string out);
+        bool operator()(std::string url, std::string out, int retries=0);
         static size_t write_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
         static size_t read_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
         static int progress_func(void* something, double t, double d, double ultotal, double ulnow);
         
       private:
-        void clone(const Fetcher& src) {
-        
-        };
+        void clone(const Fetcher& src) { };
     };
-    
+
     Fetcher mFetcher;
 };
   

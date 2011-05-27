@@ -49,16 +49,15 @@ namespace Pixy
 	
 	Launcher::~Launcher() {
 
-    delete Downloader::getSingletonPtr();
-    delete Patcher::getSingletonPtr();
-    
-    
 		if( mInputMgr )
 		    delete mInputMgr;
 
     if (mRenderer)
       delete mRenderer;
-    
+
+    delete Downloader::getSingletonPtr();
+    delete Patcher::getSingletonPtr();
+        
     EventManager::shutdown();
     		
 		mLog->infoStream() << "++++++ " << PIXY_APP_NAME << " cleaned up successfully ++++++";
@@ -70,8 +69,17 @@ namespace Pixy
 		mRenderer = NULL; mInputMgr = NULL;
 	}
 
-
-
+	Launcher* Launcher::getSingletonPtr() {
+		if( !mLauncher ) {
+		    mLauncher = new Launcher();
+		}
+		
+		return mLauncher;
+	}
+	
+	Launcher& Launcher::getSingleton() {
+		return *getSingletonPtr();
+	}
   
 	void Launcher::go(const char* inRendererName) {
 	
@@ -79,6 +87,8 @@ namespace Pixy
 		initLogger();
 		
 		EventManager::getSingletonPtr();
+		Patcher::getSingletonPtr();
+		Downloader::getSingletonPtr();		
 		
 		goFunc = &Launcher::goVanilla;
 		bool validRenderer = false;
@@ -120,8 +130,8 @@ namespace Pixy
 		  mRenderer->deferredSetup();
 		}
 		
-		mDownloader = Downloader::getSingletonPtr();
-		boost::thread mThread(launchDownloader);
+
+		
 		
 		// lTimeLastFrame remembers the last time that it was checked
 		// we use it to calculate the time since last frame
@@ -129,6 +139,8 @@ namespace Pixy
 		lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
 
     mLog->infoStream() << "my current thread id: " << boost::this_thread::get_id();
+    
+    boost::thread mThread(boost::ref(Patcher::getSingleton()));
     
 		// main game loop
 		while( !fShutdown )
@@ -156,34 +168,12 @@ namespace Pixy
 	  EventManager::getSingleton().update();
 	  Patcher::getSingleton().update();
 	};
-	
-	void Launcher::launchDownloader() {
-	  try { 
-	    Patcher::getSingleton().validate();
-	  } catch (BadVersion* e) {
-	    //mLog->errorStream() << "version mismatch!";
-	    std::cout << "version mismatch!";
-	    delete e;
-	  }
-	}
-	
+
 	void Launcher::requestShutdown() {
 		fShutdown = true;
 	}
 	
 
-	
-	Launcher* Launcher::getSingletonPtr() {
-		if( !mLauncher ) {
-		    mLauncher = new Launcher();
-		}
-		
-		return mLauncher;
-	}
-	
-	Launcher& Launcher::getSingleton() {
-		return *getSingletonPtr();
-	}
 	
 	
 	void Launcher::initLogger() {
@@ -230,37 +220,6 @@ namespace Pixy
 		lHeaderLayout = 0;
 		
 		mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Launcher");
-	}
-	
-	void Launcher::evtValidateStarted() {
-	  std::cout << "Validating version...\n";
-	  /*if (mRenderer)
-	    mRenderer->injectStatus("Validating");*/
-	}
-	void Launcher::evtValidateComplete(bool needsUpdate) {
-	  /*if (needsUpdate) {
-	    if (mRenderer)
-	      bool res = mRenderer->injectPrompt("Application is out of date, would you like to update it now?");
-	      
-	    std::cout << "Application needs updating\n";
-	  }
-	  else {
-	    if (mRenderer)
-	      mRenderer->injectStatus("Application is up to date");
-	    std::cout << "Application is up to date\n";
-	  }*/
-	}
-	void Launcher::evtFetchStarted() {
-	  std::cout << "Downloading patch...\n";
-	}
-	void Launcher::evtFetchComplete(bool success) {
-	  std::cout << "Patch is downloaded\n";
-	}
-	void Launcher::evtPatchStarted() {
-	  std::cout << "Patching application...\n";
-	}
-	void Launcher::evtPatchComplete(bool success) {
-	  std::cout << "Patching is complete\n";
 	}
 	
 	void Launcher::launchExternalApp(std::string inPath, std::string inAppName) {

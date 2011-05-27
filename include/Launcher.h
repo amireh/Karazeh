@@ -33,50 +33,51 @@
 #include "Renderer.h"
 #include "EventManager.h"
 #include "InputManager.h"
+#include "Patcher.h"
 #include "Downloader.h"
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Pixy
 {
-
+  /*! \class Launcher
+   *  \brief
+   *  The Launcher is the application's "root", initialises the components,
+   *  the Renderer, maintains the main loop, and launches the target application.
+   *
+   *  Renderers can be attached to the Launcher which will handle all the UI
+   *  events and interact with the Patcher/Downloader. See OgreRenderer for
+   *  an example Renderer.
+   */
 	class Launcher {
 	public:
 		~Launcher( void );
 
-		//! Retrieves a pointer to the Singleton instance of this class.
-		/*!
-		 *	@return
-		 *	Pointer to the instance of this Singleton class.
-		 */
 		static Launcher* getSingletonPtr();
 		static Launcher& getSingleton();
 				
-		//! Loads StateGame game state to start the game.
-		/*! 
-		 *	
+		/*! \brief 
+		 *	Starts up the components: InputManager, Renderer, Patcher and Downloader,
+		 *  fires Patcher::validate() in a thread, and begins the application loop.
+		 *
+		 *  \arg inRendererName specify which Renderer you'd like to use, if empty
+		 *  the "vanilla" renderer is used: stdout
 		 */
 		void go(const char* inRendererName = 0);
 		
+		/*! \brief 
+		 *  Terminates the current process and launches the application found at
+		 *  inPath identified by inAppName using execl();
+		 *
+		 *  \arg inPath: full path to the application with extension, ie C:\\Foo.exe
+		 *  \arg inAppName: stripped name of the application, ie Foo
+		 */		
 		void launchExternalApp(std::string inPath, std::string inAppName);
 		
-		//!	Shuts down the system, consequently shutting down all running game states.
-		/*! 
-		 *	\note
-		 *	
+		/*! \brief 
+		 *	Shuts down the system and all components.
 		 */
 		void requestShutdown();
-		
-		static void launchDownloader();
-		
-		const std::string getVersion();
-		
-		void evtValidateStarted();
-		void evtValidateComplete(bool needsUpdate);
-		void evtFetchStarted();
-		void evtFetchComplete(bool success);
-		void evtPatchStarted();
-		void evtPatchComplete(bool success);
 		
 	private:
 		Launcher();
@@ -88,28 +89,24 @@ namespace Pixy
 		void goWithRenderer();
 		void goVanilla();
 		
-		void loadRenderSystems();
-	
-		/*! Starts off the logger
-		 *
+		/*! \brief 
+		 *  Starts up the log4cpp logger.
 		 */
 		void initLogger();
 		
-		Renderer *mRenderer;
-		InputManager		    *mInputMgr;
+		Renderer      *mRenderer;
+		InputManager	*mInputMgr;
 		
 		//unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
 		boost::posix_time::ptime  lTimeLastFrame, lTimeCurrentFrame;
 		boost::posix_time::time_duration lTimeSinceLastFrame;
 		
-		//! do we want to shutdown?
 		bool fShutdown;
 		static Launcher *mLauncher;
 		log4cpp::Category* mLog;
 				
 		std::string mConfigPath;
 		
-		Downloader *mDownloader;
 	};
 } // end of namespace
 
