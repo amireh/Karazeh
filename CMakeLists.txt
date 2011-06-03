@@ -33,14 +33,27 @@ OPTION(KARAZEH_RENDERER_Qt "Build Qt renderer" OFF)
 #OPTION(KARAZEH_USE_POCO "Use POCO libraries instead of boost" OFF)
 
 # add sources
-AUX_SOURCE_DIRECTORY(src Karazeh_SRCS)
+SET(Karazeh_SRCS
+  src/Launcher.cpp
+  src/Patcher.cpp
+  src/Downloader.cpp
+  src/Repository.cpp
+  src/PixyLogLayout.cpp
+
+  src/bsdiff.c
+  src/bspatch.c
+
+  src/main.cpp
+)
 
 # common includes and libraries
-INCLUDE_DIRECTORIES(include
-                       ${CMAKE_CURRENT_BINARY_DIR}
-                       ${LOG4CPP_INCLUDE_DIRS}
-                       ${CURL_INCLUDE_DIRS}
-                       ${BOOST_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(
+  include
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${LOG4CPP_INCLUDE_DIRS}
+  ${CURL_INCLUDE_DIRS}
+  ${BOOST_INCLUDE_DIRS}
+)
 
 # renderers
 IF(KARAZEH_RENDERER_OGRE)
@@ -51,13 +64,20 @@ IF(KARAZEH_RENDERER_OGRE)
   LINK_LIBRARIES(${OGRE_LIBRARIES} ${OIS_LIBRARIES})
 ENDIF()
 IF(KARAZEH_RENDERER_Qt)
-  AUX_SOURCE_DIRECTORY(src/Renderers/Qt Karazeh_SRCS)
-  QT4_WRAP_CPP(Karazeh_HEADERS_MOC ${Karazeh_HEADERS})
+  #AUX_SOURCE_DIRECTORY(src/Renderers/Qt Karazeh_SRCS)
   INCLUDE(${QT_USE_FILE})
+
+  SET(Karazeh_SRCS
+    ${Karazeh_SRCS}
+    src/Renderers/Qt/QtRenderer.cpp
+  )
+
   ADD_DEFINITIONS(${QT_DEFINITIONS})
   INCLUDE_DIRECTORIES(${QT_INCLUDE_DIRS})
   LINK_DIRECTORIES(${QT_LIBRARY_DIRS})
   LINK_LIBRARIES(${QT_LIBRARIES})
+
+  QT4_WRAP_CPP(Karazeh_SRCS include/Renderers/Qt/QtRenderer.h)
 ENDIF()
 
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/KarazehConfig.h.cmake ${CMAKE_SOURCE_DIR}/include/KarazehConfig.h )
@@ -65,5 +85,5 @@ CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/KarazehConfig.h.cmake ${CMAKE_SOURCE_DIR}/in
 LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS} ${CURL_LIBRARY_DIRS} ${BZip2_LIBRARY_DIRS})
 LINK_LIBRARIES( boost_thread boost_filesystem boost_date_time ${CURL_LIBRARIES} log4cpp bz2)
 
-ADD_EXECUTABLE(bin/${PROJECT_NAME} ${Karazeh_SRCS})
+ADD_EXECUTABLE(bin/${PROJECT_NAME} ${Karazeh_SRCS} )
 TARGET_LINK_LIBRARIES(bin/${PROJECT_NAME} ${Karazeh_LIBRARIES})
