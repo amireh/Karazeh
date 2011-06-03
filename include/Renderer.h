@@ -56,7 +56,7 @@ namespace Pixy {
 		 *  stage yet, so make sure you do not reference them here. If you need to,
 		 *  see deferredSetup() below.
 		 */
-		virtual bool setup()=0;
+		virtual bool setup(int argc, char** argv)=0;
 
 		/* \brief
 		 *  Called after all components are initialized, such as the InputManager,

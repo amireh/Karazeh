@@ -56,7 +56,7 @@ namespace Pixy {
 		/* \brief
 		 *
 		 */
-		virtual bool setup();
+		virtual bool setup(int argc, char** argv);
 
 		/* \brief
 		 *

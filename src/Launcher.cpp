@@ -79,7 +79,7 @@ namespace Pixy
 		return *getSingletonPtr();
 	}
 
-	void Launcher::go(const char* inRendererName) {
+	void Launcher::go(int argc, char** argv) {
 
 		// init logger
 		initLogger();
@@ -89,18 +89,18 @@ namespace Pixy
 
 		goFunc = &Launcher::goVanilla;
 		bool validRenderer = false;
-		if (inRendererName != 0) {
+		if (argc > 1) {
 		  validRenderer = true;
 #ifdef KARAZEH_RENDERER_OGRE
-		  if (strcmp(inRendererName, "Ogre") == 0)
+		  if (strcmp(argv[1], "Ogre") == 0)
 		    mRenderer = new OgreRenderer();
 #elif defined(KARAZEH_RENDERER_Qt)
-		  if (strcmp(inRendererName, "Qt") == 0)
+		  if (strcmp(argv[1], "Qt") == 0)
 		    mRenderer = new QtRenderer();
 #endif
 
 		  if (!mRenderer) {
-		    mLog->errorStream() << "Invalid renderer! " << inRendererName << ", going vanilla";
+		    mLog->errorStream() << "Invalid renderer! " << argv[1] << ", going vanilla";
 		    validRenderer = false;
 		  }
 		}
@@ -108,7 +108,7 @@ namespace Pixy
 		if (validRenderer) {
 		  goFunc = &Launcher::goWithRenderer;
 
-	    bool res = mRenderer->setup();
+	    bool res = mRenderer->setup(argc, argv);
 
 	    if (!res) {
 	      mLog->errorStream() << "could not initialise renderer!";
@@ -123,14 +123,18 @@ namespace Pixy
 		lTimeLastFrame = boost::posix_time::microsec_clock::universal_time();
 		lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
 
-    mLog->infoStream() << "my current thread id: " << boost::this_thread::get_id();
+    //mLog->infoStream() << "my current thread id: " << boost::this_thread::get_id();
 
-    boost::thread mThread(boost::ref(Patcher::getSingleton()));
+    //boost::thread mThread(boost::ref(Patcher::getSingleton()));
+    updateApplication();
 
 		// main game loop
+#ifdef KARAZEH_RENDERER_Qt
+    static_cast<QtRenderer*>(mRenderer)->go();
+#else
 		while( !fShutdown )
 			(this->*goFunc)();
-
+#endif
 	}
 
 	void Launcher::goWithRenderer() {
@@ -205,7 +209,7 @@ namespace Pixy
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
     ShellExecute(inPath);
 #else
-    execl(inPath.c_str(), inAppName.c_str(), "Ogre", NULL);
+    execl(inPath.c_str(), inAppName.c_str(), "Qt", NULL);
 
     //system(inPath.c_str());
     //exit(0);
@@ -214,5 +218,9 @@ namespace Pixy
 
   Renderer* Launcher::getRenderer() {
     return mRenderer;
+  }
+
+  void Launcher::updateApplication() {
+    mProc.start();
   }
 } // end of namespace Pixy

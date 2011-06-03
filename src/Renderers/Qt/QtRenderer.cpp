@@ -1,210 +1,234 @@
 /*
  *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
  *  to deal in the Software without restriction, including without limitation
  *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
- *  
- *  The above copyright notice and this permission notice shall be included in 
+ *
+ *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE. 
+ *  SOFTWARE.
  *
  */
- 
+
 #include "Renderers/Qt/QtRenderer.h"
 #include "Launcher.h"
 #include "Patcher.h"
 
 namespace Pixy {
-	
+
 	QtRenderer::QtRenderer() {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "QtRenderer");
 		mLog->infoStream() << "firing up";
-		
+
 		mName = "QtRenderer";
   }
-	
+
 	QtRenderer::~QtRenderer() {
-		
+
 		mLog->infoStream() << "shutting down";
-		
-		/*delete mQuitButton;
-		delete mYesNoDlg;
-		delete mLayout;
-		delete mWindow;*/
-		
+
 		if (fSetup)
 		  cleanup();
-		    
+
 		if (mLog)
 		  delete mLog;
 	}
- 
-	void QtRenderer::getWindowHandle(size_t *windowHnd) {
-	  //mRenderWindow->getCustomAttribute( "WINDOW", windowHnd );
-	};
-	
-	void QtRenderer::getWindowExtents(int *width, int *height) {
-	  (*width) = 640;
-	  (*height) = 480;
-	};
-			  
+
 	bool QtRenderer::setup(int argc, char** argv) {
     if (fSetup)
       return true;
-		
-		Launcher::getSingleton().disableInputManager();
-		
-		bind("UnableToConnect", this, &QtRenderer::evtUnableToConnect);
-		bind("ValidateStarted", this, &QtRenderer::evtValidateStarted);
-		bind("ValidateComplete", this, &QtRenderer::evtValidateComplete);
-		bind("PatchStarted", this, &QtRenderer::evtPatchStarted);
-		bind("PatchProgress", this, &QtRenderer::evtPatchProgress);
-		bind("PatchFailed", this, &QtRenderer::evtPatchFailed);
-		bind("PatchComplete", this, &QtRenderer::evtPatchComplete);
-		bind("ApplicationPatched", this, &QtRenderer::evtApplicationPatched);
-		
+
     margc = argc;
     margv = argv;
     //boost::thread mQt(startQt, argc, argv);
-    
+
+    qRegisterMetaType<Version>("Version");
+
+    QObject::connect(this,
+                     SIGNAL(emitUnableToConnect(void)),
+                     this,
+                     SLOT(handleUnableToConnect(void)));
+    QObject::connect(this,
+                     SIGNAL(emitValidateStarted(void)),
+                     this,
+                     SLOT(handleValidateStarted(void)));
+    QObject::connect(this,
+                     SIGNAL(emitValidateComplete(bool, const Version&)),
+                     this,
+                     SLOT(handleValidateComplete(bool, const Version&)));
+    QObject::connect(this,
+                     SIGNAL(emitPatchStarted(const Version&)),
+                     this,
+                     SLOT(handlePatchStarted(const Version&)));
+    QObject::connect(this,
+                     SIGNAL(emitPatchProgress(int)),
+                     this,
+                     SLOT(handlePatchProgress(int)));
+    QObject::connect(this,
+                     SIGNAL(emitPatchFailed(std::string, const Version&)),
+                     this,
+                     SLOT(handlePatchFailed(std::string, const Version&)));
+    QObject::connect(this,
+                     SIGNAL(emitPatchComplete(const Version&)),
+                     this,
+                     SLOT(handlePatchComplete(const Version&)));
+    QObject::connect(this,
+                     SIGNAL(emitApplicationPatched(const Version&)),
+                     this,
+                     SLOT(handleApplicationPatched(const Version&)));
     mLog->infoStream() << "set up";
 	  return true;
 	};
-	
+
 	void QtRenderer::setupWidgets() {
-    mQuitButton = new QPushButton("Quit");
-    QObject::connect(mQuitButton, SIGNAL(clicked()), qApp, SLOT(quit()));
-    
-    mLayout = new QVBoxLayout();
-    mLayout->addWidget(mQuitButton);
 
-    mWindow = new QWidget();
-    mWindow->setLayout(mLayout);
+    mWindow = new QMainWindow();
+    //mWindow->setLayout(mLayout);
+    mUI.setupUi(mWindow);
 
+    //Ui::Dialog dlg;
     mYesNoDlg = new QDialog(mWindow);
-    mYesNoDlg->setModal(true);
-    
-    mWindow->show();	
+    //mYesNoDlg->setModal(true);
+    mDlgUI.setupUi(mYesNoDlg);
+
+    QObject::connect(mDlgUI.buttonBox,
+                     SIGNAL(accepted()),
+                     this,
+                     SLOT(handlePatchAccepted()));
+    QObject::connect(mUI.btnLaunch, SIGNAL(clicked()), this, SLOT(handleLaunchApplication()));
+
+    mWindow->show();
 	};
-	
-	/*void QtRenderer::startQt(int argc, char** argv) {
-	  std::cout << "starting QT\n";
 
-    QApplication app(argc, argv);
-    app.setOrganizationName("Karazeh");
-    app.setApplicationName("Karazeh");
 
-    static_cast<QtRenderer*>(Launcher::getSingleton().getRenderer())->setupWidgets();
-    //static_cast<QtRenderer*>(Launcher::getSingleton().getRenderer())->getWindow()->show();
-    //mWindow->show();
-    
-	  qApp->exec();
-	}*/
-	
 	QWidget *QtRenderer::getWindow() { return mWindow; };
 	bool QtRenderer::deferredSetup() {
     //QApplication* qApp = QApplication::instance();
 	};
-	
+
 	bool QtRenderer::cleanup() {
 
 	};
-	
+
 	void QtRenderer::go() {
-	  mLog->infoStream() << "QT GOING";
+	  mLog->infoStream() << "QT GOING in thread: " << thread();
     mApp = new QApplication(margc, margv);
     mApp->setOrganizationName("Karazeh");
     mApp->setApplicationName("Karazeh");
-    
+
     setupWidgets();
-    
+
     mApp->exec();
-    	  
+
 	  //QApplication::instance()->exec();
 	};
-	
+
 	void QtRenderer::update(unsigned long lTimeElapsed) {
-    processEvents();
-    
+
     //qApp->processEvents();
 	}
 
-	bool QtRenderer::evtValidateStarted(Event* inEvt) {
-
-	  return true;
-	}
-	bool QtRenderer::evtValidateComplete(Event* inEvt) {
-    mYesNoDlg->exec();
-    
-	  return true;
-	}
-	
-	bool QtRenderer::evtPatchStarted(Event* inEvt) {
-
-
-	  return true;
-	}
-	
-	bool QtRenderer::evtPatchFailed(Event* inEvt) {
-      
-    return true;
-	}
-	
-	bool QtRenderer::evtPatchComplete(Event* inEvt) {
-	  
-		return true;
-  }
-  
-  bool QtRenderer::evtApplicationPatched(Event* inEvt) {
-	  
-    return true;
-  }
-  
-  
-	bool QtRenderer::keyPressed( const OIS::KeyEvent &e ) {
-		return true;
-	}
-	
-	bool QtRenderer::keyReleased( const OIS::KeyEvent &e ) {
-		if (e.key == OIS::KC_ESCAPE)
-		  Launcher::getSingleton().requestShutdown();
-		  
-		return true;
-	}
-	
-	bool QtRenderer::mouseMoved( const OIS::MouseEvent &e ) {
-
-		return true;
-	}
-	
-	bool QtRenderer::mousePressed( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-
-		return true;
-	}
-	
-	bool QtRenderer::mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id ) {
-		
-		return true;
-	}
-  
-  bool QtRenderer::evtUnableToConnect(Event* inEvt) {
-    
-    return true;
+  void QtRenderer::injectUnableToConnect( void ) {
+    emit emitUnableToConnect();
   };
-  
-  bool QtRenderer::evtPatchProgress(Event* inEvt) {
 
-    return true;
+  void QtRenderer::injectPatchProgress(int inPercent) {
+    emit emitPatchProgress(inPercent);
+  }
+
+	void QtRenderer::injectValidateStarted( void ) {
+    mLog->infoStream() << "injecting validate started";
+    emit emitValidateStarted();
+	}
+	void QtRenderer::injectValidateComplete(bool inNeedUpdate, const Version& inTargetVersion) {
+
+    mLog->infoStream() << "injecting validate complete";
+
+    emit emitValidateComplete(inNeedUpdate, inTargetVersion);
+	}
+
+	void QtRenderer::injectPatchStarted( const Version& inTargetVersion ) {
+    emit emitPatchStarted(inTargetVersion);
+	}
+
+	void QtRenderer::injectPatchFailed(std::string inMsg, const Version& inTargetVersion) {
+    emit emitPatchFailed(inMsg, inTargetVersion);
+	}
+
+	void QtRenderer::injectPatchComplete(const Version& inCurrentVersion) {
+    emit emitPatchComplete(inCurrentVersion);
+  }
+
+  void QtRenderer::injectApplicationPatched( const Version& inCurrentVersion ) {
+    emit emitApplicationPatched(inCurrentVersion);
+  }
+
+  void QtRenderer::handleUnableToConnect( void ) {
+    mUI.labelStatus->setText("Status: Unable to connect to patch server");
+  }
+  void QtRenderer::handleValidateStarted( void ) {
+    mLog->infoStream() << "validate started";
+    mUI.labelStatus->setText("Status: Validating");
+  }
+  void QtRenderer::handleValidateComplete( bool inNeedUpdate, const Version& inTargetVersion ) {
+    mLog->infoStream() << "validate complete";
+
+    if (inNeedUpdate) {
+      std::string lMsg =
+        "Application needs updating. Latest version is" + inTargetVersion.Value
+        + " and current version is " + " .. would you like to update now?";
+      mDlgUI.textBrowser->setText(QString(lMsg.c_str()));
+      mYesNoDlg->exec();
+      mUI.labelStatus->setText("Status: Out of date");
+    } else {
+      mUI.labelStatus->setText("Status: Application is up to date");
+    }
+  }
+
+  void QtRenderer::handlePatchAccepted() {
+    //boost::thread mThread(boost::ref(Patcher::getSingleton()));
+
+    Launcher::getSingleton().updateApplication();
+  }
+  void QtRenderer::handlePatchStarted( const Version& inTargetVersion ) {
+    mLog->infoStream() << "started patching";
+
+    std::string lMsg = "Status: Updating to " + inTargetVersion.Value;
+    mUI.labelStatus->setText(lMsg.c_str());
+  }
+  void QtRenderer::handlePatchProgress( int inPercent ) {
+    mLog->infoStream() << "updating patch progress";
+
+    mUI.progressBar->setValue(inPercent);
+  }
+  void QtRenderer::handlePatchFailed( std::string inMsg, const Version& inTargetVersion ) {
+    mLog->infoStream() << "patching failed";
+
+    std::string lMsg = "Update failed! " + inMsg;
+    mUI.textPatchStatus->setText(lMsg.c_str());
+    mUI.labelStatus->setText("Status: Update failed");
+  }
+  void QtRenderer::handlePatchComplete( const Version& inCurrentVersion ) {
+    mLog->infoStream() << "patching cmoplete";
+    mUI.labelStatus->setText("Status: Application updated");
+  }
+  void QtRenderer::handleApplicationPatched( const Version& inCurrentVersion ) {
+    mLog->infoStream() << "all patches complete";
+    mUI.labelStatus->setText("Status: Application is up to date");
+  }
+
+  void QtRenderer::handleLaunchApplication() {
+    Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
   }
 };

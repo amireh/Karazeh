@@ -11,7 +11,7 @@ FIND_PACKAGE(PkgConfig)
 FIND_PACKAGE(log4cpp REQUIRED)
 FIND_PACKAGE(CURL REQUIRED)
 FIND_PACKAGE(BZip2 REQUIRED)
-FIND_PACKAGE(Boost COMPONENTS filesystem thread date_time REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
 # optional dependencies
 FIND_PACKAGE(OGRE COMPONENTS RenderSystem_Direct3D9 RenderSystem_GL)
 FIND_PACKAGE(OIS)
@@ -77,13 +77,14 @@ IF(KARAZEH_RENDERER_Qt)
   LINK_DIRECTORIES(${QT_LIBRARY_DIRS})
   LINK_LIBRARIES(${QT_LIBRARIES})
 
+  QT4_WRAP_UI(Karazeh_SRCS src/Renderers/Qt/karazeh.ui src/Renderers/Qt/dialog.ui)
   QT4_WRAP_CPP(Karazeh_SRCS include/Renderers/Qt/QtRenderer.h)
 ENDIF()
 
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/KarazehConfig.h.cmake ${CMAKE_SOURCE_DIR}/include/KarazehConfig.h )
 
 LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS} ${CURL_LIBRARY_DIRS} ${BZip2_LIBRARY_DIRS})
-LINK_LIBRARIES( boost_thread boost_filesystem boost_date_time ${CURL_LIBRARIES} log4cpp bz2)
+LINK_LIBRARIES( boost_filesystem ${CURL_LIBRARIES} log4cpp bz2)
 
 ADD_EXECUTABLE(bin/${PROJECT_NAME} ${Karazeh_SRCS} )
 TARGET_LINK_LIBRARIES(bin/${PROJECT_NAME} ${Karazeh_LIBRARIES})

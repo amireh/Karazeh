@@ -161,7 +161,7 @@ namespace Pixy {
 	  (*height) = 480;
 	};
 
-	bool OgreRenderer::setup() {
+	bool OgreRenderer::setup(int argc, char** argv) {
     if (fSetup)
       return true;
 
@@ -413,7 +413,6 @@ namespace Pixy {
 
 	  mStatusBox->setCaption("Application is up to date.");
 	  mStatusBox->setText(lMsg);
-
 
   }
 };

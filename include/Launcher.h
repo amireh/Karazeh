@@ -34,6 +34,7 @@
 #include "Renderer.h"
 #include "Patcher.h"
 #include "Downloader.h"
+#include <QThread>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -62,7 +63,7 @@ namespace Pixy
 		 *  \arg inRendererName specify which Renderer you'd like to use, if empty
 		 *  the "vanilla" renderer is used: stdout
 		 */
-		void go(const char* inRendererName = 0);
+		void go(int argc, char** argv);
 
 		/*! \brief
 		 *  Terminates the current process and launches the application found at
@@ -77,6 +78,8 @@ namespace Pixy
 		 *	Shuts down the system and all components.
 		 */
 		void requestShutdown();
+
+    void updateApplication();
 
 		Renderer* getRenderer();
 
@@ -107,6 +110,14 @@ namespace Pixy
 
 		std::string mConfigPath;
 
+    class Processor: public QThread {
+      public:
+      void run() {
+        Patcher::getSingleton()();
+      }
+    };
+
+    Processor mProc;
 	};
 } // end of namespace
 

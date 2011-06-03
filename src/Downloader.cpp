@@ -175,8 +175,9 @@ namespace Pixy {
 
   void Downloader::fetchFile(std::string url, std::string out)
   {
-    boost::thread mWorker(mFetcher, url, out);
-    mWorker.join();
+    mFetcher(url,out);
+    //boost::thread mWorker(mFetcher, url, out);
+    //mWorker.join();
   }
 
   size_t Downloader::Fetcher::write_func(void *ptr, size_t size, size_t nmemb, FILE *stream)
