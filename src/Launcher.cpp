@@ -137,7 +137,7 @@ namespace Pixy
 	}
 
 	void Launcher::goWithRenderer() {
-    EventManager::getSingleton().update();
+    //EventManager::getSingleton().update();
 
     lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
     lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
@@ -150,7 +150,7 @@ namespace Pixy
 
 	void Launcher::goVanilla() {
 	  // nothing to do here really
-	  EventManager::getSingleton().update();
+	  //EventManager::getSingleton().update();
 	  Patcher::getSingleton().update();
 	};
 
@@ -217,4 +217,8 @@ namespace Pixy
     //exit(0);
 #endif
 	}
+
+  Renderer* Launcher::getRenderer() {
+    return mRenderer;
+  }
 } // end of namespace Pixy

@@ -23,8 +23,7 @@
 
 #include "Patcher.h"
 #include "Downloader.h"
-#include "EventManager.h"
-//#include "Launcher.h"
+#include "Launcher.h"
 
 extern "C" int bspatch(const char* src, const char* dest, const char* diff);
 
@@ -34,8 +33,6 @@ namespace Pixy {
 	Patcher::Patcher() {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Patcher");
 		mLog->infoStream() << "firing up";
-
-		mEvtMgr = EventManager::getSingletonPtr();
 
 		fValidated = false;
 		fPatched = false;
@@ -77,10 +74,11 @@ namespace Pixy {
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(RENAME, &Patcher::processRename));
 
-		bind("Patch", this, &Patcher::evtPatch);
+    mRenderer = 0;
   }
 
 	Patcher::~Patcher() {
+    mRenderer = 0;
 
 		mLog->infoStream() << "shutting down";
 
@@ -102,7 +100,6 @@ namespace Pixy {
 		if (mLog)
 		  delete mLog;
 
-		mEvtMgr = 0;
 	}
 
 	Patcher* Patcher::getSingletonPtr() {
@@ -118,19 +115,18 @@ namespace Pixy {
 	}
 
   void Patcher::update() {
-    processEvents();
   }
 
 	void Patcher::validate() {
 	  if (fValidated)
 	    return;
 
+    if (!mRenderer)
+      mRenderer = Launcher::getSingleton().getRenderer();
+
 	  mLog->debugStream() << "validating version";
 
-	  //Launcher::getSingleton().evtValidateStarted();
-	  Event* lEvt = mEvtMgr->createEvt<Event>("ValidateStarted");
-	  mEvtMgr->hook(lEvt);
-	  lEvt = 0;
+    mRenderer->injectValidateStarted();
 
 	  // download the patch list
 	  try {
@@ -140,7 +136,7 @@ namespace Pixy {
 	      << "could not retrieve patch list, aborting validation. Cause: "
 	      << e.what();
 
-	    mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
+      mRenderer->injectUnableToConnect();
 	    return;
 	  }
 
@@ -176,13 +172,7 @@ namespace Pixy {
 
     mPatchScript.close();
 
-    //Launcher::getSingleton().evtValidateComplete(needPatch);
-    lEvt = mEvtMgr->createEvt("ValidateComplete");
-	  lEvt->setProperty("NeedUpdate", (needPatch) ? "Yes" : "No");
-	  lEvt->setProperty("TargetVersion", mTargetVersion.Value);
-	  lEvt->setProperty("CurrentVersion", mCurrentVersion.Value);
-	  mEvtMgr->hook(lEvt);
-	  lEvt = 0;
+    mRenderer->injectValidateComplete( needPatch, mTargetVersion );
 
     fValidated = true;
     return;
@@ -368,11 +358,6 @@ namespace Pixy {
     patch();
 	}
 
-	bool Patcher::evtPatch(Event* inEvt) {
-	  boost::thread mWorker(boost::ref(Patcher::getSingleton()));
-
-	  return true;
-	}
 
 	void Patcher::patch() {
 	  if (fPatched)
@@ -384,33 +369,25 @@ namespace Pixy {
 	  try {
 	    buildRepositories();
 	  } catch (BadVersion& e) {
-      mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
+      mRenderer->injectPatchFailed( "Bad application version", mCurrentVersion );
 	  } catch (BadFileStream& e) {
-	    mEvtMgr->hook(mEvtMgr->createEvt("PatchFailed"));
+      mRenderer->injectPatchFailed( "Bad file stream", mCurrentVersion );
 	  }
 
 	  mLog->infoStream() << "Total patches: " << mRepos.size();
 
 	  bool success = true;
-	  Event* lEvt;
 	  std::list<Repository*>::const_iterator repo;
 	  for (repo = mRepos.begin(); repo != mRepos.end(); ++repo) {
 	    mLog->infoStream() << "----";
 	    mLog->infoStream() << "Patching to " << (*repo)->getVersion().Value;
 
-      lEvt = mEvtMgr->createEvt("PatchStarted");
-      lEvt->setProperty("Version", (*repo)->getVersion().Value);
-      mEvtMgr->hook(lEvt);
-      lEvt = 0;
+      mRenderer->injectPatchStarted((*repo)->getVersion());
 
 	    // validate the repository
 	    if (!preprocess(*repo)) {
 	      // we cannot patch
-	      // TODO: inform renderer (DONE)
-        lEvt = mEvtMgr->createEvt("PatchFailed");
-        lEvt->setProperty("Version", (*repo)->getVersion().Value);
-	      mEvtMgr->hook(lEvt);
-	      lEvt = 0;
+        mRenderer->injectPatchFailed( "Bad application data, have you manually modified the application's files?", (*repo)->getVersion() );
 
 	      success = false;
 	      break;
@@ -431,21 +408,13 @@ namespace Pixy {
 
       this->updateVersion((*repo)->getVersion());
 
-      Event* lEvt = mEvtMgr->createEvt("PatchComplete");
-      lEvt->setProperty("Version", mCurrentVersion.Value);
-      mEvtMgr->hook(lEvt);
-      lEvt = 0;
+      mRenderer->injectPatchComplete( mCurrentVersion );
 	  }
 
 	  if (success) {
-      lEvt = mEvtMgr->createEvt("ApplicationPatched");
-      lEvt->setProperty("Version", mCurrentVersion.Value);
-	    mEvtMgr->hook(lEvt);
-	    lEvt = 0;
-
+      mRenderer->injectApplicationPatched( mCurrentVersion );
 	  }
 
-	  lEvt = 0;
 
 	  // we're done, let's clean up.. delete the whole tmp directory
 	  // TODO: boost error checking

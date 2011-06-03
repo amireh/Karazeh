@@ -79,6 +79,8 @@ namespace Pixy
 		 */
 		void requestShutdown();
 
+		Renderer* getRenderer();
+
 	private:
 		Launcher();
 		Launcher(const Launcher&) {}

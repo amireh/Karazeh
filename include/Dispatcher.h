@@ -21,79 +21,41 @@
  *
  */
 
-#ifndef H_Renderer_H
-#define H_Renderer_H
+#ifndef H_Dispatcher_H
+#define H_Dispatcher_H
 
 #include "Pixy.h"
-#include "Repository.h"
-#include "EventManager.h"
-#include "EventListener.h"
+#include "Renderer.h"
+#include "Launcher.h"
 
 namespace Pixy {
 
-	/*! \class Renderer
+	/*! \class Dispatcher
 	 *	\brief
-	 *	The Renderer is the interface the user will interact with. Renderers are
+	 *	The Dispatcher is the interface the user will interact with. Dispatchers are
 	 *  injected with events that represent the stage of the patching process,
 	 *  and handle all input.
 	 */
-	class Renderer {
+	class Dispatcher {
 
 	public:
-	  inline Renderer() { mLog = 0; fSetup = false; mName = "Renderer"; };
-		inline virtual ~Renderer() { mLog = 0; fSetup = false; mName = ""; };
 
-		/*! \brief
-		 *  Renderer names are only used for logging.
-		 */
-		inline virtual std::string& getName() { return mName; };
+		virtual ~Dispatcher();
 
-		/* \brief
-		 *  Renderers are the first components to be initialised. Allocate all
-		 *  the resources you need here, along with any initialisation code for
-		 *  the engine used.
-		 *
-		 *  \warn
-		 *  Other components such as the InputManager are NOT initialised at this
-		 *  stage yet, so make sure you do not reference them here. If you need to,
-		 *  see deferredSetup() below.
-		 */
-		virtual bool setup()=0;
-
-		/* \brief
-		 *  Called after all components are initialized, such as the InputManager,
-		 *  Downloader, and Patcher.
-		 */
-		virtual bool deferredSetup()=0;
-
-		/* \brief
-		 *  Called within the application's main loop. Handle any continuous logic
-		 *  here; ie draw, process events.
-		 */
-		virtual void update(unsigned long lTimeElapsed)=0;
-
-		/* \brief
-		 *  Clean up here any resources you've allocated. This will be called
-		 *  on the application's shutdown.
-		 */
- 		virtual bool cleanup()=0;
-
-    /* ------
-     * Event handlers: override these handlers in child to handle them. Each
-     * of these events represents a stage of the process.
-     * ------ */
+		static Dispatcher* getSingletonPtr();
+		static Dispatcher& getSingleton();
 
     /*! \brief
      *  This event is triggered when the Downloader is unable to retrieve the
      *  patch list from all the registered hosts.
      */
-		virtual void injectUnableToConnect( void )=0;
+		void injectUnableToConnect( void );
 
 		/*! \brief
      *  Indicates that the Patcher has started validating the application's
      *  version by parsing the patch list.
      */
-		virtual void injectValidateStarted( void )=0;
+		void injectValidateStarted( void );
 
 		/*! \brief
      *  Contains whether the application is out of date or up to date.
@@ -101,7 +63,7 @@ namespace Pixy {
      *  Event properties:
      *    NeedUpdate: "Yes" or "No"
      */
-		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion )=0;
+		void injectValidateComplete( bool inNeedUpdate );
 
 		/*! \brief
      *  Triggered when the Patcher has started updating to a certain version.
@@ -109,7 +71,7 @@ namespace Pixy {
      *  Event properties:
      *    Version: the version being updated to
      */
-		virtual void injectPatchStarted( const Version& inTargetVersion )=0;
+		void injectPatchStarted( Version& inTargetVersion );
 
 		/*! \brief
      *  Triggered while the Downloader is fetching files from the remote
@@ -118,7 +80,7 @@ namespace Pixy {
      *  Event properties:
      *    Progress: string containing the progress % (should be cast to int)
      */
-		virtual void injectPatchProgress( int inPercent )=0;
+		void injectPatchProgress( int inPercent );
 
 		/*! \brief
      *  Triggered if any error occurs within the Patcher or the Downloader
@@ -126,7 +88,7 @@ namespace Pixy {
      *
      *  TODO: add error code or reason
      */
-		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion )=0;
+		void injectPatchFailed( std::string inMsg );
 
 		/*! \brief
      *  Indicates that the Patcher has finished processing a single repository.
@@ -134,23 +96,55 @@ namespace Pixy {
      *  Event properties:
      *    Version: the version to which the application was updated
      */
-		virtual void injectPatchComplete( const Version& inCurrentVersion )=0;
+		void injectPatchComplete( Version& inCurrentVersion );
 
 		/*! \brief
      *  Triggered when the Patcher is done processing all the repositories
      *  and has successfully updated the application to the latest version.
      */
-		virtual void injectApplicationPatched( const Version& inCurrentVersion )=0;
+		void injectApplicationPatched( void );
+
+		/* \brief
+		 *  Dispatchers are the first components to be initialised. Allocate all
+		 *  the resources you need here, along with any initialisation code for
+		 *  the engine used.
+		 *
+		 *  \warn
+		 *  Other components such as the InputManager are NOT initialised at this
+		 *  stage yet, so make sure you do not reference them here. If you need to,
+		 *  see deferredSetup() below.
+		 */
+		virtual bool setup();
+
+		/* \brief
+		 *  Called after all components are initialized, such as the InputManager,
+		 *  Downloader, and Patcher.
+		 */
+		virtual bool deferredSetup();
+
+		/* \brief
+		 *  Clean up here any resources you've allocated. This will be called
+		 *  on the application's shutdown.
+		 */
+ 		virtual bool cleanup();
+
+    /* ------
+     * Event handlers: override these handlers in child to handle them. Each
+     * of these events represents a stage of the process.
+     * ------ */
+
+
 
 	protected:
     log4cpp::Category* mLog;
-    bool fSetup;
-
-    std::string mName; //! used merely for logging purposes
+    Renderer* mRenderer;
 
 	private:
-		Renderer(const Renderer& src);
-		Renderer& operator=(const Renderer& rhs);
+    static Dispatcher *__instance;
+
+    Dispatcher();
+		Dispatcher(const Dispatcher& src);
+		Dispatcher& operator=(const Dispatcher& rhs);
 	};
 }
 #endif

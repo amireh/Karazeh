@@ -212,14 +212,15 @@ namespace Pixy {
 
 		this->setupResources(lPathResources.str());
 
-		bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
+		/*bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
 		bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
 		bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
 		bind("PatchStarted", this, &OgreRenderer::evtPatchStarted);
 		bind("PatchProgress", this, &OgreRenderer::evtPatchProgress);
 		bind("PatchFailed", this, &OgreRenderer::evtPatchFailed);
 		bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
-		bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
+		bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);*/
+
 	  return true;
 	};
 
@@ -263,7 +264,7 @@ namespace Pixy {
 	};
 
 	void OgreRenderer::update(unsigned long lTimeElapsed) {
-    processEvents();
+    //processEvents();
 
     // update input manager
     mInputMgr->capture();
@@ -282,69 +283,7 @@ namespace Pixy {
 	  mRoot->renderOneFrame();
 	}
 
-	bool OgreRenderer::evtValidateStarted(Event* inEvt) {
-	  mLog->infoStream() << "Handling evt: " << inEvt->getName();
 
-	  mStatusBox->setCaption("Validating...");
-    mStatusBox->setText("Downloading latest patch information");
-
-	  return true;
-	}
-	bool OgreRenderer::evtValidateComplete(Event* inEvt) {
-	  mLog->infoStream() << "Handling evt: " << inEvt->getName();
-
-	  if (inEvt->getProperty("NeedUpdate") == "Yes") {
-	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
-	    mStatusBox->setText("Application needs updating. Latest version is: " + inEvt->getProperty("TargetVersion"));
-	  } else {
-	    mStatusBox->setText("Application is up to date " + inEvt->getProperty("CurrentVersion"));
-	  }
-	  return true;
-	}
-
-	bool OgreRenderer::evtPatchStarted(Event* inEvt) {
-
-	  mStatusBox->setCaption("Updating");
-	  mStatusBox->setText("Updating to version " + inEvt->getProperty("Version"));
-
-	  return true;
-	}
-
-	bool OgreRenderer::evtPatchFailed(Event* inEvt) {
-    std::string lMsg = "There was a problem patching to version "
-      + inEvt->getProperty("Version")
-      + ". Reinstalling the application is required as the current version "
-      + "seems corrupt.";
-
-    //mTrayMgr->showOkDialog("Patch Error", lMsg);
-
-    mStatusBox->setCaption("Update failed.");
-    //mStatusBox->setText("Please verify your installation or re-install if this problem persists.");
-    mStatusBox->setText(lMsg);
-
-    return true;
-	}
-
-	bool OgreRenderer::evtPatchComplete(Event* inEvt) {
-    std::string lMsg = "Application was successfully updated to "
-      + inEvt->getProperty("Version");
-	  mTrayMgr->showOkDialog("Patch Successful", lMsg);
-
-	  mStatusBox->setCaption("Updated");
-	  mStatusBox->setText(lMsg);
-
-		return true;
-  }
-
-  bool OgreRenderer::evtApplicationPatched(Event* inEvt) {
-    std::string lMsg = "All updates were successful. Application is now " + inEvt->getProperty("Version");
-	  mTrayMgr->showOkDialog("Application up to date", lMsg);
-
-	  mStatusBox->setCaption("Application is up to date.");
-	  mStatusBox->setText(lMsg);
-
-    return true;
-  }
 
 
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
@@ -385,11 +324,11 @@ namespace Pixy {
 
 	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
 
-	  if (yesHit) {
+	  /*if (yesHit) {
       Event* lEvt = EventManager::getSingleton().createEvt("Patch");
 	    EventManager::getSingleton().hook(lEvt);
 	    lEvt = 0;
-	  }
+	  }*/
 
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
@@ -402,17 +341,79 @@ namespace Pixy {
 
   };
 
-  bool OgreRenderer::evtUnableToConnect(Event* inEvt) {
+  void OgreRenderer::injectUnableToConnect( void ) {
     mStatusBox->setCaption("Error");
     mStatusBox->setText("Unable to connect to patch server, please verify your internet connectivity.");
 
-    return true;
+
   };
 
-  bool OgreRenderer::evtPatchProgress(Event* inEvt) {
-    int p = Utility::convertTo<int>(inEvt->getProperty("Progress"));
-    mProgress->setProgress(p / 100.0f);
-    mLog->infoStream() << "Patching : %" <<p << " done ";
-    return true;
+  void OgreRenderer::injectPatchProgress(int inPercent) {
+    //int p = Utility::convertTo<int>(inEvt->getProperty("Progress"));
+    mProgress->setProgress(inPercent / 100.0f);
+    //mLog->infoStream() << "Patching : %" <<p << " done ";
+
+  }
+
+	void OgreRenderer::injectValidateStarted( void ) {
+	  //mLog->infoStream() << "Handling evt: " << inEvt->getName();
+
+	  mStatusBox->setCaption("Validating...");
+    mStatusBox->setText("Downloading latest patch information");
+
+
+	}
+	void OgreRenderer::injectValidateComplete(bool inNeedUpdate, const Version& inTargetVersion) {
+
+	  /*if (inNeedUpdate) {
+	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
+	    mStatusBox->setText("Application needs updating. Latest version is: " + inTargetVersion.Value);
+	  } else {
+	    mStatusBox->setText("Application is up to date " + inTargetVersion.Value);
+	  }*/
+
+	}
+
+	void OgreRenderer::injectPatchStarted( const Version& inTargetVersion ) {
+
+	  mStatusBox->setCaption("Updating");
+	  mStatusBox->setText("Updating to version " + inTargetVersion.Value);
+	}
+
+	void OgreRenderer::injectPatchFailed(std::string inMsg, const Version& inTargetVersion) {
+    std::string lMsg = "There was a problem patching to version "
+      + inTargetVersion.Value
+      + ". Reinstalling the application is required as the current version "
+      + "seems corrupt."
+      + "\nCause: " + inMsg;
+
+    //mTrayMgr->showOkDialog("Patch Error", lMsg);
+
+    mStatusBox->setCaption("Update failed.");
+    //mStatusBox->setText("Please verify your installation or re-install if this problem persists.");
+    mStatusBox->setText(lMsg);
+
+
+	}
+
+	void OgreRenderer::injectPatchComplete(const Version& inCurrentVersion) {
+    std::string lMsg = "Application was successfully updated to "
+      + inCurrentVersion.Value;
+	  mTrayMgr->showOkDialog("Patch Successful", lMsg);
+
+	  mStatusBox->setCaption("Updated");
+	  mStatusBox->setText(lMsg);
+
+
+  }
+
+  void OgreRenderer::injectApplicationPatched( const Version& inCurrentVersion ) {
+    std::string lMsg = "All updates were successful. Application is now " + inCurrentVersion.Value;
+	  mTrayMgr->showOkDialog("Application up to date", lMsg);
+
+	  mStatusBox->setCaption("Application is up to date.");
+	  mStatusBox->setText(lMsg);
+
+
   }
 };

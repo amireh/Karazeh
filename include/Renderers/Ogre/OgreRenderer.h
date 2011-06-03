@@ -128,8 +128,15 @@ namespace Pixy {
 		 */
 		virtual bool mouseReleased( const OIS::MouseEvent &e, OIS::MouseButtonID id );
 
-		virtual void buttonHit(OgreBites::Button* b);
-		virtual void yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit);
+		virtual void injectUnableToConnect( void );
+		virtual void injectValidateStarted( void );
+		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
+		virtual void injectPatchStarted( const Version& inTargetVersion );
+		virtual void injectPatchProgress( int inPercent );
+		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion );
+		virtual void injectPatchComplete( const Version& inCurrentVersion );
+		virtual void injectApplicationPatched( const Version& inCurrentVersion );
+
 	protected:
     InputManager *mInputMgr;
 
@@ -144,14 +151,8 @@ namespace Pixy {
 		OgreBites::TextBox* mStatusBox;
 		OgreBites::ProgressBar* mProgress;
 
-		virtual bool evtUnableToConnect(Event* inEvt);
-		virtual bool evtValidateStarted(Event* inEvt);
-		virtual bool evtValidateComplete(Event* inEvt);
-		virtual bool evtPatchStarted(Event* inEvt);
-		virtual bool evtPatchProgress(Event* inEvt);
-		virtual bool evtPatchFailed(Event* inEvt);
-		virtual bool evtPatchComplete(Event* inEvt);
-		virtual bool evtApplicationPatched(Event* inEvt);
+		virtual void buttonHit(OgreBites::Button* b);
+		virtual void yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit);
 
 		void setupResources(std::string inPath);
 		bool configureGame();
