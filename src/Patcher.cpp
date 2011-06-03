@@ -156,7 +156,7 @@ namespace Pixy {
     std::string line;
     while (!versionFound) {
       getline(mPatchScript, line);
-      if (line.find("VERSION") != string::npos)
+      if (line.find("VERSION") != std::string::npos)
         versionFound = true;
     }
     mTargetVersion = Version(line);

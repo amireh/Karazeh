@@ -32,7 +32,6 @@
 #include "Pixy.h"
 #include "KarazehConfig.h"
 #include "Renderer.h"
-#include "EventManager.h"
 #include "Patcher.h"
 #include "Downloader.h"
 #include <boost/thread.hpp>

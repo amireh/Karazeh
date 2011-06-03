@@ -58,8 +58,6 @@ namespace Pixy
     delete Downloader::getSingletonPtr();
     delete Patcher::getSingletonPtr();
 
-    EventManager::shutdown();
-
 		mLog->infoStream() << "++++++ " << PIXY_APP_NAME << " cleaned up successfully ++++++";
 		if (mLog)
 		  delete mLog;
@@ -86,7 +84,6 @@ namespace Pixy
 		// init logger
 		initLogger();
 
-		EventManager::getSingletonPtr();
 		Patcher::getSingletonPtr();
 		Downloader::getSingletonPtr();
 
@@ -137,7 +134,6 @@ namespace Pixy
 	}
 
 	void Launcher::goWithRenderer() {
-    //EventManager::getSingleton().update();
 
     lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
     lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
@@ -150,8 +146,6 @@ namespace Pixy
 
 	void Launcher::goVanilla() {
 	  // nothing to do here really
-	  //EventManager::getSingleton().update();
-	  Patcher::getSingleton().update();
 	};
 
 	void Launcher::requestShutdown() {

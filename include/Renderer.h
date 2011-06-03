@@ -26,8 +26,6 @@
 
 #include "Pixy.h"
 #include "Repository.h"
-#include "EventManager.h"
-#include "EventListener.h"
 
 namespace Pixy {
 
