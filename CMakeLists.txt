@@ -32,6 +32,8 @@ OPTION(KARAZEH_RENDERER_Qt "Build Qt renderer" OFF)
 #OPTION(KARAZEH_USE_BOOST "Use boost libraries instead of POCO" ON)
 #OPTION(KARAZEH_USE_POCO "Use POCO libraries instead of boost" OFF)
 
+SET(CMAKE_C_FLAGS "-DENABLE_BINRELOC")
+
 # add sources
 SET(Karazeh_SRCS
   src/Launcher.cpp
@@ -40,8 +42,11 @@ SET(Karazeh_SRCS
   src/Repository.cpp
   src/PixyLogLayout.cpp
 
+  src/Renderers/Vanilla/VanillaRenderer.cpp
+
   src/bsdiff.c
   src/bspatch.c
+  src/binreloc.c
 
   src/main.cpp
 )
@@ -84,7 +89,7 @@ ENDIF()
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/KarazehConfig.h.cmake ${CMAKE_SOURCE_DIR}/include/KarazehConfig.h )
 
 LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS} ${CURL_LIBRARY_DIRS} ${BZip2_LIBRARY_DIRS})
-LINK_LIBRARIES( boost_filesystem ${CURL_LIBRARIES} log4cpp bz2)
+LINK_LIBRARIES( boost_filesystem boost_thread ${CURL_LIBRARIES} log4cpp bz2)
 
 ADD_EXECUTABLE(bin/${PROJECT_NAME} ${Karazeh_SRCS} )
 TARGET_LINK_LIBRARIES(bin/${PROJECT_NAME} ${Karazeh_LIBRARIES})

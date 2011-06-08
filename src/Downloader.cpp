@@ -75,16 +75,16 @@ namespace Pixy {
 	  mLog->debugStream() << "fetching patch script";
 
 	  // first of all, we need to prepare the filesystem; directories etc
-	  if (exists(path(PROJECT_TEMP_DIR))) {
+	  if (exists(path(Launcher::getSingleton().getTempPath()))) {
 	    // if it exists but not a directory... something is wrong, remove it
-      if (!is_directory(path(PROJECT_TEMP_DIR)))
+      if (!is_directory(path(Launcher::getSingleton().getTempPath())))
         // TODO: do something here, throw an exception maybe
         mLog->warnStream() << "TMP path exists but is not a directory";
 
     } else {
       // it doesn't exist, let's create our directory
       mLog->infoStream() << "TMP path doesn't exist, creating it";
-      create_directory(path(PROJECT_TEMP_DIR));
+      create_directory(path(Launcher::getSingleton().getTempPath()));
     }
 
     mLog->infoStream() << "resolving patch server...";
