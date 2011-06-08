@@ -221,11 +221,6 @@ namespace Pixy {
 		bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
 		bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);*/
 
-	  return true;
-	};
-
-	bool OgreRenderer::deferredSetup() {
-
     int width = 0;
     int height = 0;
     size_t windowHnd = 0;
@@ -257,7 +252,9 @@ namespace Pixy {
 	  mProgress = mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 
+	  return true;
 	};
+
 
 	bool OgreRenderer::cleanup() {
 	  delete mTrayMgr;

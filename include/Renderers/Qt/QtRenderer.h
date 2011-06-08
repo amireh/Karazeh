@@ -48,11 +48,6 @@ namespace Pixy {
 		 */
 		virtual bool setup(int argc, char** argv);
 
-		/* \brief
-		 *
-		 */
-		virtual bool deferredSetup();
-
 		virtual void go();
 
 		/* \brief
@@ -64,35 +59,35 @@ namespace Pixy {
     /* handle signals */
 		void handleUnableToConnect( void );
 		void handleValidateStarted( void );
-		void handleValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
+		void handleValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
     void handlePatchAccepted();
-    void handlePatchStarted( const Version& inTargetVersion );
+    void handlePatchStarted( Version const& inTargetVersion );
 		void handlePatchProgress( int inPercent );
-		void handlePatchFailed( std::string inMsg, const Version& inTargetVersion );
-		void handlePatchComplete( const Version& inCurrentVersion );
-		void handleApplicationPatched( const Version& inCurrentVersion );
+		void handlePatchFailed( std::string inMsg, Version const& inTargetVersion );
+		void handlePatchComplete( Version const& inCurrentVersion );
+		void handleApplicationPatched( Version const& inCurrentVersion );
     void handleLaunchApplication();
 
   signals:
 		void emitUnableToConnect( void );
 		void emitValidateStarted( void );
-		void emitValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
-		void emitPatchStarted( const Version& inTargetVersion );
+		void emitValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
+		void emitPatchStarted( Version const& inTargetVersion );
 		void emitPatchProgress( int inPercent );
-		void emitPatchFailed( std::string inMsg, const Version& inTargetVersion );
-		void emitPatchComplete( const Version& inCurrentVersion );
-		void emitApplicationPatched( const Version& inCurrentVersion );
+		void emitPatchFailed( std::string inMsg, Version const& inTargetVersion );
+		void emitPatchComplete( Version const& inCurrentVersion );
+		void emitApplicationPatched( Version const& inCurrentVersion );
 
   public:
     /* emit signals */
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
-		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
-		virtual void injectPatchStarted( const Version& inTargetVersion );
+		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
+		virtual void injectPatchStarted( Version const& inTargetVersion );
 		virtual void injectPatchProgress( int inPercent );
-		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion );
-		virtual void injectPatchComplete( const Version& inCurrentVersion );
-		virtual void injectApplicationPatched( const Version& inCurrentVersion );
+		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
+		virtual void injectPatchComplete( Version const& inCurrentVersion );
+		virtual void injectApplicationPatched( Version const& inCurrentVersion );
 
 		QWidget* getWindow();
 		void setupWidgets();

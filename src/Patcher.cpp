@@ -207,7 +207,7 @@ namespace Pixy {
       if (line == "" || line == "-") { // 1) garbage
         continue;
 
-      std::cout << "Line: " << line << "\n";
+      //std::cout << "Line: " << line << "\n";
       } else if (line.find("VERSION") != string::npos) { // 2) a version signature
         if (Version(line) == mCurrentVersion) {
           // we're done parsing, this is our current version
@@ -232,7 +232,7 @@ namespace Pixy {
 
       // 3) an entry, let's parse it
       // __DEBUG__
-      std::cout << "Line: " << line << "\n";
+      //std::cout << "Line: " << line << "\n";
       fflush(stdout);
 
       std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
@@ -561,7 +561,7 @@ namespace Pixy {
 	  rename(src, dest);
 	};
 
-	void Patcher::updateVersion(const Version& inVersion) {
+	void Patcher::updateVersion(Version const& inVersion) {
     using std::fstream;
     using boost::filesystem::path;
 

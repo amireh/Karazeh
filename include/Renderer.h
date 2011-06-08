@@ -59,12 +59,6 @@ namespace Pixy {
 		virtual bool setup(int argc, char** argv)=0;
 
 		/* \brief
-		 *  Called after all components are initialized, such as the InputManager,
-		 *  Downloader, and Patcher.
-		 */
-		virtual bool deferredSetup()=0;
-
-		/* \brief
 		 *  Called within the application's main loop. Handle any continuous logic
 		 *  here; ie draw, process events.
 		 */
@@ -99,7 +93,7 @@ namespace Pixy {
      *  Event properties:
      *    NeedUpdate: "Yes" or "No"
      */
-		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion )=0;
+		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Triggered when the Patcher has started updating to a certain version.
@@ -107,7 +101,7 @@ namespace Pixy {
      *  Event properties:
      *    Version: the version being updated to
      */
-		virtual void injectPatchStarted( const Version& inTargetVersion )=0;
+		virtual void injectPatchStarted( Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Triggered while the Downloader is fetching files from the remote
@@ -124,7 +118,7 @@ namespace Pixy {
      *
      *  TODO: add error code or reason
      */
-		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion )=0;
+		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Indicates that the Patcher has finished processing a single repository.
@@ -132,13 +126,13 @@ namespace Pixy {
      *  Event properties:
      *    Version: the version to which the application was updated
      */
-		virtual void injectPatchComplete( const Version& inCurrentVersion )=0;
+		virtual void injectPatchComplete( Version const& inCurrentVersion )=0;
 
 		/*! \brief
      *  Triggered when the Patcher is done processing all the repositories
      *  and has successfully updated the application to the latest version.
      */
-		virtual void injectApplicationPatched( const Version& inCurrentVersion )=0;
+		virtual void injectApplicationPatched( Version const& inCurrentVersion )=0;
 
 	protected:
     log4cpp::Category* mLog;

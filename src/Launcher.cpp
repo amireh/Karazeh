@@ -115,20 +115,10 @@ namespace Pixy
       return;
     }
 
-    mRenderer->deferredSetup();
-
-		// lTimeLastFrame remembers the last time that it was checked
-		// we use it to calculate the time since last frame
-		//lTimeLastFrame = boost::posix_time::microsec_clock::universal_time();
-		//lTimeCurrentFrame = boost::posix_time::microsec_clock::universal_time();
-
-    //mLog->infoStream() << "my current thread id: " << boost::this_thread::get_id();
-
-    //boost::thread mThread(boost::ref(Patcher::getSingleton()));
     updateApplication();
 
 		// main loop
-    mRenderer->go();
+    return mRenderer->go();
 	}
 
   void Launcher::findPaths() {
@@ -151,10 +141,14 @@ namespace Pixy
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLY
 #else
 #endif
+
+#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
     std::cout << "Root path: " <<  mRootPath << "\n";
     std::cout << "Temp path: " <<  mTempPath << "\n";
     std::cout << "Log path: " <<  mLogPath << "\n";
+#endif
+
   };
   std::string& Launcher::getRootPath() {
     return mRootPath;
@@ -183,7 +177,8 @@ namespace Pixy
 #else
 		lLogPath = path(mLogPath + "/" + "Karazeh.log").string();
 #endif
-		std::cout << "Karazeh: initting log4cpp logger @ " << lLogPath << "!\n";
+
+    //std::cout << "Karazeh: initting log4cpp logger @ " << lLogPath << "!\n";
 
 		log4cpp::Appender* lApp = new
 		log4cpp::FileAppender("FileAppender", lLogPath, false);

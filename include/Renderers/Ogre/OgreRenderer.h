@@ -61,11 +61,6 @@ namespace Pixy {
 		/* \brief
 		 *
 		 */
-		virtual bool deferredSetup();
-
-		/* \brief
-		 *
-		 */
 		virtual void update(unsigned long lTimeElapsed);
 
 		/* \brief

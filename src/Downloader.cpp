@@ -203,7 +203,7 @@ namespace Pixy {
 
   bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries, CURL* curl) {
 
-    std::cout << "fetching URL: " << url << " => " << out << "...\n";
+    //std::cout << "fetching URL: " << url << " => " << out << "...\n";
 
     //CURL *curl;
     CURLcode res;
@@ -222,7 +222,7 @@ namespace Pixy {
       outfile = fopen(out.c_str(), "w");
       if (!outfile) {
         curl_easy_cleanup(curl);
-        std::cout << "ERROR! Couldn't open file for writing: " << out;
+        //std::cout << "ERROR! Couldn't open file for writing: " << out;
         return false;
       }
 
@@ -237,9 +237,9 @@ namespace Pixy {
 
       // curl_easy_perform() returns 0 on OK
       do {
-        std::cout << "CURL: trying...\n";
+        //std::cout << "CURL: trying...\n";
         res = curl_easy_perform(curl);
-        std::cout << "CURL: query result = " << res;
+        //std::cout << "CURL: query result = " << res;
       } while ((res != 0) && (--retries) > 0);
 
       fclose(outfile);
@@ -251,7 +251,7 @@ namespace Pixy {
       if (!external)
         curl_easy_cleanup(curl);
 
-      std::cout << "done fetching file\n";
+      //std::cout << "done fetching file\n";
 
       return (res == 0);
     }

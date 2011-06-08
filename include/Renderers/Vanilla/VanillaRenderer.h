@@ -43,10 +43,6 @@ namespace Pixy {
 		 */
 		virtual bool setup(int argc, char** argv);
 
-		/* \brief
-		 *
-		 */
-		virtual bool deferredSetup();
 
 		/* \brief
 		 *
@@ -56,12 +52,12 @@ namespace Pixy {
     /* emit signals */
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
-		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
-		virtual void injectPatchStarted( const Version& inTargetVersion );
+		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
+		virtual void injectPatchStarted( Version const& inTargetVersion );
 		virtual void injectPatchProgress( int inPercent );
-		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion );
-		virtual void injectPatchComplete( const Version& inCurrentVersion );
-		virtual void injectApplicationPatched( const Version& inCurrentVersion );
+		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
+		virtual void injectPatchComplete( Version const& inCurrentVersion );
+		virtual void injectApplicationPatched( Version const& inCurrentVersion );
 
 		virtual void go();
 

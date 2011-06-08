@@ -24,7 +24,12 @@
 #include "Renderers/Vanilla/VanillaRenderer.h"
 #include "Launcher.h"
 #include "Patcher.h"
+#include <stdio.h>
+#include <string>
 
+using std::cout;
+using std::cin;
+using std::string;
 namespace Pixy {
 
 	VanillaRenderer::VanillaRenderer() {
@@ -57,34 +62,71 @@ namespace Pixy {
 	  return true;
 	};
 
-
-	bool VanillaRenderer::deferredSetup() {
-	};
-
 	bool VanillaRenderer::cleanup() {
     fShuttingDown = true;
 	};
 
 	void VanillaRenderer::go() {
+
+    cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
     while (!fShuttingDown) {
+      sleep(1/60);
     };
+
+    cout << "Shutting down. Bye!\n";
+    cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
 	};
 
   void VanillaRenderer::injectUnableToConnect( void ) {
+    cout << "Unable to connect to patch server, please check your internet connectivity.\n";
+    fShuttingDown = true;
   };
   void VanillaRenderer::injectPatchProgress(int inPercent) {
+    cout << "Patch " << inPercent << "% complete\n";
   }
 	void VanillaRenderer::injectValidateStarted( void ) {
+    cout << "Validating application version...\n";
 	}
-	void VanillaRenderer::injectValidateComplete(bool inNeedUpdate, const Version& inTargetVersion) {
+	void VanillaRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
+    string answer;
+    if (inNeedUpdate) {
+      cout << "Application is out of date. Would you like to update now? [Y/n] ";
+      cin >> answer;
+      if (answer == "Y" || answer == "y") {
+        Launcher::getSingleton().updateApplication();
+      } else {
+        fShuttingDown = true;
+      }
+    } else {
+      cout << "Application is up to date. Would you like to launch it now? [Y/n] ";
+      cin >> answer;
+      if (answer == "Y" || answer == "y") {
+        Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
+      } else {
+        fShuttingDown = true;
+      }
+    }
 	}
-	void VanillaRenderer::injectPatchStarted( const Version& inTargetVersion ) {
+	void VanillaRenderer::injectPatchStarted( Version const& inTargetVersion ) {
+    cout << "Patch started: upgrading to version " << inTargetVersion.toNumber() << "\n";
 	}
-	void VanillaRenderer::injectPatchFailed(std::string inMsg, const Version& inTargetVersion) {
+	void VanillaRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
+    cout << "Patch failed! Error: " << inMsg << "\n";
 	}
-	void VanillaRenderer::injectPatchComplete(const Version& inCurrentVersion) {
+	void VanillaRenderer::injectPatchComplete(Version const& inCurrentVersion) {
+    cout << "Upgraded to version " << inCurrentVersion.toNumber() << " successfully.\n";
   }
-  void VanillaRenderer::injectApplicationPatched( const Version& inCurrentVersion ) {
+  void VanillaRenderer::injectApplicationPatched( Version const& inCurrentVersion ) {
+    string answer;
+
+    cout << "All patches are complete, application is now up to date with version " << inCurrentVersion.toNumber() << "\n";
+    cout << "Would you like to launch the application? [Y/n] ";
+    cin >> answer;
+    if (answer == "Y" || answer == "y") {
+      Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
+    } else {
+      fShuttingDown = true;
+    }
   }
 
 };

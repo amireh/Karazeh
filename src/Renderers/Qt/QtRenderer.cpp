@@ -64,29 +64,29 @@ namespace Pixy {
                      this,
                      SLOT(handleValidateStarted(void)));
     QObject::connect(this,
-                     SIGNAL(emitValidateComplete(bool, const Version&)),
+                     SIGNAL(emitValidateComplete(bool, Version const&)),
                      this,
-                     SLOT(handleValidateComplete(bool, const Version&)));
+                     SLOT(handleValidateComplete(bool, Version const&)));
     QObject::connect(this,
-                     SIGNAL(emitPatchStarted(const Version&)),
+                     SIGNAL(emitPatchStarted(Version const&)),
                      this,
-                     SLOT(handlePatchStarted(const Version&)));
+                     SLOT(handlePatchStarted(Version const&)));
     QObject::connect(this,
                      SIGNAL(emitPatchProgress(int)),
                      this,
                      SLOT(handlePatchProgress(int)));
     QObject::connect(this,
-                     SIGNAL(emitPatchFailed(std::string, const Version&)),
+                     SIGNAL(emitPatchFailed(std::string, Version const&)),
                      this,
-                     SLOT(handlePatchFailed(std::string, const Version&)));
+                     SLOT(handlePatchFailed(std::string, Version const&)));
     QObject::connect(this,
-                     SIGNAL(emitPatchComplete(const Version&)),
+                     SIGNAL(emitPatchComplete(Version const&)),
                      this,
-                     SLOT(handlePatchComplete(const Version&)));
+                     SLOT(handlePatchComplete(Version const&)));
     QObject::connect(this,
-                     SIGNAL(emitApplicationPatched(const Version&)),
+                     SIGNAL(emitApplicationPatched(Version const&)),
                      this,
-                     SLOT(handleApplicationPatched(const Version&)));
+                     SLOT(handleApplicationPatched(Version const&)));
     mLog->infoStream() << "set up";
 	  return true;
 	};
@@ -113,9 +113,6 @@ namespace Pixy {
 
 
 	QWidget *QtRenderer::getWindow() { return mWindow; };
-	bool QtRenderer::deferredSetup() {
-    //QApplication* qApp = QApplication::instance();
-	};
 
 	bool QtRenderer::cleanup() {
 
@@ -147,26 +144,26 @@ namespace Pixy {
     mLog->infoStream() << "injecting validate started";
     emit emitValidateStarted();
 	}
-	void QtRenderer::injectValidateComplete(bool inNeedUpdate, const Version& inTargetVersion) {
+	void QtRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
 
     mLog->infoStream() << "injecting validate complete";
 
     emit emitValidateComplete(inNeedUpdate, inTargetVersion);
 	}
 
-	void QtRenderer::injectPatchStarted( const Version& inTargetVersion ) {
+	void QtRenderer::injectPatchStarted( Version const& inTargetVersion ) {
     emit emitPatchStarted(inTargetVersion);
 	}
 
-	void QtRenderer::injectPatchFailed(std::string inMsg, const Version& inTargetVersion) {
+	void QtRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     emit emitPatchFailed(inMsg, inTargetVersion);
 	}
 
-	void QtRenderer::injectPatchComplete(const Version& inCurrentVersion) {
+	void QtRenderer::injectPatchComplete(Version const& inCurrentVersion) {
     emit emitPatchComplete(inCurrentVersion);
   }
 
-  void QtRenderer::injectApplicationPatched( const Version& inCurrentVersion ) {
+  void QtRenderer::injectApplicationPatched( Version const& inCurrentVersion ) {
     emit emitApplicationPatched(inCurrentVersion);
   }
 
@@ -177,7 +174,7 @@ namespace Pixy {
     mLog->infoStream() << "validate started";
     mUI.labelStatus->setText("Status: Validating");
   }
-  void QtRenderer::handleValidateComplete( bool inNeedUpdate, const Version& inTargetVersion ) {
+  void QtRenderer::handleValidateComplete( bool inNeedUpdate, Version const& inTargetVersion ) {
     mLog->infoStream() << "validate complete";
 
     if (inNeedUpdate) {
@@ -193,11 +190,9 @@ namespace Pixy {
   }
 
   void QtRenderer::handlePatchAccepted() {
-    //boost::thread mThread(boost::ref(Patcher::getSingleton()));
-
     Launcher::getSingleton().updateApplication();
   }
-  void QtRenderer::handlePatchStarted( const Version& inTargetVersion ) {
+  void QtRenderer::handlePatchStarted( Version const& inTargetVersion ) {
     mLog->infoStream() << "started patching";
 
     std::string lMsg = "Status: Updating to " + inTargetVersion.Value;
@@ -208,18 +203,18 @@ namespace Pixy {
 
     mUI.progressBar->setValue(inPercent);
   }
-  void QtRenderer::handlePatchFailed( std::string inMsg, const Version& inTargetVersion ) {
+  void QtRenderer::handlePatchFailed( std::string inMsg, Version const& inTargetVersion ) {
     mLog->infoStream() << "patching failed";
 
     std::string lMsg = "Update failed! " + inMsg;
     mUI.textPatchStatus->setText(lMsg.c_str());
     mUI.labelStatus->setText("Status: Update failed");
   }
-  void QtRenderer::handlePatchComplete( const Version& inCurrentVersion ) {
+  void QtRenderer::handlePatchComplete( Version const& inCurrentVersion ) {
     mLog->infoStream() << "patching cmoplete";
     mUI.labelStatus->setText("Status: Application updated");
   }
-  void QtRenderer::handleApplicationPatched( const Version& inCurrentVersion ) {
+  void QtRenderer::handleApplicationPatched( Version const& inCurrentVersion ) {
     mLog->infoStream() << "all patches complete";
     mUI.labelStatus->setText("Status: Application is up to date");
   }
