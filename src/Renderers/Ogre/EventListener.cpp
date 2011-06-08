@@ -21,7 +21,7 @@
  *
  */
 
-#include "EventListener.h"
+#include "Renderers/Ogre/EventListener.h"
 
 namespace Pixy {
 

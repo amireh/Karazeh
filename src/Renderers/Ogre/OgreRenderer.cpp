@@ -100,23 +100,13 @@ namespace Pixy {
 	bool OgreRenderer::configureGame() {
 
 		mLog->infoStream() << "configuring video settings";
-		// Load config settings from ogre.cfg
-		//if( !mRoot->restoreConfig() ) {
-		  Ogre::RenderSystem* mRS = mRoot->getRenderSystem();
-		  mRS->setConfigOption("Full Screen", "No");
-		  mRS->setConfigOption("Video Mode", "640 x 480");
-		  //mRS->setConfigOption("VSync", "Yes");
-		    // If there is no config file, show the configuration dialog
-		    /*if( !mRoot->showConfigDialog() ) {
-		        return false;
-		    }*/
-		//}
+
+    Ogre::RenderSystem* mRS = mRoot->getRenderSystem();
+    mRS->setConfigOption("Full Screen", "No");
+    mRS->setConfigOption("Video Mode", "640 x 480");
 
 		// Initialise and create a default rendering window
 		mRenderWindow = mRoot->initialise( true, PIXY_APP_NAME );
-
-		// Initialise resources
-		//ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
 		// Create needed scenemanagers
 		Ogre::SceneManager *mSceneMgr = mRoot->createSceneManager( "DefaultSceneManager", "KarazehScene" );
@@ -193,7 +183,7 @@ namespace Pixy {
 	  lPathCfg << macBundlePath() << "/Contents/Resources/config/";
 	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";
 #else
-    lPathResources = path(lRoot + "/" + PROJECT_RESOURCES + "/config/resources_linux.cfg").string();
+    lPathResources = path(lRoot + "/" + PROJECT_RESOURCES + "/" + PROJECT_OGRE_RESOURCES + "/config/resources_linux.cfg").string();
 #endif
 
 		mRoot = OGRE_NEW Root();

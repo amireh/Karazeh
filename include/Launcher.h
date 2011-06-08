@@ -38,13 +38,6 @@
 #include "Downloader.h"
 #include "binreloc.h"
 
-// thread support
-#ifdef KARAZEH_USE_QT
-#include <QThread>
-#else
-#include <boost/thread.hpp>
-#endif
-
 namespace Pixy
 {
   /*! \class Launcher
@@ -130,27 +123,7 @@ namespace Pixy
     std::string mRootPath;
     std::string mTempPath;
     std::string mLogPath;
-/*
-#ifdef KARAZEH_USE_QT
-    // processor using Qt threads
-    class Processor: public QThread {
-      public:
-      void run() {
-        Patcher::getSingleton()();
-      }
-    };
-#else
-    // processor using boost threads
-    class Processor {
-      public:
-      Processor() { };
-      ~Processor() { };
-      bool operator()() {
-        Patcher::getSingleton()();
-      }
-    };
-#endif
-    Processor mProc;*/
+
     Thread<Patcher> *mProc;
 	};
 } // end of namespace

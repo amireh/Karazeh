@@ -21,8 +21,8 @@
  *
  */
 
-#include "EventManager.h"
-#include "EventListener.h"
+#include "Renderers/Ogre/EventManager.h"
+#include "Renderers/Ogre/EventListener.h"
 
 using std::cout;
 namespace Pixy {

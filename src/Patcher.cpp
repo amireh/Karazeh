@@ -174,9 +174,10 @@ namespace Pixy {
 
     mPatchScript.close();
 
+    fValidated = true;
+
     mRenderer->injectValidateComplete( needPatch, mTargetVersion );
 
-    fValidated = true;
     return;
 	};
 
@@ -263,8 +264,8 @@ namespace Pixy {
       path lTempPath;
       if (op == CREATE || op == MODIFY) {
         lTempPath = path(
-          Launcher::getSingleton().getTempPath() +
-          lRepo->getVersion().PathValue +
+          Launcher::getSingleton().getTempPath() + "/" +
+          lRepo->getVersion().PathValue + "/" +
           path(elements[2]).filename().string()
         );
 

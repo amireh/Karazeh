@@ -27,7 +27,7 @@
 #include "Pixy.h"
 #include "Patcher.h"
 #include "Repository.h"
-#include "Utility.h"
+#include "PixyUtility.h"
 #include <sstream>
 #include <fstream>
 #include <iostream>

@@ -30,7 +30,6 @@
 #include <vector>
 #include <list>
 #include <queue>
-#include "Utility.h"
 #include "Event.h"
 #include "EventManager.h"
 #include "EventHandler.h"
@@ -148,7 +147,6 @@ namespace Pixy
 			try {
 				_handlers->push_back(new EventHandler<T, EventType>(static_cast<T*>(inInstance), inMethod));
 			} catch (std::exception& e) {
-				//Utility::getLogger().errorStream() << "** EvtListener: couldn't create handler! " << e.what() << "\n";
 				std::cerr << "** EvtListener: couldn't create handler! " << e.what() << "\n";
 			}
 

@@ -21,9 +21,9 @@
  *
  */
 
-#include "Event.h"
-#include "EventManager.h"
-#include "Utility.h"
+#include "Renderers/Ogre/Event.h"
+#include "Renderers/Ogre/EventManager.h"
+
 namespace Pixy
 {
 

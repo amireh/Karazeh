@@ -1,2 +1,5 @@
 #cmakedefine KARAZEH_RENDERER_OGRE
-#cmakedefine KARAZEH_RENDERER_Qt
+#cmakedefine KARAZEH_RENDERER_QT
+#cmakedefine KARAZEH_THREADS_QT
+#cmakedefine KARAZEH_THREADS_BOOST
+#cmakedefine KARAZEH_USE_LOG4CPP

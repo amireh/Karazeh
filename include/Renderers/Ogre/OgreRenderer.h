@@ -25,7 +25,7 @@
 #define H_OgreRenderer_H
 
 #include "Renderer.h"
-#include "Renderers/Ogre/InputManager.h"
+#include <boost/filesystem.hpp>
 #include <Ogre.h>
 #include <OgreConfigFile.h>
 #include <OgreWindowEventUtilities.h>
@@ -33,13 +33,10 @@
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 #include "OSX/macUtils.h"
 #endif
+#include "Renderers/Ogre/InputManager.h"
 #include "Renderers/Ogre/OgreSdkTrays.h"
-#include "InputManager.h"
-#include <boost/filesystem.hpp>
-
-#include "EventManager.h"
-#include "EventListener.h"
-
+#include "Renderers/Ogre/EventManager.h"
+#include "Renderers/Ogre/EventListener.h"
 
 namespace Pixy {
 

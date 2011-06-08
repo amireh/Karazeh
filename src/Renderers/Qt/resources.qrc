@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="sprites">
-    <file alias="banner">logo.png</file>
-    <file alias="bg">Background_by_And1grafxX.jpg</file>
-  </qresource>
-</RCC>

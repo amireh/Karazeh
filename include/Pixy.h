@@ -24,6 +24,7 @@
 #ifndef H_Pixy_H
 #define H_Pixy_H
 
+#include "KarazehConfig.h"
 #include <exception>
 #include <stdint.h>
 #include "log4cpp/Category.hh"
@@ -33,7 +34,7 @@
 #include "PixyExceptions.h"
 
 /* Application specific definitions */
-#define PIXY_APP_VERSION "VERSION 0.1.0" // used in log
+#define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
 #define PIXY_APP_NAME "Karazeh" // used in Renderer windows titlebar
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
 #define PIXY_RESOURCE "Karazeh.dat"
@@ -85,6 +86,7 @@
 #else
 #define PROJECT_LOG_DIR "log"
 #define PROJECT_RESOURCES "resources"
+#define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "tmp"
 #endif
 

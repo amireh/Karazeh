@@ -3,7 +3,8 @@
 * delete files (done)
 * decouple Renderer (done)
 * create Ogre Renderer (done)
-* thread all main operations to keep the renderer active
+* thread all main operations to keep the renderer active (done)
 * feedback between Renderer and Patcher/Downloader (done)
 * decouple logger
-* check version sig in external resource against the compiled one and choose the highest
+* check version sig in external resource against the compiled one and choose the highest (done)
+* add CMake find package modules for the dependencies

@@ -27,7 +27,7 @@
 #ifdef KARAZEH_RENDERER_OGRE
 #include "Renderers/Ogre/OgreRenderer.h"
 #endif
-#ifdef KARAZEH_RENDERER_Qt
+#ifdef KARAZEH_RENDERER_QT
 #include "Renderers/Qt/QtRenderer.h"
 #endif
 
@@ -95,7 +95,7 @@ namespace Pixy
 		  if (strcmp(argv[1], "Ogre") == 0)
 		    mRenderer = new OgreRenderer();
 #endif
-#ifdef KARAZEH_RENDERER_Qt
+#ifdef KARAZEH_RENDERER_QT
 		  if (strcmp(argv[1], "Qt") == 0)
 		    mRenderer = new QtRenderer();
 #endif

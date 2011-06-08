@@ -21,30 +21,37 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyThreadBoost_H
+#define H_PixyThreadBoost_H
 
-#include "Pixy.h"
-#include <typeinfo>
+#include <boost/thread.hpp>
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
-#endif
+namespace Pixy {
 
-// can use only one of these, hence the USE_THREADS flag
+  template <class T>
+  class Thread {
+    public:
+    Thread() {};
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T& inT) {
+      mWorker = boost::thread(boost::ref(inT));
+    };
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T* inT) {
+      mWorker = boost::thread(inT);
+    };
 
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
+    virtual ~Thread() {
+      mWorker.detach();
+    };
 
-#endif
+    private:
+    Thread(const Thread& rhs);
+    Thread& operator=(const Thread& rhs);
+
+    boost::thread mWorker;
+  };
+
+}
+
+#endif // H_PixyThreadBoost_H

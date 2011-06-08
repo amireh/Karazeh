@@ -86,6 +86,14 @@ namespace Pixy {
                      SIGNAL(emitApplicationPatched(Version const&)),
                      this,
                      SLOT(handleApplicationPatched(Version const&)));
+
+	  mLog->infoStream() << "QT GOING in thread: " << thread();
+    mApp = new QApplication(margc, margv);
+    mApp->setOrganizationName("Karazeh");
+    mApp->setApplicationName("Karazeh");
+
+    setupWidgets();
+
     mLog->infoStream() << "set up";
 	  return true;
 	};
@@ -118,12 +126,7 @@ namespace Pixy {
 	};
 
 	void QtRenderer::go() {
-	  mLog->infoStream() << "QT GOING in thread: " << thread();
-    mApp = new QApplication(margc, margv);
-    mApp->setOrganizationName("Karazeh");
-    mApp->setApplicationName("Karazeh");
 
-    setupWidgets();
 
     mApp->exec();
 

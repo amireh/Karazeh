@@ -21,30 +21,41 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyThreadQt_H
+#define H_PixyThreadQt_H
 
-#include "Pixy.h"
-#include <typeinfo>
+#include <QThread>
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
-#endif
+namespace Pixy {
 
-// can use only one of these, hence the USE_THREADS flag
+  template<class T>
+  class Thread : public QThread {
+    public:
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread() {};
+    void run() {
+      (*mT)();
+    }
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T& inT) {
+      mT = &inT;
+      this->start();
+    };
 
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
+    Thread(T* inT) {
+      mT = inT;
+      this->start();
+    };
+    virtual ~Thread() {
+      mT = 0;
+    };
 
-#endif
+    private:
+    Thread(const Thread& rhs);
+    Thread& operator=(const Thread& rhs);
+    T* mT;
+  };
+
+}
+
+#endif // H_PixyThreadQt_H

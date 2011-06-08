@@ -26,7 +26,7 @@
 
 #include "Pixy.h"
 #include "PatchEntry.h"
-#include "Utility.h"
+#include "PixyUtility.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
