@@ -33,10 +33,13 @@
 #include "PixyExceptions.h"
 
 /* Application specific definitions */
-#define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
-#define PIXY_APP_NAME "Karazeh" // used in RenderWindow title
+#define PIXY_APP_VERSION "VERSION 0.1.0" // used in log
+#define PIXY_APP_NAME "Karazeh" // used in Renderer windows titlebar
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
 #define PIXY_RESOURCE "Karazeh.dat"
+#define PIXY_EXTERNAL_APP_PATH "./Karazeh" // path to the application launched relative to this application
+#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
+#define PIXY_EXTERNAL_APP_ARG "Qt" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
 //#define PIXY_PERSISTENT
 
 /* Finds the current platform

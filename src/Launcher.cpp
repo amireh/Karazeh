@@ -33,7 +33,7 @@
 
 namespace Pixy
 {
-	Launcher* Launcher::mLauncher;
+	Launcher* Launcher::__instance;
 
   void handle_interrupt(int param)
   {
@@ -42,8 +42,7 @@ namespace Pixy
   }
 
 	Launcher::Launcher() :
-	mRenderer(0),
-	fShutdown(false) {
+	mRenderer(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
 	  signal(SIGKILL, handle_interrupt);
@@ -68,11 +67,11 @@ namespace Pixy
 	}
 
 	Launcher* Launcher::getSingletonPtr() {
-		if( !mLauncher ) {
-		    mLauncher = new Launcher();
+		if( !__instance ) {
+		    __instance = new Launcher();
 		}
 
-		return mLauncher;
+		return __instance;
 	}
 
 	Launcher& Launcher::getSingleton() {
@@ -81,7 +80,7 @@ namespace Pixy
 
 	void Launcher::go(int argc, char** argv) {
 
-    findPaths();
+    resolvePaths();
 
 		// init logger
 		initLogger();
@@ -95,7 +94,8 @@ namespace Pixy
 #ifdef KARAZEH_RENDERER_OGRE
 		  if (strcmp(argv[1], "Ogre") == 0)
 		    mRenderer = new OgreRenderer();
-#elif defined(KARAZEH_RENDERER_Qt)
+#endif
+#ifdef KARAZEH_RENDERER_Qt
 		  if (strcmp(argv[1], "Qt") == 0)
 		    mRenderer = new QtRenderer();
 #endif
@@ -121,7 +121,7 @@ namespace Pixy
     return mRenderer->go();
 	}
 
-  void Launcher::findPaths() {
+  void Launcher::resolvePaths() {
 
     BrInitError* brerr;
     int brres = br_init(brerr);
@@ -160,7 +160,6 @@ namespace Pixy
     return mBinPath;
   };
 	void Launcher::requestShutdown() {
-		fShutdown = true;
     if (mRenderer)
       mRenderer->cleanup();
 
@@ -214,11 +213,14 @@ namespace Pixy
 		mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Launcher");
 	}
 
-	void Launcher::launchExternalApp(std::string inPath, std::string inAppName) {
+	void Launcher::launchExternalApp() {
+    using boost::filesystem::path;
+    path appPath = path(mBinPath + "/" + PIXY_EXTERNAL_APP_PATH);
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-    ShellExecute(inPath);
+    ShellExecute(appPath.string());
 #else
-    execl(inPath.c_str(), inAppName.c_str(), "Qt", NULL);
+    // to pass more arguments to the app, you need to change this line to reflect it
+    execl(appPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);
 #endif
 	}
 

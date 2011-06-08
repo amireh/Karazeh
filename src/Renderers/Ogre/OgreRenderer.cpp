@@ -34,6 +34,7 @@ namespace Pixy {
 		mLog->infoStream() << "firing up";
 
 		mName = "OgreRenderer";
+    fShutdown = false;
   }
 
 	OgreRenderer::~OgreRenderer() {
@@ -51,6 +52,11 @@ namespace Pixy {
 
 		if (mLog)
 		  delete mLog;
+
+    mLog = 0;
+    mRoot = 0;
+    mInputMgr = 0;
+
 	}
 
   void OgreRenderer::loadRenderSystems()
@@ -75,7 +81,7 @@ namespace Pixy {
 #elif OGRE_PLATFORM == OGRE_PLATFORM_WIN32
     lPluginsPath = ".\\";
 #else
-    lPluginsPath = "./";
+    lPluginsPath = boost::filesystem::path(Launcher::getSingleton().getBinPath() + "/").string();
 #endif
     // try using OpenGL
     try {
@@ -131,6 +137,7 @@ namespace Pixy {
 		// Go through all settings in the file
 		ConfigFile::SectionIterator itSection = cf.getSectionIterator();
 
+    String lRoot = Launcher::getSingleton().getRootPath();
 		String sSection, sType, sArch;
 		while( itSection.hasMoreElements() ) {
       sSection = itSection.peekNextKey();
@@ -143,7 +150,7 @@ namespace Pixy {
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 			  ResourceGroupManager::getSingleton().addResourceLocation( String(macBundlePath() + "/" + sArch), sType, sSection);
 #else
-			  ResourceGroupManager::getSingleton().addResourceLocation( sArch, sType, sSection);
+			  ResourceGroupManager::getSingleton().addResourceLocation( String(lRoot + "/" + sArch), sType, sSection);
 #endif
 
         ++itSetting;
@@ -165,30 +172,31 @@ namespace Pixy {
     if (fSetup)
       return true;
 
+    mEvtMgr = EventManager::getSingletonPtr();
+
+    using boost::filesystem::path;
+
+    std::string lRoot = Launcher::getSingleton().getRootPath();
+    std::string lPathResources;
+
 		// setup paths
-	  using std::ostringstream;
-	  ostringstream lPathResources, lPathPlugins, lPathCfg, lPathOgreCfg, lPathLog;
+	  //using std::ostringstream;
+	  //ostringstream lPathResources, lPathPlugins, lPathCfg, lPathOgreCfg, lPathLog;
 #if OGRE_PLATFORM == OGRE_PLATFORM_WINDOWS
 	  lPathResources << PROJECT_ROOT << PROJECT_RESOURCES << "\\config\\resources_win32.cfg";
     lPathPlugins << "..\\resources\\config\\plugins.cfg";
     lPathCfg << "..\\resources\\config\\";
 	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";
-	  lPathLog << PROJECT_LOG_DIR << "\\Ogre.log";
 #elif OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 	  lPathResources << macBundlePath() << "/Contents/Resources/config/resources_osx.cfg";
 	  lPathPlugins << macBundlePath() << "/Contents/Resources/config/plugins.cfg";
 	  lPathCfg << macBundlePath() << "/Contents/Resources/config/";
 	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";
-	  lPathLog << macBundlePath() << "/Contents/Logs/Ogre.log";
 #else
-	  lPathResources << PROJECT_ROOT << PROJECT_RESOURCES << "/config/resources_linux.cfg";
-    lPathPlugins << PROJECT_ROOT << PROJECT_RESOURCES << "/config/plugins.cfg";
-    lPathCfg << PROJECT_ROOT << PROJECT_RESOURCES << "/config/";
-	  lPathOgreCfg << lPathCfg.str() << "ogre.cfg";
-	  lPathLog << PROJECT_LOG_DIR << "/Ogre.log";
+    lPathResources = path(lRoot + "/" + PROJECT_RESOURCES + "/config/resources_linux.cfg").string();
 #endif
 
-		mRoot = OGRE_NEW Root(lPathPlugins.str(), lPathOgreCfg.str(), lPathLog.str());
+		mRoot = OGRE_NEW Root();
 		if (!mRoot) {
 			throw Ogre::Exception( Ogre::Exception::ERR_INTERNAL_ERROR,
 								  "Error - Couldn't initalize OGRE!",
@@ -210,16 +218,7 @@ namespace Pixy {
 
 		mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
 
-		this->setupResources(lPathResources.str());
-
-		/*bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
-		bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
-		bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
-		bind("PatchStarted", this, &OgreRenderer::evtPatchStarted);
-		bind("PatchProgress", this, &OgreRenderer::evtPatchProgress);
-		bind("PatchFailed", this, &OgreRenderer::evtPatchFailed);
-		bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
-		bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);*/
+		this->setupResources(lPathResources);
 
     int width = 0;
     int height = 0;
@@ -252,6 +251,15 @@ namespace Pixy {
 	  mProgress = mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 
+    bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
+    bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
+    bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
+    bind("PatchStarted", this, &OgreRenderer::evtPatchStarted);
+    bind("PatchProgress", this, &OgreRenderer::evtPatchProgress);
+    bind("PatchFailed", this, &OgreRenderer::evtPatchFailed);
+    bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
+    bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
+
 	  return true;
 	};
 
@@ -260,28 +268,41 @@ namespace Pixy {
 	  delete mTrayMgr;
 	};
 
-	void OgreRenderer::update(unsigned long lTimeElapsed) {
-    //processEvents();
+	void OgreRenderer::go() {
 
-    // update input manager
-    mInputMgr->capture();
+		lTimeLastFrame = 0;
+		lTimeCurrentFrame = 0;
+		lTimeSinceLastFrame = 0;
 
-		WindowEventUtilities::messagePump();
+    mRoot->getTimer()->reset();
 
-    if (fShowingOkDialog) {
-      mTrayMgr->showOkDialog("Notice", "moo");
-      fShowingOkDialog = false;
-    }
+		// main game loop
+		while( !fShutdown ) {
 
-    mFrameEvt.timeSinceLastFrame = mFrameEvt.timeSinceLastEvent = lTimeElapsed;
-    mTrayMgr->frameRenderingQueued(mFrameEvt);
+	    // calculate time since last frame and remember current time for next frame
+	    lTimeCurrentFrame = mRoot->getTimer()->getMilliseconds();
+	    lTimeSinceLastFrame = lTimeCurrentFrame - lTimeLastFrame;
+	    lTimeLastFrame = lTimeCurrentFrame;
 
-		// render next frame
-	  mRoot->renderOneFrame();
+	    // update input manager
+	    mInputMgr->capture();
+
+      // update the event manager and handle events
+      mEvtMgr->update();
+      processEvents();
+
+      mFrameEvt.timeSinceLastFrame = mFrameEvt.timeSinceLastEvent = lTimeSinceLastFrame;
+      mTrayMgr->frameRenderingQueued(mFrameEvt);
+
+      WindowEventUtilities::messagePump();
+
+			// render next frame
+		  mRoot->renderOneFrame();
+
+		}
+
+
 	}
-
-
-
 
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
 		return true;
@@ -289,7 +310,7 @@ namespace Pixy {
 
 	bool OgreRenderer::keyReleased( const OIS::KeyEvent &e ) {
 		if (e.key == OIS::KC_ESCAPE)
-		  Launcher::getSingleton().requestShutdown();
+		  fShutdown = true;
 
 		return true;
 	}
@@ -320,64 +341,109 @@ namespace Pixy {
 	}
 
 	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
-
-	  /*if (yesHit) {
-      Event* lEvt = EventManager::getSingleton().createEvt("Patch");
-	    EventManager::getSingleton().hook(lEvt);
-	    lEvt = 0;
-	  }*/
-
+	  if (yesHit) {
+      Launcher::getSingleton().updateApplication();
+	  }
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
     if (b->getName() == "Launch") {
-      Launcher::getSingleton().launchExternalApp("./Launcher", "Launcher");
+      Launcher::getSingleton().launchExternalApp();
     } else if (b->getName() == "Patch") {
       //Patcher::getSingleton().validate();
-      boost::thread mThread(boost::ref(Patcher::getSingleton()));
+      //Launcher::getSingleton().updateApplication();
     }
 
   };
 
   void OgreRenderer::injectUnableToConnect( void ) {
-    mStatusBox->setCaption("Error");
-    mStatusBox->setText("Unable to connect to patch server, please verify your internet connectivity.");
-
-
+    mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
   };
 
   void OgreRenderer::injectPatchProgress(int inPercent) {
-    //int p = Utility::convertTo<int>(inEvt->getProperty("Progress"));
-    mProgress->setProgress(inPercent / 100.0f);
-    //mLog->infoStream() << "Patching : %" <<p << " done ";
-
+    Event* lEvt = mEvtMgr->createEvt("PatchProgress");
+    lEvt->setProperty("Percent", Utility::stringify(inPercent));
+    mEvtMgr->hook(lEvt);
   }
 
 	void OgreRenderer::injectValidateStarted( void ) {
+    mEvtMgr->hook(mEvtMgr->createEvt("ValidateStarted"));
+	}
+	void OgreRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
+    Event* lEvt = mEvtMgr->createEvt("ValidateComplete");
+    lEvt->setProperty("NeedUpdate", inNeedUpdate ? "Yes" : "No");
+    lEvt->setAny((void*)&inTargetVersion);
+    mEvtMgr->hook(lEvt);
+	}
+
+	void OgreRenderer::injectPatchStarted( Version const& inTargetVersion ) {
+    Event* lEvt = mEvtMgr->createEvt("PatchStarted");
+    lEvt->setAny((void*)&inTargetVersion);
+    mEvtMgr->hook(lEvt);
+	}
+
+	void OgreRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
+    Event* lEvt = mEvtMgr->createEvt("PatchFailed");
+    lEvt->setProperty("Msg", inMsg);
+    lEvt->setAny((void*)&inTargetVersion);
+    mEvtMgr->hook(lEvt);
+	}
+
+	void OgreRenderer::injectPatchComplete(Version const& inCurrentVersion) {
+    Event* lEvt = mEvtMgr->createEvt("PatchComplete");
+    lEvt->setAny((void*)&inCurrentVersion);
+    mEvtMgr->hook(lEvt);
+  }
+
+  void OgreRenderer::injectApplicationPatched( Version const& inCurrentVersion ) {
+    Event* lEvt = mEvtMgr->createEvt("ApplicationPatched");
+    lEvt->setAny((void*)&inCurrentVersion);
+    mEvtMgr->hook(lEvt);
+  }
+
+
+
+  bool OgreRenderer::evtUnableToConnect( Event* inEvt ) {
+    mStatusBox->setCaption("Error");
+    mStatusBox->setText("Unable to connect to patch server, please verify your internet connectivity.");
+
+    return true;
+  }
+  bool OgreRenderer::evtValidateStarted( Event* inEvt ) {
 	  //mLog->infoStream() << "Handling evt: " << inEvt->getName();
 
 	  mStatusBox->setCaption("Validating...");
     mStatusBox->setText("Downloading latest patch information");
+    return true;
+  }
+  bool OgreRenderer::evtValidateComplete( Event* inEvt ) {
+    bool inNeedUpdate = inEvt->getProperty("NeedUpdate") == "Yes";
+    Version inTargetVersion(*(static_cast<Version*>(inEvt->getAny())));
 
-
-	}
-	void OgreRenderer::injectValidateComplete(bool inNeedUpdate, const Version& inTargetVersion) {
-
-	  /*if (inNeedUpdate) {
+	  if (inNeedUpdate) {
 	    mTrayMgr->showYesNoDialog("Notice", "Updates are available. Would you like to update now?");
 	    mStatusBox->setText("Application needs updating. Latest version is: " + inTargetVersion.Value);
 	  } else {
 	    mStatusBox->setText("Application is up to date " + inTargetVersion.Value);
-	  }*/
-
-	}
-
-	void OgreRenderer::injectPatchStarted( const Version& inTargetVersion ) {
+	  }
+    return true;
+  }
+  bool OgreRenderer::evtPatchStarted( Event* inEvt ) {
+    Version inTargetVersion = *(static_cast<Version*>(inEvt->getAny()));
 
 	  mStatusBox->setCaption("Updating");
 	  mStatusBox->setText("Updating to version " + inTargetVersion.Value);
-	}
+    return true;
+  }
+  bool OgreRenderer::evtPatchProgress( Event* inEvt ) {
+    int inPercent = Utility::convertTo<int>(inEvt->getProperty("Percent"));
 
-	void OgreRenderer::injectPatchFailed(std::string inMsg, const Version& inTargetVersion) {
+    mProgress->setProgress(inPercent / 100.0f);
+    return true;
+  }
+  bool OgreRenderer::evtPatchFailed( Event* inEvt ) {
+    Version inTargetVersion = *(static_cast<Version*>(inEvt->getAny()));
+    std::string inMsg = inEvt->getProperty("Msg");
+
     std::string lMsg = "There was a problem patching to version "
       + inTargetVersion.Value
       + ". Reinstalling the application is required as the current version "
@@ -389,11 +455,11 @@ namespace Pixy {
     mStatusBox->setCaption("Update failed.");
     //mStatusBox->setText("Please verify your installation or re-install if this problem persists.");
     mStatusBox->setText(lMsg);
+    return true;
+  }
+  bool OgreRenderer::evtPatchComplete( Event* inEvt ) {
+    Version inCurrentVersion = *(static_cast<Version*>(inEvt->getAny()));
 
-
-	}
-
-	void OgreRenderer::injectPatchComplete(const Version& inCurrentVersion) {
     std::string lMsg = "Application was successfully updated to "
       + inCurrentVersion.Value;
 	  mTrayMgr->showOkDialog("Patch Successful", lMsg);
@@ -401,15 +467,17 @@ namespace Pixy {
 	  mStatusBox->setCaption("Updated");
 	  mStatusBox->setText(lMsg);
 
-
+    return true;
   }
+  bool OgreRenderer::evtApplicationPatched( Event* inEvt ) {
+    Version inCurrentVersion = *(static_cast<Version*>(inEvt->getAny()));
 
-  void OgreRenderer::injectApplicationPatched( const Version& inCurrentVersion ) {
     std::string lMsg = "All updates were successful. Application is now " + inCurrentVersion.Value;
 	  mTrayMgr->showOkDialog("Application up to date", lMsg);
 
 	  mStatusBox->setCaption("Application is up to date.");
 	  mStatusBox->setText(lMsg);
 
+    return true;
   }
 };

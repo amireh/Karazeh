@@ -220,6 +220,6 @@ namespace Pixy {
   }
 
   void QtRenderer::handleLaunchApplication() {
-    Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
+    Launcher::getSingleton().launchExternalApp();
   }
 };

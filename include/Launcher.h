@@ -29,15 +29,20 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <map>
+
 #include "Pixy.h"
 #include "KarazehConfig.h"
 #include "Renderer.h"
 #include "Patcher.h"
 #include "Downloader.h"
-#include <QThread>
-#include <boost/thread.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include "binreloc.h"
+
+// thread support
+#ifdef KARAZEH_USE_QT
+#include <QThread>
+#else
+#include <boost/thread.hpp>
+#endif
 
 namespace Pixy
 {
@@ -73,13 +78,21 @@ namespace Pixy
 		 *  \arg inPath: full path to the application with extension, ie C:\\Foo.exe
 		 *  \arg inAppName: stripped name of the application, ie Foo
 		 */
-		void launchExternalApp(std::string inPath, std::string inAppName);
+		void launchExternalApp();
 
 		/*! \brief
 		 *	Shuts down the system and all components.
 		 */
 		void requestShutdown();
 
+    /*! \brief
+     *  Fires up the processor thread which calls the Patcher.
+     *
+     * The first time Patcher() is called, it validates the application. The
+     * second call makes it actually process the patch. The first call is always
+     * triggered by the Launcher, while the second is triggered by the Renderer
+     * based on user input (if they want to update or not).
+     */
     void updateApplication();
 
 		Renderer* getRenderer();
@@ -93,7 +106,15 @@ namespace Pixy
 		Launcher(const Launcher&) {}
 		Launcher& operator=(const Launcher&);
 
-    void findPaths();
+    static Launcher *__instance;
+
+    /*! \brief
+     *  Determines the paths to the application.
+     *
+     * In Linux, this is done using BinReloc, on Mac it's done using NSBundlePath(),
+     * and on Windows it's done using GetModuleFileName().
+     */
+    void resolvePaths();
 
 		/*! \brief
 		 *  Starts up the log4cpp logger.
@@ -102,21 +123,15 @@ namespace Pixy
 
 		Renderer      *mRenderer;
 
-		//unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
-		boost::posix_time::ptime  lTimeLastFrame, lTimeCurrentFrame;
-		boost::posix_time::time_duration lTimeSinceLastFrame;
-
-		bool fShutdown;
-		static Launcher *mLauncher;
 		log4cpp::Category* mLog;
 
-		std::string mConfigPath;
     std::string mBinPath;
     std::string mRootPath;
     std::string mTempPath;
     std::string mLogPath;
 
 #ifdef KARAZEH_USE_QT
+    // processor using Qt threads
     class Processor: public QThread {
       public:
       void run() {
@@ -124,6 +139,7 @@ namespace Pixy
       }
     };
 #else
+    // processor using boost threads
     class Processor {
       public:
       Processor() { };

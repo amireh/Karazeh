@@ -101,7 +101,7 @@ namespace Pixy {
       cout << "Application is up to date. Would you like to launch it now? [Y/n] ";
       cin >> answer;
       if (answer == "Y" || answer == "y") {
-        Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
+        Launcher::getSingleton().launchExternalApp();
       } else {
         fShuttingDown = true;
       }
@@ -123,7 +123,7 @@ namespace Pixy {
     cout << "Would you like to launch the application? [Y/n] ";
     cin >> answer;
     if (answer == "Y" || answer == "y") {
-      Launcher::getSingleton().launchExternalApp("./Karazeh", "Karazeh");
+      Launcher::getSingleton().launchExternalApp();
     } else {
       fShuttingDown = true;
     }

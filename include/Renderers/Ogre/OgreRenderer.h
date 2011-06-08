@@ -34,6 +34,12 @@
 #include "OSX/macUtils.h"
 #endif
 #include "Renderers/Ogre/OgreSdkTrays.h"
+#include "InputManager.h"
+#include <boost/filesystem.hpp>
+
+#include "EventManager.h"
+#include "EventListener.h"
+
 
 namespace Pixy {
 
@@ -46,7 +52,8 @@ namespace Pixy {
 	  public Ogre::WindowEventListener,
 	  public OgreBites::SdkTrayListener,
     public OIS::KeyListener,
-    public OIS::MouseListener
+    public OIS::MouseListener,
+    public Pixy::EventListener
 	{
 
 	public:
@@ -58,10 +65,7 @@ namespace Pixy {
 		 */
 		virtual bool setup(int argc, char** argv);
 
-		/* \brief
-		 *
-		 */
-		virtual void update(unsigned long lTimeElapsed);
+		virtual void go();
 
 		/* \brief
 		 *
@@ -125,15 +129,25 @@ namespace Pixy {
 
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
-		virtual void injectValidateComplete( bool inNeedUpdate, const Version& inTargetVersion );
-		virtual void injectPatchStarted( const Version& inTargetVersion );
+		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
+		virtual void injectPatchStarted( Version const& inTargetVersion );
 		virtual void injectPatchProgress( int inPercent );
-		virtual void injectPatchFailed( std::string inMsg, const Version& inTargetVersion );
-		virtual void injectPatchComplete( const Version& inCurrentVersion );
-		virtual void injectApplicationPatched( const Version& inCurrentVersion );
+		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
+		virtual void injectPatchComplete( Version const& inCurrentVersion );
+		virtual void injectApplicationPatched( Version const& inCurrentVersion );
 
 	protected:
+		bool evtUnableToConnect( Event* inEvt );
+		bool evtValidateStarted( Event* inEvt );
+		bool evtValidateComplete( Event* inEvt );
+		bool evtPatchStarted( Event* inEvt );
+		bool evtPatchProgress( Event* inEvt );
+		bool evtPatchFailed( Event* inEvt );
+		bool evtPatchComplete( Event* inEvt );
+		bool evtApplicationPatched( Event* inEvt );
+
     InputManager *mInputMgr;
+    EventManager *mEvtMgr;
 
     Ogre::Root *mRoot;
     Ogre::RenderWindow *mRenderWindow;
@@ -154,6 +168,9 @@ namespace Pixy {
 		void loadRenderSystems();
 
 		bool fShowingOkDialog;
+    bool fShutdown;
+
+    unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
 
 	private:
 		OgreRenderer(const OgreRenderer& src);
