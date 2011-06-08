@@ -229,10 +229,7 @@ namespace Pixy
   }
 
   void Launcher::updateApplication() {
-#ifdef KARAZEH_USE_QT
-    mProc.start();
-#else
-    boost::thread mWorker(boost::ref(mProc));
-#endif
+    mProc = new Thread<Patcher>(Patcher::getSingleton());
+    mProc = 0;
   }
 } // end of namespace Pixy

@@ -31,6 +31,7 @@
 #include <map>
 
 #include "Pixy.h"
+#include "PixyThread.h"
 #include "KarazehConfig.h"
 #include "Renderer.h"
 #include "Patcher.h"
@@ -129,7 +130,7 @@ namespace Pixy
     std::string mRootPath;
     std::string mTempPath;
     std::string mLogPath;
-
+/*
 #ifdef KARAZEH_USE_QT
     // processor using Qt threads
     class Processor: public QThread {
@@ -149,7 +150,8 @@ namespace Pixy
       }
     };
 #endif
-    Processor mProc;
+    Processor mProc;*/
+    Thread<Patcher> *mProc;
 	};
 } // end of namespace
 

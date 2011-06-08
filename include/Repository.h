@@ -25,7 +25,7 @@
 #define H_Repository_H
 
 #include "Pixy.h"
-#include "Entry.h"
+#include "PatchEntry.h"
 #include "Utility.h"
 #include <stdio.h>
 #include <stdlib.h>
