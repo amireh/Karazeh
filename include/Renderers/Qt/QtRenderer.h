@@ -63,7 +63,7 @@ namespace Pixy {
     void handlePatchAccepted();
     void handlePatchStarted( Version const& inTargetVersion );
 		void handlePatchProgress( int inPercent );
-		void handlePatchFailed( std::string inMsg, Version const& inTargetVersion );
+		void handlePatchFailed( QString inMsg, Version const& inTargetVersion );
 		void handlePatchComplete( Version const& inCurrentVersion );
 		void handleApplicationPatched( Version const& inCurrentVersion );
     void handleLaunchApplication();
@@ -74,7 +74,7 @@ namespace Pixy {
 		void emitValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		void emitPatchStarted( Version const& inTargetVersion );
 		void emitPatchProgress( int inPercent );
-		void emitPatchFailed( std::string inMsg, Version const& inTargetVersion );
+		void emitPatchFailed( QString inMsg, Version const& inTargetVersion );
 		void emitPatchComplete( Version const& inCurrentVersion );
 		void emitApplicationPatched( Version const& inCurrentVersion );
 

@@ -372,9 +372,11 @@ namespace Pixy {
 	  try {
 	    buildRepositories();
 	  } catch (BadVersion& e) {
-      mRenderer->injectPatchFailed( "Bad application version", mCurrentVersion );
+      mRenderer->injectPatchFailed( std::string("Bad application version"), mCurrentVersion );
+      return;
 	  } catch (BadFileStream& e) {
-      mRenderer->injectPatchFailed( "Bad file stream", mCurrentVersion );
+      mRenderer->injectPatchFailed( std::string("Bad file stream"), mCurrentVersion );
+      return;
 	  }
 
 	  mLog->infoStream() << "Total patches: " << mRepos.size();
@@ -390,7 +392,7 @@ namespace Pixy {
 	    // validate the repository
 	    if (!preprocess(*repo)) {
 	      // we cannot patch
-        mRenderer->injectPatchFailed( "Bad application data, have you manually modified the application's files?", (*repo)->getVersion() );
+        mRenderer->injectPatchFailed( std::string("Bad application data, have you manually modified the application's files?"), (*repo)->getVersion() );
 
 	      success = false;
 	      break;

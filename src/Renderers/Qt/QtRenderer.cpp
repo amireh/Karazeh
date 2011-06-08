@@ -51,7 +51,6 @@ namespace Pixy {
 
     margc = argc;
     margv = argv;
-    //boost::thread mQt(startQt, argc, argv);
 
     qRegisterMetaType<Version>("Version");
 
@@ -76,9 +75,9 @@ namespace Pixy {
                      this,
                      SLOT(handlePatchProgress(int)));
     QObject::connect(this,
-                     SIGNAL(emitPatchFailed(std::string, Version const&)),
+                     SIGNAL(emitPatchFailed(QString, Version const&)),
                      this,
-                     SLOT(handlePatchFailed(std::string, Version const&)));
+                     SLOT(handlePatchFailed(QString, Version const&)));
     QObject::connect(this,
                      SIGNAL(emitPatchComplete(Version const&)),
                      this,
@@ -156,7 +155,7 @@ namespace Pixy {
 	}
 
 	void QtRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
-    emit emitPatchFailed(inMsg, inTargetVersion);
+    emit emitPatchFailed(QString::fromStdString(inMsg), inTargetVersion);
 	}
 
 	void QtRenderer::injectPatchComplete(Version const& inCurrentVersion) {
@@ -203,12 +202,13 @@ namespace Pixy {
 
     mUI.progressBar->setValue(inPercent);
   }
-  void QtRenderer::handlePatchFailed( std::string inMsg, Version const& inTargetVersion ) {
-    mLog->infoStream() << "patching failed";
+  void QtRenderer::handlePatchFailed( QString inMsg, Version const& inTargetVersion ) {
+    mLog->infoStream() << "patching failed, reason:";
+    mLog->infoStream() << inMsg.toStdString();
 
-    std::string lMsg = "Update failed! " + inMsg;
-    mUI.textPatchStatus->setText(lMsg.c_str());
-    mUI.labelStatus->setText("Status: Update failed");
+    QString lMsg = tr("Update failed! ") + inMsg;
+    mUI.textPatchStatus->setText(lMsg);
+    mUI.labelStatus->setText("Status: Update failed, reason: " + inMsg);
   }
   void QtRenderer::handlePatchComplete( Version const& inCurrentVersion ) {
     mLog->infoStream() << "patching cmoplete";
