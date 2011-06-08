@@ -68,7 +68,7 @@ namespace Pixy {
 		 *  Called within the application's main loop. Handle any continuous logic
 		 *  here; ie draw, process events.
 		 */
-		virtual void update(unsigned long lTimeElapsed)=0;
+		virtual void go()=0;
 
 		/* \brief
 		 *  Clean up here any resources you've allocated. This will be called

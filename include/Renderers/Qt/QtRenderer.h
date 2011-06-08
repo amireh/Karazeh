@@ -53,10 +53,7 @@ namespace Pixy {
 		 */
 		virtual bool deferredSetup();
 
-		/* \brief
-		 *
-		 */
-		virtual void update(unsigned long lTimeElapsed);
+		virtual void go();
 
 		/* \brief
 		 *
@@ -97,10 +94,8 @@ namespace Pixy {
 		virtual void injectPatchComplete( const Version& inCurrentVersion );
 		virtual void injectApplicationPatched( const Version& inCurrentVersion );
 
-  public:
 		QWidget* getWindow();
 		void setupWidgets();
-		virtual void go();
 
 	protected:
 

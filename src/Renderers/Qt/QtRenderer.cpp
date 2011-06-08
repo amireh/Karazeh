@@ -134,10 +134,6 @@ namespace Pixy {
 	  //QApplication::instance()->exec();
 	};
 
-	void QtRenderer::update(unsigned long lTimeElapsed) {
-
-    //qApp->processEvents();
-	}
 
   void QtRenderer::injectUnableToConnect( void ) {
     emit emitUnableToConnect();
