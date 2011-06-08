@@ -37,6 +37,7 @@
 #include <QThread>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "binreloc.h"
 
 namespace Pixy
 {
@@ -83,15 +84,16 @@ namespace Pixy
 
 		Renderer* getRenderer();
 
+    std::string& getRootPath();
+    std::string& getTempPath();
+    std::string& getBinPath();
+
 	private:
 		Launcher();
 		Launcher(const Launcher&) {}
 		Launcher& operator=(const Launcher&);
 
-		void (Launcher::*goFunc)();
-
-		void goWithRenderer();
-		void goVanilla();
+    void findPaths();
 
 		/*! \brief
 		 *  Starts up the log4cpp logger.
@@ -109,14 +111,28 @@ namespace Pixy
 		log4cpp::Category* mLog;
 
 		std::string mConfigPath;
+    std::string mBinPath;
+    std::string mRootPath;
+    std::string mTempPath;
+    std::string mLogPath;
 
+#ifdef KARAZEH_USE_QT
     class Processor: public QThread {
       public:
       void run() {
         Patcher::getSingleton()();
       }
     };
-
+#else
+    class Processor {
+      public:
+      Processor() { };
+      ~Processor() { };
+      bool operator()() {
+        Patcher::getSingleton()();
+      }
+    };
+#endif
     Processor mProc;
 	};
 } // end of namespace

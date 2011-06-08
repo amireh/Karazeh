@@ -38,13 +38,15 @@ namespace Pixy {
 		fPatched = false;
 
 		using boost::filesystem::exists;
+    using boost::filesystem::path;
 		using std::fstream;
 
 		// get our current version, and set a default one
 		mCurrentVersion = Version(std::string(PIXY_APP_VERSION));
 		fstream res;
-		if (!exists(PIXY_RESOURCE_PATH)) {
-      res.open(PIXY_RESOURCE_PATH, fstream::out);
+    path resPath = path(Launcher::getSingleton().getBinPath() + "/" + std::string(PIXY_RESOURCE));
+		if (!exists(resPath)) {
+      res.open(resPath.c_str(), fstream::out);
 
       if (!res.is_open() || !res.good()) {
 
@@ -54,7 +56,7 @@ namespace Pixy {
 		  }
 
 		} else {
-      res.open(PIXY_RESOURCE_PATH, fstream::in);
+      res.open(resPath.c_str(), fstream::in);
 
 		  if (res.is_open() && res.good()) {
 		    std::string v;
@@ -67,7 +69,7 @@ namespace Pixy {
 		}
 
 		mLog->infoStream() << "Application version: " << mCurrentVersion.Value;
-		mPatchScriptPath = std::string(PROJECT_TEMP_DIR) + "patch.txt";
+		mPatchScriptPath = path(Launcher::getSingleton().getTempPath() + "/" + std::string("/patch.txt")).string();
 
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
@@ -94,7 +96,7 @@ namespace Pixy {
 
 #ifndef PIXY_PERSISTENT
     // TODO: boost error checking
-    boost::filesystem::remove_all(PROJECT_TEMP_DIR);
+    boost::filesystem::remove_all(Launcher::getSingleton().getTempPath());
 #endif
 
 		if (mLog)
@@ -180,6 +182,7 @@ namespace Pixy {
 
 	void Patcher::buildRepositories() {
     using std::string;
+    using boost::filesystem::path;
 
     mLog->debugStream() << "building repositories";
 
@@ -249,7 +252,7 @@ namespace Pixy {
       // "local" entry paths need to be adjusted to reflect the project root
       // TODO: use tokens in patch script to manually specify project root
       // and special paths
-      elements[1] = PROJECT_ROOT + elements[1];
+      elements[1] = path(Launcher::getSingleton().getRootPath() + "/" + elements[1]).string();
 
       /* TODO: refactor
        * for C and M ops we need to stage the remote files in a temp directory
@@ -260,8 +263,8 @@ namespace Pixy {
       path lTempPath;
       if (op == CREATE || op == MODIFY) {
         lTempPath = path(
-          std::string(PROJECT_TEMP_DIR)  +
-          lRepo->getVersion().PathValue + "/" +
+          Launcher::getSingleton().getTempPath() +
+          lRepo->getVersion().PathValue +
           path(elements[2]).filename().string()
         );
 
@@ -278,7 +281,7 @@ namespace Pixy {
           lRepo->registerEntry(op, elements[1]);
           break;
         case RENAME:
-          elements[2] = PROJECT_ROOT + elements[2]; // we assume the path is relative to the root
+          elements[2] = path(Launcher::getSingleton().getRootPath() + "/" + elements[2]).string(); // we assume the path is relative to the root
           lRepo->registerEntry(op, elements[1], elements[2]);
           break;
       }
@@ -559,13 +562,16 @@ namespace Pixy {
 	};
 
 	void Patcher::updateVersion(const Version& inVersion) {
-	  mCurrentVersion = Version(inVersion);
+    using std::fstream;
+    using boost::filesystem::path;
 
-	  using std::fstream;
+    mCurrentVersion = Version(inVersion);
+
 	  fstream res;
-	  res.open(PIXY_RESOURCE_PATH, fstream::out);
+    std::string resPath = path(Launcher::getSingleton().getBinPath() + "/" + std::string(PIXY_RESOURCE)).string();
+	  res.open(resPath.c_str(), fstream::out);
 	  if (!res.is_open() || !res.good()) {
-	    mLog->errorStream() << "couldn't open version resource file " << PIXY_RESOURCE_PATH << ", aborting version update";
+	    mLog->errorStream() << "couldn't open version resource file " << PIXY_RESOURCE << ", aborting version update";
 	    return;
 	  }
 	  res.write(mCurrentVersion.Value.c_str(), mCurrentVersion.Value.size());
