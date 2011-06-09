@@ -30,10 +30,15 @@
 namespace Pixy {
 
 	/*! \class Renderer
-	 *	\brief
+	 * \brief
 	 *	The Renderer is the interface the user will interact with. Renderers are
-	 *  injected with events that represent the stage of the patching process,
-	 *  and handle all input.
+	 *  injected on each significant stage of the patching process to either report
+   *  to the user or ask for input.
+   *
+   * \remarks
+   * The Renderer is the component responsible for the main loop of the application,
+   * this is done so for compatibility with GUI toolkits that own the main loop like
+   * Qt and wxWidgets. See Renderer::go() for more details.
 	 */
 	class Renderer {
 
@@ -46,25 +51,27 @@ namespace Pixy {
 		 */
 		inline virtual std::string& getName() { return mName; };
 
-		/* \brief
+		/*! \brief
 		 *  Renderers are the first components to be initialised. Allocate all
 		 *  the resources you need here, along with any initialisation code for
 		 *  the engine used.
 		 *
-		 *  \warn
-		 *  Other components such as the InputManager are NOT initialised at this
-		 *  stage yet, so make sure you do not reference them here. If you need to,
-		 *  see deferredSetup() below.
 		 */
 		virtual bool setup(int argc, char** argv)=0;
 
-		/* \brief
-		 *  Called within the application's main loop. Handle any continuous logic
-		 *  here; ie draw, process events.
+		/*! \brief
+		 *  Your main loop should reside in this method, you can fire up your chosen
+     * GUI toolkit's main loop or write your own.
+     *
+     * Note that since the patching is done in a separate thread, Renderers will
+     * be injected from that thread which is *not* the main one, ie the GUI one.
+     * Most toolkits do not support GUI operations from outside the main thread,
+     * that's why you have to make sure that you pass off the event in an appropriate
+     * way to your toolkit to handle. See QtRenderer for an example.
 		 */
 		virtual void go()=0;
 
-		/* \brief
+		/*! \brief
 		 *  Clean up here any resources you've allocated. This will be called
 		 *  on the application's shutdown.
 		 */
@@ -88,43 +95,35 @@ namespace Pixy {
 		virtual void injectValidateStarted( void )=0;
 
 		/*! \brief
-     *  Contains whether the application is out of date or up to date.
-     *
-     *  Event properties:
-     *    NeedUpdate: "Yes" or "No"
+     *  Contains whether the application is out of date or up to date. In the
+     * case that an update is due, inTargetVersion holds the version to which
+     * an update is available.
      */
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Triggered when the Patcher has started updating to a certain version.
      *
-     *  Event properties:
-     *    Version: the version being updated to
+     * \param inTargetVersion represents the version being updating to.
      */
 		virtual void injectPatchStarted( Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Triggered while the Downloader is fetching files from the remote
      *  patch server indicating how much it has completed.
-     *
-     *  Event properties:
-     *    Progress: string containing the progress % (should be cast to int)
      */
 		virtual void injectPatchProgress( int inPercent )=0;
 
 		/*! \brief
      *  Triggered if any error occurs within the Patcher or the Downloader
      *  while patching a certain repository.
-     *
-     *  TODO: add error code or reason
      */
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion )=0;
 
 		/*! \brief
      *  Indicates that the Patcher has finished processing a single repository.
      *
-     *  Event properties:
-     *    Version: the version to which the application was updated
+     *  \param inCurrentVersion: the version to which the application was updated
      */
 		virtual void injectPatchComplete( Version const& inCurrentVersion )=0;
 

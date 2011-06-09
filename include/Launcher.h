@@ -32,7 +32,6 @@
 
 #include "Pixy.h"
 #include "PixyThread.h"
-#include "KarazehConfig.h"
 #include "Renderer.h"
 #include "Patcher.h"
 #include "Downloader.h"
@@ -115,16 +114,19 @@ namespace Pixy
 		 */
 		void initLogger();
 
-		Renderer      *mRenderer;
+    void initRenderer(int argc, char** argv);
+
+		Renderer *mRenderer;
 
 		log4cpp::Category* mLog;
 
-    std::string mBinPath;
-    std::string mRootPath;
-    std::string mTempPath;
-    std::string mLogPath;
+    // all paths do NOT end with the trailing / or \, you must supply that
+    std::string mBinPath; // this is where Karazeh and the external app reside
+    std::string mRootPath; // this is the root of the whole application tree
+    std::string mTempPath; // this is the path of the temp folder used while patching
+    std::string mLogPath; // where logs are dumped
 
-    Thread<Patcher> *mProc;
+    Thread<Patcher> *mVWorker, *mPWorker;
 	};
 } // end of namespace
 

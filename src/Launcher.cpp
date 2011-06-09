@@ -33,7 +33,7 @@
 
 namespace Pixy
 {
-	Launcher* Launcher::__instance;
+	Launcher* Launcher::__instance = 0;
 
   void handle_interrupt(int param)
   {
@@ -42,11 +42,12 @@ namespace Pixy
   }
 
 	Launcher::Launcher() :
-	mRenderer(0) {
+	mRenderer(0),
+  mVWorker(0),
+  mPWorker(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
 	  signal(SIGKILL, handle_interrupt);
-
 	}
 
 	Launcher::~Launcher() {
@@ -56,6 +57,12 @@ namespace Pixy
 
     delete Downloader::getSingletonPtr();
     delete Patcher::getSingletonPtr();
+
+    if (mVWorker)
+      delete mVWorker;
+    if (mPWorker)
+      delete mPWorker;
+    mVWorker = mPWorker = 0;
 
 		mLog->infoStream() << "++++++ " << PIXY_APP_NAME << " cleaned up successfully ++++++";
 		if (mLog)
@@ -80,15 +87,60 @@ namespace Pixy
 
 	void Launcher::go(int argc, char** argv) {
 
-    resolvePaths();
+    this->resolvePaths();
 
-		// init logger
-		initLogger();
-
-
+		this->initLogger();
 
 		Patcher::getSingletonPtr();
 		Downloader::getSingletonPtr();
+
+    this->initRenderer(argc, argv);
+
+    this->updateApplication();
+
+		// main loop
+    return mRenderer->go();
+	}
+
+  void Launcher::resolvePaths() {
+
+    using boost::filesystem::path;
+
+#if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
+    // use binreloc and boost::filesystem to build up our paths
+
+    //BrInitError* brerr = 0;
+    int brres = br_init(0);
+
+    if (brres == 0) {
+      std::cerr << "binreloc could not be initialised\n";
+    }
+    //if (brerr != 0)
+    //  delete brerr;
+
+    char *p = br_find_exe_dir(".");
+    mBinPath = std::string(p);
+    free(p);
+    mBinPath = path(mBinPath).string();
+    mRootPath = path(mBinPath).remove_leaf().string();
+    mTempPath = path(mRootPath + "/" + std::string(PROJECT_TEMP_DIR)).string();
+    mLogPath = path(mRootPath + "/" + std::string(PROJECT_LOG_DIR)).string();
+#elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
+    // use NSBundlePath() to build up our paths
+#else
+    // use GetModuleFileName() and boost::filesystem to build up our paths on Windows
+#endif
+
+#ifdef DEBUG
+    std::cout << "Binary path: " <<  mBinPath << "\n";
+    std::cout << "Root path: " <<  mRootPath << "\n";
+    std::cout << "Temp path: " <<  mTempPath << "\n";
+    std::cout << "Log path: " <<  mLogPath << "\n";
+#endif
+
+  };
+
+  void Launcher::initRenderer(int argc, char** argv) {
 
 		if (argc > 1) {
 #ifdef KARAZEH_RENDERER_OGRE
@@ -115,41 +167,7 @@ namespace Pixy
       return;
     }
 
-    updateApplication();
-
-		// main loop
-    return mRenderer->go();
-	}
-
-  void Launcher::resolvePaths() {
-
-    BrInitError* brerr;
-    int brres = br_init(brerr);
-
-    if (brres == 0) {
-      std::cerr << "binreloc could not be initialised\n";
-    }
-
-    using boost::filesystem::path;
-
-#if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
-    mBinPath = br_find_exe_dir(".");
-    mBinPath = path(mBinPath).string();
-    mRootPath = path(mBinPath).remove_leaf().string();
-    mTempPath = path(mRootPath + "/" + std::string(PROJECT_TEMP_DIR)).string();
-    mLogPath = path(mRootPath + "/" + std::string(PROJECT_LOG_DIR)).string();
-#elif PIXY_PLATFORM == PIXY_PLATFORM_APPLY
-#else
-#endif
-
-#ifdef DEBUG
-    std::cout << "Binary path: " <<  mBinPath << "\n";
-    std::cout << "Root path: " <<  mRootPath << "\n";
-    std::cout << "Temp path: " <<  mTempPath << "\n";
-    std::cout << "Log path: " <<  mLogPath << "\n";
-#endif
-
-  };
+  }
   std::string& Launcher::getRootPath() {
     return mRootPath;
   };
@@ -216,6 +234,7 @@ namespace Pixy
 	void Launcher::launchExternalApp() {
     using boost::filesystem::path;
     path appPath = path(mBinPath + "/" + PIXY_EXTERNAL_APP_PATH);
+
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
     ShellExecute(appPath.string());
 #else
@@ -229,7 +248,9 @@ namespace Pixy
   }
 
   void Launcher::updateApplication() {
-    mProc = new Thread<Patcher>(Patcher::getSingleton());
-    mProc = 0;
+    if (mVWorker)
+      mPWorker = new Thread<Patcher>(Patcher::getSingleton());
+    else
+      mVWorker = new Thread<Patcher>(Patcher::getSingleton());
   }
 } // end of namespace Pixy

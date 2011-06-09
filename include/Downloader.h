@@ -42,6 +42,10 @@
 
 namespace Pixy {
 
+/*! \class Downloader "Downloader.h"
+ * \brief
+ * Uses CURL to download patch data.
+ */
 class Downloader {
 
   public:

@@ -48,6 +48,7 @@ namespace Pixy {
     };
     virtual ~Thread() {
       mT = 0;
+      exit();
     };
 
     private:

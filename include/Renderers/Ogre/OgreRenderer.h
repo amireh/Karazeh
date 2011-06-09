@@ -57,15 +57,19 @@ namespace Pixy {
 	  OgreRenderer();
 		virtual ~OgreRenderer();
 
-		/* \brief
-		 *
+		/*! \brief
+		 *  Sets up Ogre, EventManager, OIS, and OgreSdkTrays.
 		 */
 		virtual bool setup(int argc, char** argv);
 
+    /*! \brief
+     *  Contains the main loop in which all the components are updated and
+     *  the event loop.
+     */
 		virtual void go();
 
-		/* \brief
-		 *
+		/*! \brief
+		 *  Cleans up the SdkTray manager.
 		 */
  		virtual bool cleanup();
 

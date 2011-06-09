@@ -41,8 +41,14 @@ namespace Pixy {
 		if (fSetup)
 		  cleanup();
 
+    if (mApp)
+      delete mApp;
+
 		if (mLog)
 		  delete mLog;
+
+    mApp = 0;
+    mLog = 0;
 	}
 
 	bool QtRenderer::setup(int argc, char** argv) {

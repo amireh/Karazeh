@@ -112,6 +112,7 @@ namespace Pixy {
 	}
 	void VanillaRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     cout << "Patch failed! Error: " << inMsg << "\n";
+    fShuttingDown = true;
 	}
 	void VanillaRenderer::injectPatchComplete(Version const& inCurrentVersion) {
     cout << "Upgraded to version " << inCurrentVersion.toNumber() << " successfully.\n";

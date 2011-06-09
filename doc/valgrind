@@ -1,0 +1,155 @@
+v0.2, using boost threads and Vanilla renderer
+
+==29523==
+==29523== HEAP SUMMARY:
+==29523==     in use at exit: 4,739 bytes in 9 blocks
+==29523==   total heap usage: 6,874 allocs, 6,865 frees, 8,095,707 bytes allocated
+==29523==
+==29523== Searching for pointers to 9 not-freed blocks
+==29523== Checked 1,149,600 bytes
+==29523==
+==29523== LEAK SUMMARY:
+==29523==    definitely lost: 0 bytes in 0 blocks
+==29523==    indirectly lost: 0 bytes in 0 blocks
+==29523==      possibly lost: 0 bytes in 0 blocks
+==29523==    still reachable: 4,739 bytes in 9 blocks
+==29523==         suppressed: 0 bytes in 0 blocks
+==29523== Reachable blocks (those to which a pointer was found) are not shown.
+==29523== To see them, rerun with: --leak-check=full --show-reachable=yes
+==29523==
+==29523== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 109 from 10)
+--29523--
+--29523-- used_suppression:    109 U1004-ARM-_dl_relocate_object
+==29523==
+==29523== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 109 from 10)
+
+
+v0.2, using Qt threads and Vanilla renderer
+
+==30599==
+==30599== HEAP SUMMARY:
+==30599==     in use at exit: 14,021 bytes in 142 blocks
+==30599==   total heap usage: 6,751 allocs, 6,609 frees, 8,086,442 bytes allocated
+==30599==
+==30599== 120 bytes in 1 blocks are possibly lost in loss record 18 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC47: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53709BA: g_slist_prepend (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5373A3C: g_strsplit (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x538900C: g_get_language_names (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53894F3: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B8C9: g_thread_init_glib (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x567E3C6: g_thread_init (in /usr/lib/libgthread-2.0.so.0.2800.8)
+==30599==    by 0x4D20DD3: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4D20EBB: QEventDispatcherGlib::QEventDispatcherGlib(QObject*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==
+==30599== 248 bytes in 1 blocks are possibly lost in loss record 20 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC47: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5324F79: g_array_sized_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5325042: g_array_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B773: g_static_private_set (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x533532B: g_get_filename_charsets (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53353AA: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B8B9: g_thread_init_glib (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x567E3C6: g_thread_init (in /usr/lib/libgthread-2.0.so.0.2800.8)
+==30599==    by 0x4D20DD3: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==
+==30599== 248 bytes in 1 blocks are possibly lost in loss record 21 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC47: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534F295: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534F645: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534FBCE: g_main_context_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x4D20D47: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4D20EBB: QEventDispatcherGlib::QEventDispatcherGlib(QObject*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4BF7C65: ??? (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4BF8819: ??? (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x502FC6D: clone (in /lib/libc-2.13.so)
+==30599==
+==30599== 360 bytes in 3 blocks are possibly lost in loss record 22 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC64: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53709BA: g_slist_prepend (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5373A3C: g_strsplit (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x538900C: g_get_language_names (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53894F3: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B8C9: g_thread_init_glib (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x567E3C6: g_thread_init (in /usr/lib/libgthread-2.0.so.0.2800.8)
+==30599==    by 0x4D20DD3: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4D20EBB: QEventDispatcherGlib::QEventDispatcherGlib(QObject*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==
+==30599== 744 bytes in 3 blocks are possibly lost in loss record 29 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC64: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534F295: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534F645: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x534FBCE: g_main_context_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x4D20D47: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4D20EBB: QEventDispatcherGlib::QEventDispatcherGlib(QObject*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4BF7C65: ??? (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x4BF8819: ??? (in /usr/lib/libQtCore.so.4.7.3)
+==30599==    by 0x502FC6D: clone (in /lib/libc-2.13.so)
+==30599==
+==30599== 1,240 bytes in 5 blocks are possibly lost in loss record 32 of 34
+==30599==    at 0x40251C0: memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x402527E: posix_memalign (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30599==    by 0x5324B57: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x536FC64: g_slice_alloc (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5324F79: g_array_sized_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x5325042: g_array_new (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B773: g_static_private_set (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x533532B: g_get_filename_charsets (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x53353AA: ??? (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x537B8B9: g_thread_init_glib (in /usr/lib/libglib-2.0.so.0.2800.8)
+==30599==    by 0x567E3C6: g_thread_init (in /usr/lib/libgthread-2.0.so.0.2800.8)
+==30599==    by 0x4D20DD3: QEventDispatcherGlibPrivate::QEventDispatcherGlibPrivate(_GMainContext*) (in /usr/lib/libQtCore.so.4.7.3)
+==30599==
+==30599== LEAK SUMMARY:
+==30599==    definitely lost: 0 bytes in 0 blocks
+==30599==    indirectly lost: 0 bytes in 0 blocks
+==30599==      possibly lost: 2,960 bytes in 14 blocks
+==30599==    still reachable: 11,061 bytes in 128 blocks
+==30599==         suppressed: 0 bytes in 0 blocks
+==30599== Reachable blocks (those to which a pointer was found) are not shown.
+==30599== To see them, rerun with: --leak-check=full --show-reachable=yes
+==30599==
+==30599== For counts of detected and suppressed errors, rerun with: -v
+==30599== ERROR SUMMARY: 6 errors from 6 contexts (suppressed: 89 from 10
+
+v0.2, using no threads and Vanilla renderer
+
+==30677==
+==30677== HEAP SUMMARY:
+==30677==     in use at exit: 4,171 bytes in 6 blocks
+==30677==   total heap usage: 6,556 allocs, 6,550 frees, 8,069,042 bytes allocated
+==30677==
+==30677== 4 bytes in 1 blocks are definitely lost in loss record 1 of 4
+==30677==    at 0x4026774: operator new(unsigned int) (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==30677==    by 0x8055632: Pixy::Launcher::updateApplication() (Launcher.cpp:255)
+==30677==    by 0x80616B0: Pixy::VanillaRenderer::injectValidateComplete(bool, Pixy::Version const&) (VanillaRenderer.cpp:96)
+==30677==    by 0x8057CE4: Pixy::Patcher::validate() (Patcher.cpp:177)
+==30677==    by 0x8055642: Pixy::Launcher::updateApplication() (PixyThreadless.h:35)
+==30677==    by 0x4F79102: (below main) (in /lib/libc-2.13.so)
+==30677==
+==30677== LEAK SUMMARY:
+==30677==    definitely lost: 4 bytes in 1 blocks
+==30677==    indirectly lost: 0 bytes in 0 blocks
+==30677==      possibly lost: 0 bytes in 0 blocks
+==30677==    still reachable: 4,167 bytes in 5 blocks
+==30677==         suppressed: 0 bytes in 0 blocks
+==30677== Reachable blocks (those to which a pointer was found) are not shown.
+==30677== To see them, rerun with: --leak-check=full --show-reachable=yes
+==30677==
+==30677== For counts of detected and suppressed errors, rerun with: -v
+==30677== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 89 from 10)

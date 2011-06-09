@@ -142,9 +142,7 @@ namespace Pixy {
 	    return;
 	  }
 
-    /*
-     * Find out the latest version
-     */
+    // find the latest version
     std::ifstream mPatchScript;
     mPatchScript.open(mPatchScriptPath.c_str());
 
@@ -176,9 +174,7 @@ namespace Pixy {
 
     fValidated = true;
 
-    mRenderer->injectValidateComplete( needPatch, mTargetVersion );
-
-    return;
+    return mRenderer->injectValidateComplete( needPatch, mTargetVersion );
 	};
 
 	void Patcher::buildRepositories() {
@@ -224,7 +220,6 @@ namespace Pixy {
           mRepos.push_front(lRepo);
           lRepo = 0;
 
-
           continue;
         }
       }
@@ -232,9 +227,10 @@ namespace Pixy {
       Repository *lRepo = mRepos.front();
 
       // 3) an entry, let's parse it
-      // __DEBUG__
-      //std::cout << "Line: " << line << "\n";
+#ifdef DEBUG
+      std::cout << "Line: " << line << "\n";
       fflush(stdout);
+#endif
 
       std::vector<std::string> elements = Utility::split(line.c_str(), ' ');
 
@@ -255,11 +251,7 @@ namespace Pixy {
       // and special paths
       elements[1] = path(Launcher::getSingleton().getRootPath() + "/" + elements[1]).string();
 
-      /* TODO: refactor
-       * for C and M ops we need to stage the remote files in a temp directory
-       * and so we resolve the path here according to the following scheme:
-       * TMP_DIR/REPO_VERSION/REMOTE_FILE_NAME.EXT
-       */
+      // construct the temp path for C and M operations since these need to be staged
       using boost::filesystem::path;
       path lTempPath;
       if (op == CREATE || op == MODIFY) {
