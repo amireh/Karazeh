@@ -114,28 +114,19 @@ namespace Pixy
 	}
 
   void Launcher::resolvePaths() {
-
     using boost::filesystem::path;
-
+    
+    // locate the binary and build its path
 #if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
     // use binreloc and boost::filesystem to build up our paths
-
-    //BrInitError* brerr = 0;
     int brres = br_init(0);
-
     if (brres == 0) {
       std::cerr << "binreloc could not be initialised\n";
     }
-    //if (brerr != 0)
-    //  delete brerr;
-
     char *p = br_find_exe_dir(".");
     mBinPath = std::string(p);
     free(p);
-    mBinPath = path(mBinPath).string();
-    mRootPath = path(mBinPath).remove_leaf().string();
-    mTempPath = path(mRootPath + "/" + std::string(PROJECT_TEMP_DIR)).string();
-    mLogPath = path(mRootPath + "/" + std::string(PROJECT_LOG_DIR)).string();
+    mBinPath = path(mBinPath).make_preferred().string();
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
     // use NSBundlePath() to build up our paths
 #else
@@ -148,13 +139,19 @@ namespace Pixy
         return;
     }
 
-    std::cout << szPath << "\n";
     mBinPath = std::string(szPath);
     mBinPath = path(mBinPath).remove_filename().make_preferred().string();
-    mRootPath = path(mBinPath).remove_leaf().make_preferred().string();
-    mTempPath = path(mRootPath + "/" + std::string(PROJECT_TEMP_DIR)).make_preferred().string();
-    mLogPath = path(mRootPath + "/" + std::string(PROJECT_LOG_DIR)).make_preferred().string();    
 #endif
+
+    // root is PIXY_DISTANCE_FROM_ROOT directories up from the binary's
+    path lRoot = path(mBinPath);
+    for (int i=0; i < PIXY_DISTANCE_FROM_ROOT; ++i) {
+      lRoot = lRoot.remove_leaf();
+    }
+    
+    mRootPath = lRoot.make_preferred().string();
+    mTempPath = (path(mRootPath) / path(PROJECT_TEMP_DIR)).make_preferred().string();
+    mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();    
 
 //#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";

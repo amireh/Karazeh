@@ -38,7 +38,7 @@
 #define PIXY_APP_NAME "Karazeh" // used in Renderer windows titlebar
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
 #define PIXY_RESOURCE "Karazeh.dat"
-#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
+#define PIXY_MIRRORS_RESOURCE "patch_mirrors.txt"
 //#define PIXY_PERSISTENT
 
 /* Finds the current platform
@@ -78,21 +78,27 @@
 #define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "tmp"
 #define PIXY_EXTERNAL_APP_PATH "Karazeh.exe" // path to the application launched relative to this application
+#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
 #define PIXY_EXTERNAL_APP_ARG "" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
+const int PIXY_DISTANCE_FROM_ROOT = 2; // how many directories the Launcher is located from the app root
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
 #define PROJECT_LOG_DIR "/Resources/log"
 #define PROJECT_RESOURCES "/Resources"
 #define PROJECT_OGRE_RESOURCES "ogre"
-#define PROJECT_TEMP_DIR "/Resources/tmp/"
+#define PROJECT_TEMP_DIR "/Resources/tmp"
 #define PIXY_EXTERNAL_APP_PATH "Karazeh" // path to the application launched relative to this application
+#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
 #define PIXY_EXTERNAL_APP_ARG "Qt" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
+const int PIXY_DISTANCE_FROM_ROOT = 1;
 #else
 #define PROJECT_LOG_DIR "log"
 #define PROJECT_RESOURCES "resources"
 #define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "tmp"
 #define PIXY_EXTERNAL_APP_PATH "Karazeh" // path to the application launched relative to this application
+#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
 #define PIXY_EXTERNAL_APP_ARG "Qt" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
+const int PIXY_DISTANCE_FROM_ROOT = 1;
 #endif
 
 #endif

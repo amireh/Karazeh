@@ -33,8 +33,30 @@ namespace Pixy {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Downloader");
 		mLog->infoStream() << "firing up";
 
-		//mHosts.push_back("http://127.0.0.1/");
+    // Build hosts list
+    using boost::filesystem::exists;
+    using boost::filesystem::path;
+
+    path lPath = path(Launcher::getSingleton().getBinPath()) / path(PIXY_MIRRORS_RESOURCE);
+    if (exists(lPath)) {
+      std::ifstream lMirrorsFile(lPath.c_str());
+      if (lMirrorsFile.is_open() && lMirrorsFile.good()) {
+        std::string lMirror;
+        while (lMirrorsFile.good()) {
+          getline(lMirrorsFile, lMirror);
+          // TODO: some sanity checks on the mirror url
+          mHosts.push_back(lMirror);
+        }
+        mLog->infoStream() << "registered " << mHosts.size() << " patch mirrors";
+        lMirrorsFile.close();
+      }
+    }
+
+    // add hardcoded/fallback hosts
+		mHosts.push_back("http://127.0.0.1/");
 		mHosts.push_back("http://www.vertigo-game.com/patches/");
+    
+    mLog->infoStream() << "registered " << mHosts.size() << " patch hosts";
     mPatchScriptName = "patch.txt";
 
 		mActiveHost = 0;
