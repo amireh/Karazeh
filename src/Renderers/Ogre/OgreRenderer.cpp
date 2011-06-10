@@ -64,7 +64,7 @@ namespace Pixy {
     bool rendererInstalled = false;
     // try using Direct3D on Windows
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-    try {
+    /*try {
       mRoot->loadPlugin("RenderSystem_Direct3D9");
       mRoot->setRenderSystem(mRoot->getRenderSystemByName("Direct3D9 Rendering Subsystem"));
       rendererInstalled = true;
@@ -72,7 +72,7 @@ namespace Pixy {
       mLog->errorStream() << "Unable to create D3D9 RenderSystem: " << e.getFullDescription();
     } catch(std::exception& e) {
       mLog->errorStream() << "Unable to create D3D9 RenderSystem: " << e.what();
-    }
+    }*/
 #endif
 
     std::string lPluginsPath;
@@ -256,6 +256,7 @@ namespace Pixy {
 
 	bool OgreRenderer::cleanup() {
 	  delete mTrayMgr;
+    return true;
 	};
 
 	void OgreRenderer::go() {

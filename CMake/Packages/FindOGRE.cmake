@@ -332,48 +332,6 @@ if (NOT OGRE_STATIC)
 endif()
 
 
-
-# look for Paging component
-findpkg_begin(OGRE_Paging)
-find_path(OGRE_Paging_INCLUDE_DIR NAMES OgrePaging.h HINTS ${OGRE_INCLUDE_DIRS} ${OGRE_PREFIX_SOURCE} PATH_SUFFIXES Paging OGRE/Paging Components/Paging/include)
-set(OGRE_Paging_LIBRARY_NAMES "OgrePaging${OGRE_LIB_SUFFIX}")
-get_debug_names(OGRE_Paging_LIBRARY_NAMES)
-find_library(OGRE_Paging_LIBRARY_REL NAMES ${OGRE_Paging_LIBRARY_NAMES} HINTS ${OGRE_LIBRARY_DIR_REL} PATH_SUFFIXES "" "release" "relwithdebinfo" "minsizerel")
-find_library(OGRE_Paging_LIBRARY_DBG NAMES ${OGRE_Paging_LIBRARY_NAMES_DBG} HINTS ${OGRE_LIBRARY_DIR_DBG} PATH_SUFFIXES "" "debug")
-set(OGRE_Paging_LIBRARY_FWK ${OGRE_LIBRARY_FWK})
-make_library_set(OGRE_Paging_LIBRARY)
-findpkg_finish(OGRE_Paging)
-
-# look for Terrain component
-findpkg_begin(OGRE_Terrain)
-find_path(OGRE_Terrain_INCLUDE_DIR NAMES OgreTerrain.h HINTS ${OGRE_INCLUDE_DIRS} ${OGRE_PREFIX_SOURCE} PATH_SUFFIXES Terrain OGRE/Terrain Components/Terrain/include)
-set(OGRE_Terrain_LIBRARY_NAMES "OgreTerrain${OGRE_LIB_SUFFIX}")
-get_debug_names(OGRE_Terrain_LIBRARY_NAMES)
-find_library(OGRE_Terrain_LIBRARY_REL NAMES ${OGRE_Terrain_LIBRARY_NAMES} HINTS ${OGRE_LIBRARY_DIR_REL} PATH_SUFFIXES "" "release" "relwithdebinfo" "minsizerel")
-find_library(OGRE_Terrain_LIBRARY_DBG NAMES ${OGRE_Terrain_LIBRARY_NAMES_DBG} HINTS ${OGRE_LIBRARY_DIR_DBG} PATH_SUFFIXES "" "debug")
-make_library_set(OGRE_Terrain_LIBRARY)
-findpkg_finish(OGRE_Terrain)
-
-# look for Property component
-findpkg_begin(OGRE_Property)
-find_path(OGRE_Property_INCLUDE_DIR NAMES OgreProperty.h HINTS ${OGRE_INCLUDE_DIRS} ${OGRE_PREFIX_SOURCE} PATH_SUFFIXES Property OGRE/Property Components/Property/include)
-set(OGRE_Property_LIBRARY_NAMES "OgreProperty${OGRE_LIB_SUFFIX}")
-get_debug_names(OGRE_Property_LIBRARY_NAMES)
-find_library(OGRE_Property_LIBRARY_REL NAMES ${OGRE_Property_LIBRARY_NAMES} HINTS ${OGRE_LIBRARY_DIR_REL} PATH_SUFFIXES "" "release" "relwithdebinfo" "minsizerel")
-find_library(OGRE_Property_LIBRARY_DBG NAMES ${OGRE_Property_LIBRARY_NAMES_DBG} HINTS ${OGRE_LIBRARY_DIR_DBG} PATH_SUFFIXES "" "debug")
-make_library_set(OGRE_Property_LIBRARY)
-findpkg_finish(OGRE_Property)
-
-# look for RTShaderSystem component
-findpkg_begin(OGRE_RTShaderSystem)
-find_path(OGRE_RTShaderSystem_INCLUDE_DIR NAMES OgreRTShaderSystem.h HINTS ${OGRE_INCLUDE_DIRS} ${OGRE_PREFIX_SOURCE} PATH_SUFFIXES RTShaderSystem OGRE/RTShaderSystem Components/RTShaderSystem/include)
-set(OGRE_RTShaderSystem_LIBRARY_NAMES "OgreRTShaderSystem${OGRE_LIB_SUFFIX}")
-get_debug_names(OGRE_RTShaderSystem_LIBRARY_NAMES)
-find_library(OGRE_RTShaderSystem_LIBRARY_REL NAMES ${OGRE_RTShaderSystem_LIBRARY_NAMES} HINTS ${OGRE_LIBRARY_DIR_REL} PATH_SUFFIXES "" "release" "relwithdebinfo" "minsizerel")
-find_library(OGRE_RTShaderSystem_LIBRARY_DBG NAMES ${OGRE_RTShaderSystem_LIBRARY_NAMES_DBG} HINTS ${OGRE_LIBRARY_DIR_DBG} PATH_SUFFIXES "" "debug")
-make_library_set(OGRE_RTShaderSystem_LIBRARY)
-findpkg_finish(OGRE_RTShaderSystem)
-
 #########################################################
 # Find Ogre plugins
 #########################################################
@@ -458,17 +416,17 @@ macro(ogre_find_plugin PLUGIN HEADER)
   endif ()
 endmacro(ogre_find_plugin)
 
-ogre_find_plugin(Plugin_PCZSceneManager OgrePCZSceneManager.h PCZ PlugIns/PCZSceneManager/include)
-ogre_find_plugin(Plugin_OctreeZone OgreOctreeZone.h PCZ PlugIns/OctreeZone/include)
-ogre_find_plugin(Plugin_BSPSceneManager OgreBspSceneManager.h PlugIns/BSPSceneManager/include)
-ogre_find_plugin(Plugin_CgProgramManager OgreCgProgram.h PlugIns/CgProgramManager/include)
-ogre_find_plugin(Plugin_OctreeSceneManager OgreOctreeSceneManager.h PlugIns/OctreeSceneManager/include)
-ogre_find_plugin(Plugin_ParticleFX OgreParticleFXPrerequisites.h PlugIns/ParticleFX/include)
+#ogre_find_plugin(Plugin_PCZSceneManager OgrePCZSceneManager.h PCZ PlugIns/PCZSceneManager/include)
+#ogre_find_plugin(Plugin_OctreeZone OgreOctreeZone.h PCZ PlugIns/OctreeZone/include)
+#ogre_find_plugin(Plugin_BSPSceneManager OgreBspSceneManager.h PlugIns/BSPSceneManager/include)
+#ogre_find_plugin(Plugin_CgProgramManager OgreCgProgram.h PlugIns/CgProgramManager/include)
+#ogre_find_plugin(Plugin_OctreeSceneManager OgreOctreeSceneManager.h PlugIns/OctreeSceneManager/include)
+#ogre_find_plugin(Plugin_ParticleFX OgreParticleFXPrerequisites.h PlugIns/ParticleFX/include)
 ogre_find_plugin(RenderSystem_GL OgreGLRenderSystem.h RenderSystems/GL/include)
-ogre_find_plugin(RenderSystem_GLES OgreGLESRenderSystem.h RenderSystems/GLES/include)
-ogre_find_plugin(RenderSystem_Direct3D9 OgreD3D9RenderSystem.h RenderSystems/Direct3D9/include)
-ogre_find_plugin(RenderSystem_Direct3D10 OgreD3D10RenderSystem.h RenderSystems/Direct3D10/include)
-ogre_find_plugin(RenderSystem_Direct3D11 OgreD3D11RenderSystem.h RenderSystems/Direct3D11/include)
+#ogre_find_plugin(RenderSystem_GLES OgreGLESRenderSystem.h RenderSystems/GLES/include)
+#ogre_find_plugin(RenderSystem_Direct3D9 OgreD3D9RenderSystem.h RenderSystems/Direct3D9/include)
+#ogre_find_plugin(RenderSystem_Direct3D10 OgreD3D10RenderSystem.h RenderSystems/Direct3D10/include)
+#ogre_find_plugin(RenderSystem_Direct3D11 OgreD3D11RenderSystem.h RenderSystems/Direct3D11/include)
 
 if (OGRE_STATIC)
   # check if dependencies for plugins are met

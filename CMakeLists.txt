@@ -20,12 +20,12 @@ IF(WIN32)
     ${CMAKE_LIBRARY_PATH} 
     C:/Workspace/Build/libcurl/lib
     C:/Workspace/Build/bzip2/Release
-    C:/Workspace/Build/log4cpp/Release )
+    C:/Workspace/Build/log4cpp/Release)
 	SET( CMAKE_INCLUDE_PATH 
     ${CMAKE_INCLUDE_PATH} 
     C:/Workspace/Build/libcurl/include
     C:/Workspace/Build/bzip2/include
-    C:/Workspace/Build/log4cpp/include )
+    C:/Workspace/Build/log4cpp/include)
     
   ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
 ELSE()

@@ -41,7 +41,18 @@ SET(Karazeh_SRCS
 
 # renderers
 IF(KARAZEH_RENDERER_OGRE)
-  FIND_PACKAGE(OGRE REQUIRED)
+  IF(WIN32)
+    SET( CMAKE_LIBRARY_PATH 
+      ${CMAKE_LIBRARY_PATH} 
+      C:/Workspace/Build/Ogre1.7.2/lib/Release
+      C:/Workspace/Build/Ogre1.7.2/Dependencies/lib)
+    SET( CMAKE_INCLUDE_PATH 
+      ${CMAKE_INCLUDE_PATH} 
+      C:/Workspace/Build/Ogre1.7.2/include
+      C:/Workspace/Build/Ogre1.7.2/Dependencies/include)
+  ENDIF()
+  
+  FIND_PACKAGE(OGRE COMPONENTS RenderSystem_GL REQUIRED)
   FIND_PACKAGE(OIS REQUIRED)
 
   OPTION(KARAZEH_DEFAULT_RENDERER_OGRE "Set Ogre as the default renderer instead of the CLI one" ON)
@@ -75,6 +86,7 @@ IF(KARAZEH_RENDERER_QT)
   FIND_PACKAGE(Qt4 REQUIRED)
 
   OPTION(KARAZEH_DEFAULT_RENDERER_QT "Set Qt as the default renderer instead of the CLI one" ON)
+  OPTION(KARAZEH_THREADS_QT "Use Qt threads, must choose EXACTLY one" ON)
   
   INCLUDE(${QT_USE_FILE})
   INCLUDE_DIRECTORIES(${QT_INCLUDE_DIRS})
@@ -90,10 +102,6 @@ IF(KARAZEH_RENDERER_QT)
   INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
   LINK_DIRECTORIES(${QT_LIBRARY_DIRS})
   LINK_LIBRARIES(${QT_LIBRARIES})
-ENDIF()
-
-IF(QT4_FOUND)
-  OPTION(KARAZEH_THREADS_QT "Use Qt threads, must choose EXACTLY one" ON)
 ENDIF()
 
 IF(WIN32 AND (KARAZEH_RENDERER_QT OR KARAZEH_RENDERER_OGRE))
