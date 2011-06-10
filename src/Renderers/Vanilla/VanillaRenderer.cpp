@@ -64,13 +64,19 @@ namespace Pixy {
 
 	bool VanillaRenderer::cleanup() {
     fShuttingDown = true;
+
+    return true;
 	};
 
 	void VanillaRenderer::go() {
 
     cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
     while (!fShuttingDown) {
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
+      Sleep(1/60);
+#else
       sleep(1/60);
+#endif
     };
 
     cout << "Shutting down. Bye!\n";

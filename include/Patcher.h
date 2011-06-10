@@ -34,7 +34,6 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
-#include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 
 namespace Pixy {

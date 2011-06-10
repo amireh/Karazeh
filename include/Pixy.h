@@ -74,14 +74,14 @@
  *
  */
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-#define PROJECT_ROOT "..\\"
-#define PROJECT_LOG_DIR "..\\log"
-#define PROJECT_RESOURCES "\\resources"
-#define PROJECT_TEMP_DIR "..\\tmp\\"
+#define PROJECT_LOG_DIR "log"
+#define PROJECT_RESOURCES "resources"
+#define PROJECT_OGRE_RESOURCES "ogre"
+#define PROJECT_TEMP_DIR "tmp"
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
-#define PROJECT_ROOT "../"
-#define PROJECT_RESOURCES "/Resources"
 #define PROJECT_LOG_DIR "/Resources/log"
+#define PROJECT_RESOURCES "/Resources"
+#define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "/Resources/tmp/"
 #else
 #define PROJECT_LOG_DIR "log"

@@ -30,10 +30,10 @@
 namespace Pixy {
 
 typedef enum {
-  CREATE, //! creates a file locally from a given remote file URL
-  DELETE, //! deletes a file locally
-  MODIFY, //! patches a file locally from a given remote diff URL
-  RENAME
+  P_CREATE, //! creates a file locally from a given remote file URL
+  P_DELETE, //! deletes a file locally
+  P_MODIFY, //! patches a file locally from a given remote diff URL
+  P_RENAME
 } PATCHOP;
 
 class Repository;

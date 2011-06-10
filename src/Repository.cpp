@@ -58,7 +58,7 @@ namespace Pixy {
                             )
   {
     mLog->debugStream() << "registering entry of type " <<
-      ( (Op == CREATE) ? "CREATE" : (Op == MODIFY) ? "MODIFY" : "DELETE" );
+      ( (Op == P_CREATE) ? "CREATE" : (Op == P_MODIFY) ? "MODIFY" : "DELETE" );
       //<< " with src: " << Local << " and dest: " << Remote;
      
     PatchEntry *lEntry = new PatchEntry();

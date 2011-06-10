@@ -128,7 +128,7 @@ namespace Pixy {
 	QWidget *QtRenderer::getWindow() { return mWindow; };
 
 	bool QtRenderer::cleanup() {
-
+    return true;
 	};
 
 	void QtRenderer::go() {

@@ -25,7 +25,7 @@
 #include "Downloader.h"
 #include "Launcher.h"
 
-extern "C" int bspatch(const char* src, const char* dest, const char* diff);
+extern int bspatch(const char* src, const char* dest, const char* diff);
 
 namespace Pixy {
 	Patcher* Patcher::__instance = NULL;
@@ -71,10 +71,10 @@ namespace Pixy {
 		mLog->infoStream() << "Application version: " << mCurrentVersion.Value;
 		mPatchScriptPath = path(Launcher::getSingleton().getTempPath() + "/" + std::string("/patch.txt")).string();
 
-		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(CREATE, &Patcher::processCreate));
-		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(DELETE, &Patcher::processDelete));
-		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(MODIFY, &Patcher::processModify));
-		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(RENAME, &Patcher::processRename));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_CREATE, &Patcher::processCreate));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_DELETE, &Patcher::processDelete));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_MODIFY, &Patcher::processModify));
+		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_RENAME, &Patcher::processRename));
 
     mRenderer = 0;
   }
@@ -254,7 +254,7 @@ namespace Pixy {
       // construct the temp path for C and M operations since these need to be staged
       using boost::filesystem::path;
       path lTempPath;
-      if (op == CREATE || op == MODIFY) {
+      if (op == P_CREATE || op == P_MODIFY) {
         lTempPath = path(
           Launcher::getSingleton().getTempPath() + "/" +
           lRepo->getVersion().PathValue + "/" +
@@ -266,14 +266,14 @@ namespace Pixy {
       }
 
       switch(op) {
-        case CREATE:
-        case MODIFY:
+        case P_CREATE:
+        case P_MODIFY:
           lRepo->registerEntry(op, elements[1], elements[2], lTempPath.string(), elements[3]);
           break;
-        case DELETE:
+        case P_DELETE:
           lRepo->registerEntry(op, elements[1]);
           break;
-        case RENAME:
+        case P_RENAME:
           elements[2] = path(Launcher::getSingleton().getRootPath() + "/" + elements[2]).string(); // we assume the path is relative to the root
           lRepo->registerEntry(op, elements[1], elements[2]);
           break;
@@ -338,9 +338,11 @@ namespace Pixy {
       try {
         (this->*mProcessors[(*entry)->Op])((*entry), false);
       } catch (FileDoesNotExist& e) {
+        mRenderer->injectPatchFailed("A required file does not exist! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
         // TODO: inject renderer with the error
       } catch (FileAlreadyCreated& e) {
+        mRenderer->injectPatchFailed("A file already exists! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
       }
 
@@ -577,13 +579,13 @@ namespace Pixy {
 	PATCHOP Patcher::opFromChar(const char* inC) {
 
 	  if (*inC == 'M')
-	    return MODIFY;
+	    return P_MODIFY;
 	  else if (*inC == 'C')
-	    return CREATE;
+	    return P_CREATE;
 	  else if (*inC == 'D')
-	    return DELETE;
+	    return P_DELETE;
 	  else if (*inC == 'R')
-	    return RENAME;
+	    return P_RENAME;
 	  else {
 	    throw std::runtime_error("Invalid OP character!");
 	  }

@@ -1,5 +1,5 @@
 /*-
- * Copyright 2003-2005 Colin Percival
+ * Parts of this code are copyright 2003-2005 Colin Percival
  * All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,8 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
+ 
+ 
 #if 0
 __FBSDID("$FreeBSD: src/usr.bin/bsdiff/bspatch/bspatch.c,v 1.1 2005/08/06 01:59:06 cperciva Exp $");
 #endif
@@ -32,9 +33,38 @@ __FBSDID("$FreeBSD: src/usr.bin/bsdiff/bspatch/bspatch.c,v 1.1 2005/08/06 01:59:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32
+// KevinJ - Windows compatibility
 #include <err.h>
 #include <unistd.h>
+#else
+typedef int ssize_t;
+#include <wchar.h>
+#include <io.h>
+#define fseeko fseek
+#define write _write
+#define open _open
+#define close _close
+#define read _read
+#define lseek _lseek
+static void err(int i, ...)
+{
+	exit(i);
+}
+static void errx(int i, ...)
+{
+	exit(i);
+}
+#endif
 #include <fcntl.h>
+
+#ifndef _O_BINARY
+#define _O_BINARY 0
+#endif
+#ifndef O_BINARY
+#define O_BINARY _O_BINARY 
+#endif
+
 
 static off_t offtin(u_char *buf)
 {
@@ -54,7 +84,7 @@ static off_t offtin(u_char *buf)
 	return y;
 }
 
-//int patch(int argc,char * argv[])
+//int PATCH_main(int argc,char * argv[])
 int bspatch(const char* src, const char* dest, const char* diff)
 {
 	FILE * f, * cpf, * dpf, * epf;
@@ -64,27 +94,29 @@ int bspatch(const char* src, const char* dest, const char* diff)
 	ssize_t oldsize,newsize;
 	ssize_t bzctrllen,bzdatalen;
 	u_char header[32],buf[8];
-	u_char *old, *new;
+	u_char *old, *_new;
 	off_t oldpos,newpos;
 	off_t ctrl[3];
 	off_t lenread;
 	off_t i;
 
+	unsigned bytesRead=0;
+
 	//if(argc!=4) errx(1,"usage: %s oldfile newfile patchfile\n",argv[0]);
 
 	/* Open patch file */
-	if ((f = fopen(diff, "r")) == NULL)
+	if ((f = fopen(diff, "rb")) == NULL)
 		err(1, "fopen(%s)", diff);
 
 	/*
 	File format:
-		0	8	"BSDIFF40"
-		8	8	X
-		16	8	Y
-		24	8	sizeof(newfile)
-		32	X	bzip2(control block)
-		32+X	Y	bzip2(diff block)
-		32+X+Y	???	bzip2(extra block)
+	0	8	"BSDIFF40"
+	8	8	X
+	16	8	Y
+	24	8	sizeof(newfile)
+	32	X	bzip2(control block)
+	32+X	Y	bzip2(diff block)
+	32+X+Y	???	bzip2(extra block)
 	with control block a set of triples (x,y,z) meaning "add x bytes
 	from oldfile to x bytes from the diff block; copy y bytes from the
 	extra block; seek forwards in oldfile by z bytes".
@@ -111,35 +143,35 @@ int bspatch(const char* src, const char* dest, const char* diff)
 	/* Close patch file and re-open it via libbzip2 at the right places */
 	if (fclose(f))
 		err(1, "fclose(%s)", diff);
-	if ((cpf = fopen(diff, "r")) == NULL)
+	if ((cpf = fopen(diff, "rb")) == NULL)
 		err(1, "fopen(%s)", diff);
 	if (fseeko(cpf, 32, SEEK_SET))
 		err(1, "fseeko(%s, %lld)", diff,
-		    (long long)32);
+		(long long)32);
 	if ((cpfbz2 = BZ2_bzReadOpen(&cbz2err, cpf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", cbz2err);
-	if ((dpf = fopen(diff, "r")) == NULL)
+	if ((dpf = fopen(diff, "rb")) == NULL)
 		err(1, "fopen(%s)", diff);
 	if (fseeko(dpf, 32 + bzctrllen, SEEK_SET))
 		err(1, "fseeko(%s, %lld)", diff,
-		    (long long)(32 + bzctrllen));
+		(long long)(32 + bzctrllen));
 	if ((dpfbz2 = BZ2_bzReadOpen(&dbz2err, dpf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", dbz2err);
-	if ((epf = fopen(diff, "r")) == NULL)
+	if ((epf = fopen(diff, "rb")) == NULL)
 		err(1, "fopen(%s)", diff);
 	if (fseeko(epf, 32 + bzctrllen + bzdatalen, SEEK_SET))
 		err(1, "fseeko(%s, %lld)", diff,
-		    (long long)(32 + bzctrllen + bzdatalen));
+		(long long)(32 + bzctrllen + bzdatalen));
 	if ((epfbz2 = BZ2_bzReadOpen(&ebz2err, epf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", ebz2err);
 
-	if(((fd=open(src,O_RDONLY,0))<0) ||
+	if(((fd=open(src,O_RDONLY|O_BINARY,0))<0) ||
 		((oldsize=lseek(fd,0,SEEK_END))==-1) ||
-		((old=malloc(oldsize+1))==NULL) ||
+		((old=(u_char*)malloc(oldsize+1))==NULL) ||
 		(lseek(fd,0,SEEK_SET)!=0) ||
 		(read(fd,old,oldsize)!=oldsize) ||
 		(close(fd)==-1)) err(1,"%s",src);
-	if((new=malloc(newsize+1))==NULL) err(1,NULL);
+	if((_new=(u_char*)malloc(newsize+1))==NULL) err(1,NULL);
 
 	oldpos=0;newpos=0;
 	while(newpos<newsize) {
@@ -147,8 +179,10 @@ int bspatch(const char* src, const char* dest, const char* diff)
 		for(i=0;i<=2;i++) {
 			lenread = BZ2_bzRead(&cbz2err, cpfbz2, buf, 8);
 			if ((lenread < 8) || ((cbz2err != BZ_OK) &&
-			    (cbz2err != BZ_STREAM_END)))
+				(cbz2err != BZ_STREAM_END)))
 				errx(1, "Corrupt patch\n");
+			bytesRead+=8;
+			//printf("cbz2err cpfbz2 %i %i\n", 8, bytesRead);
 			ctrl[i]=offtin(buf);
 		};
 
@@ -157,15 +191,17 @@ int bspatch(const char* src, const char* dest, const char* diff)
 			errx(1,"Corrupt patch\n");
 
 		/* Read diff string */
-		lenread = BZ2_bzRead(&dbz2err, dpfbz2, new + newpos, ctrl[0]);
+		lenread = BZ2_bzRead(&dbz2err, dpfbz2, _new + newpos, ctrl[0]);
+		bytesRead+=8;
+//		printf("dbz2err dpfbz2 %i %i\n", ctrl[0], bytesRead);
 		if ((lenread < ctrl[0]) ||
-		    ((dbz2err != BZ_OK) && (dbz2err != BZ_STREAM_END)))
+			((dbz2err != BZ_OK) && (dbz2err != BZ_STREAM_END)))
 			errx(1, "Corrupt patch\n");
 
 		/* Add old data to diff string */
 		for(i=0;i<ctrl[0];i++)
 			if((oldpos+i>=0) && (oldpos+i<oldsize))
-				new[newpos+i]+=old[oldpos+i];
+				_new[newpos+i]+=old[oldpos+i];
 
 		/* Adjust pointers */
 		newpos+=ctrl[0];
@@ -176,9 +212,11 @@ int bspatch(const char* src, const char* dest, const char* diff)
 			errx(1,"Corrupt patch\n");
 
 		/* Read extra string */
-		lenread = BZ2_bzRead(&ebz2err, epfbz2, new + newpos, ctrl[1]);
+		lenread = BZ2_bzRead(&ebz2err, epfbz2, _new + newpos, ctrl[1]);
+		bytesRead+=8;
+//		printf("ebz2err epfbz2 %i %i\n", ctrl[1], bytesRead);
 		if ((lenread < ctrl[1]) ||
-		    ((ebz2err != BZ_OK) && (ebz2err != BZ_STREAM_END)))
+			((ebz2err != BZ_OK) && (ebz2err != BZ_STREAM_END)))
 			errx(1, "Corrupt patch\n");
 
 		/* Adjust pointers */
@@ -194,11 +232,11 @@ int bspatch(const char* src, const char* dest, const char* diff)
 		err(1, "fclose(%s)", diff);
 
 	/* Write the new file */
-	if(((fd=open(dest,O_CREAT|O_TRUNC|O_WRONLY,0666))<0) ||
-		(write(fd,new,newsize)!=newsize) || (close(fd)==-1))
+	if(((fd=open(dest,O_CREAT|O_TRUNC|O_WRONLY|O_BINARY,0666))<0) ||
+		(write(fd,_new,newsize)!=newsize) || (close(fd)==-1))
 		err(1,"%s",dest);
 
-	free(new);
+	free(_new);
 	free(old);
 
 	return 0;

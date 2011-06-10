@@ -8,8 +8,8 @@ SET(Karazeh_SRCS
 
   Renderers/Vanilla/VanillaRenderer.cpp
 
-  bsdiff.c
-  bspatch.c
+  bsdiff.cpp
+  bspatch.cpp
   binreloc.c
 
   main.cpp
@@ -17,7 +17,7 @@ SET(Karazeh_SRCS
 
 # renderers
 IF(KARAZEH_RENDERER_OGRE)
-  FIND_PACKAGE(OGRE COMPONENTS RenderSystem_Direct3D9 RenderSystem_GL REQUIRED)
+  FIND_PACKAGE(OGRE REQUIRED)
   FIND_PACKAGE(OIS REQUIRED)
 
   INCLUDE_DIRECTORIES(${OGRE_INCLUDE_DIRS} ${OIS_INCLUDE_DIRS})
@@ -54,6 +54,7 @@ IF(KARAZEH_RENDERER_QT)
   QT4_WRAP_CPP(Karazeh_SRCS
     "${CMAKE_SOURCE_DIR}/include/Renderers/Qt/QtRenderer.h")
 
+  INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
   LINK_DIRECTORIES(${QT_LIBRARY_DIRS})
   LINK_LIBRARIES(${QT_LIBRARIES})
 ENDIF()

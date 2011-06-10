@@ -88,7 +88,7 @@ namespace Pixy {
 		{ }
 	};
 	
-	class PatchEntry;
+	struct PatchEntry;
 	class PatchException : public std::runtime_error {
 	public:
 	  inline PatchException(const std::string& s, PatchEntry* e)

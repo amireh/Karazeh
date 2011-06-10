@@ -129,7 +129,7 @@ namespace Pixy {
     int idx = 0;
     CURL *curl = curl_easy_init();
     for (i = 0; i < 2; ++i) {
-      PATCHOP op = (i == 0) ? CREATE : MODIFY;
+      PATCHOP op = (i == 0) ? P_CREATE : P_MODIFY;
 
       std::vector<PatchEntry*> lEntries = inRepo->getEntries(op);
       PatchEntry* lEntry = 0;

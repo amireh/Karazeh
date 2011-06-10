@@ -31,6 +31,11 @@
 #include "Renderers/Qt/QtRenderer.h"
 #endif
 
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
+#include <windows.h>
+#include <tchar.h>
+#endif
+
 namespace Pixy
 {
 	Launcher* Launcher::__instance = 0;
@@ -47,7 +52,7 @@ namespace Pixy
   mPWorker(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
-	  signal(SIGKILL, handle_interrupt);
+	  //signal(SIGKILL, handle_interrupt);
 	}
 
 	Launcher::~Launcher() {
@@ -129,14 +134,28 @@ namespace Pixy
     // use NSBundlePath() to build up our paths
 #else
     // use GetModuleFileName() and boost::filesystem to build up our paths on Windows
+    TCHAR szPath[MAX_PATH];
+
+    if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
+    {
+        printf("Cannot install service (%d)\n", GetLastError());
+        return;
+    }
+
+    std::cout << szPath << "\n";
+    mBinPath = std::string(szPath);
+    mBinPath = path(mBinPath).remove_filename().make_preferred().string();
+    mRootPath = path(mBinPath).remove_leaf().make_preferred().string();
+    mTempPath = path(mRootPath + "/" + std::string(PROJECT_TEMP_DIR)).make_preferred().string();
+    mLogPath = path(mRootPath + "/" + std::string(PROJECT_LOG_DIR)).make_preferred().string();    
 #endif
 
-#ifdef DEBUG
+//#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
     std::cout << "Root path: " <<  mRootPath << "\n";
     std::cout << "Temp path: " <<  mTempPath << "\n";
     std::cout << "Log path: " <<  mLogPath << "\n";
-#endif
+//#endif
 
   };
 
@@ -185,6 +204,9 @@ namespace Pixy
 
 	void Launcher::initLogger() {
     using boost::filesystem::path;
+    using boost::filesystem::exists;
+    using boost::filesystem::create_directory;
+
     // TODO: fix other OSes paths
 		std::string lLogPath = mLogPath;
 #if PIXY_PLATFORM == PIXY_PLATFORM_WINDOWS
@@ -192,10 +214,12 @@ namespace Pixy
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
 		lLogPath = macBundlePath() + "/Contents/Logs/Launcher.log";
 #else
-		lLogPath = path(mLogPath + "/" + "Karazeh.log").string();
+		lLogPath = path(mLogPath + "/" + "Karazeh.log").make_preferred().string();
 #endif
 
-    //std::cout << "Karazeh: initting log4cpp logger @ " << lLogPath << "!\n";
+    if (!exists(path(mLogPath)))
+      create_directory(path(mLogPath));
+    std::cout << "Karazeh: initting log4cpp logger @ " << lLogPath << "!\n";
 
 		log4cpp::Appender* lApp = new
 		log4cpp::FileAppender("FileAppender", lLogPath, false);
@@ -236,7 +260,7 @@ namespace Pixy
     path appPath = path(mBinPath + "/" + PIXY_EXTERNAL_APP_PATH);
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-    ShellExecute(appPath.string());
+    //ShellExecute(appPath.string());
 #else
     // to pass more arguments to the app, you need to change this line to reflect it
     execl(appPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);

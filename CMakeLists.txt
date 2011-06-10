@@ -1,7 +1,7 @@
 IF(DEFINED CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+  SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 ELSE()
-   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+  SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 ENDIF()
 
 PROJECT(Karazeh)
@@ -13,25 +13,42 @@ INCLUDE (CMakeDependentOption)
 
 SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake ${CMAKE_SOURCE_DIR}/CMake/Packages )
 
+# if CMake can't find some of the libraries on windows, adjust these paths
+IF(WIN32)
+  SET( CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} C:/Workspace/Build/Qt4.7.3 )
+	SET( CMAKE_LIBRARY_PATH 
+    ${CMAKE_LIBRARY_PATH} 
+    C:/Workspace/Build/libcurl/lib
+    C:/Workspace/Build/bzip2/Release
+    C:/Workspace/Build/log4cpp/Release )
+	SET( CMAKE_INCLUDE_PATH 
+    ${CMAKE_INCLUDE_PATH} 
+    C:/Workspace/Build/libcurl/include
+    C:/Workspace/Build/bzip2/include
+    C:/Workspace/Build/log4cpp/include )
+    
+  ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
+ELSE()
+  ADD_DEFINITIONS("-DENABLE_BINRELOC")
+ENDIF()
+
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREAD ON)
+
 FIND_PACKAGE(PkgConfig)
-FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
+FIND_PACKAGE(Boost 1.46 COMPONENTS system filesystem REQUIRED)
+FIND_PACKAGE(Boost 1.46 COMPONENTS thread)
 FIND_PACKAGE(CURL REQUIRED)
 FIND_PACKAGE(BZip2 REQUIRED)
 # optional dependencies
 FIND_PACKAGE(log4cpp)
-FIND_PACKAGE(Boost COMPONENTS thread)
 
+ADD_DEFINITIONS("-DCURL_STATICLIB")
 
 # project version
 SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
 SET( ${PROJECT_NAME}_BUILD_LEVEL 0 )
-
-if (NOT CMAKE_BUILD_TYPE)
-  message(STATUS "No build type selected, default to Release")
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 
 # options
 OPTION(KARAZEH_RENDERER_OGRE "Build Ogre renderer" OFF)
@@ -41,22 +58,21 @@ if(Boost_THREAD_FOUND)
 endif()
 OPTION(KARAZEH_USE_LOG4CPP "Use log4cpp for logging" ON)
 
-
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
-SET(CMAKE_C_FLAGS "-DENABLE_BINRELOC")
 
 # common includes and libraries
 INCLUDE_DIRECTORIES(
   include
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CURL_INCLUDE_DIRS}
-  ${BOOST_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${BZIP2_INCLUDE_DIR}
+  ${LOG4CPP_INCLUDE_DIR}
 )
 
 IF(KARAZEH_USE_LOG4CPP)
   INCLUDE_DIRECTORIES(${LOG4CPP_INCLUDE_DIRS})
-  LINK_LIBRARIES( log4cpp )
+  LINK_LIBRARIES( ${LOG4CPP_LIBRARIES} )
 ENDIF()
 
 IF (KARAZEH_THREADS_BOOST)
@@ -66,7 +82,7 @@ ENDIF()
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/KarazehConfig.h.cmake ${CMAKE_SOURCE_DIR}/include/KarazehConfig.h )
 
 LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS} ${CURL_LIBRARY_DIRS} ${BZip2_LIBRARY_DIRS})
-LINK_LIBRARIES( boost_filesystem ${CURL_LIBRARIES} ${BZIP2_LIBRARIES})
+LINK_LIBRARIES( ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${BZIP2_LIBRARIES})
 
 ADD_SUBDIRECTORY(src)
 
