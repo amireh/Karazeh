@@ -1,5 +1,29 @@
 # add sources
 SET(Karazeh_SRCS
+  ${Karazeh_SRCS}
+
+  ../include/Downloader.h
+  ../include/Launcher.h
+  ../include/PatchEntry.h
+  ../include/Patcher.h
+  ../include/Repository.h
+  ../include/Pixy.h
+  ../include/PixyExceptions.h
+  ../include/PixyLog.h
+  ../include/PixyLogLayout.h
+  ../include/PixyUtility.h
+  
+  ../include/Renderer.h
+  ../include/Renderers/Vanilla/VanillaRenderer.h
+  
+  ../include/PixyThread.h
+  ../include/Threads/PixyThreadless.h
+  ../include/Threads/PixyThreadQt.h
+  ../include/Threads/PixyThreadBoost.h
+  
+  ../include/binreloc.h
+  ../include/md5.hpp
+  
   Launcher.cpp
   Patcher.cpp
   Downloader.cpp
@@ -26,6 +50,17 @@ IF(KARAZEH_RENDERER_OGRE)
 
   SET(Karazeh_SRCS
     ${Karazeh_SRCS}
+    
+    ../include/Renderers/Ogre/Event.h
+    ../include/Renderers/Ogre/EventHandler.h
+    ../include/Renderers/Ogre/EventListener.h
+    ../include/Renderers/Ogre/EventManager.h
+    ../include/Renderers/Ogre/Handler.h
+    ../include/Renderers/Ogre/InputManager.h
+    ../include/Renderers/Ogre/Listener.h
+    ../include/Renderers/Ogre/OgreRenderer.h
+    ../include/Renderers/Ogre/OgreSdkTrays.h
+    
     Renderers/Ogre/Event.cpp
     Renderers/Ogre/EventListener.cpp
     Renderers/Ogre/EventManager.cpp
@@ -44,9 +79,7 @@ IF(KARAZEH_RENDERER_QT)
   INCLUDE(${QT_USE_FILE})
   INCLUDE_DIRECTORIES(${QT_INCLUDE_DIRS})
 
-  SET(Karazeh_SRCS
-    ${Karazeh_SRCS}
-    Renderers/Qt/QtRenderer.cpp)
+  SET(Karazeh_SRCS ${Karazeh_SRCS} ../include/Renderers/Qt/QtRenderer.h Renderers/Qt/QtRenderer.cpp)
 
   QT4_WRAP_UI(Karazeh_SRCS
     "${CMAKE_SOURCE_DIR}/resources/qt/karazeh.ui"

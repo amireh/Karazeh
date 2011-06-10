@@ -31,6 +31,13 @@
 #include "log4cpp/FixedContextCategory.hh"
 #include "log4cpp/FileAppender.hh"
 #include "PixyLogLayout.h"
+/* 
+ * log4cpp defines int64_t as __int64_t but does not use it at all,
+ * and this conflicts with boost on WIN32, so we undefine it here
+ */
+#ifdef int64_t
+  #undef int64_t
+#endif
 #include "PixyExceptions.h"
 
 /* Application specific definitions */
