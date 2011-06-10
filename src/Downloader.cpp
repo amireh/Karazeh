@@ -255,5 +255,7 @@ namespace Pixy {
 
       return (res == 0);
     }
+
+    return true;
   }
 };

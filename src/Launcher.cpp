@@ -34,6 +34,7 @@
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
 #include <windows.h>
 #include <tchar.h>
+#include <process.h>
 #endif
 
 namespace Pixy
@@ -95,6 +96,11 @@ namespace Pixy
     this->resolvePaths();
 
 		this->initLogger();
+
+    mLog->debugStream() << "Binary path: " <<  mBinPath;
+    mLog->debugStream() << "Root path: " <<  mRootPath;
+    mLog->debugStream() << "Temp path: " <<  mTempPath;
+    mLog->debugStream() << "Log path: " <<  mLogPath;
 
 		Patcher::getSingletonPtr();
 		Downloader::getSingletonPtr();
@@ -261,13 +267,15 @@ namespace Pixy
 
 	void Launcher::launchExternalApp() {
     using boost::filesystem::path;
-    path appPath = path(mBinPath + "/" + PIXY_EXTERNAL_APP_PATH);
+    std::string lPath = path(mBinPath + "/" + std::string(PIXY_EXTERNAL_APP_PATH)).make_preferred().string();
+
+    mLog->infoStream() << "launching external app @ " << lPath;
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-    //ShellExecute(appPath.string());
+    _execl(lPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);
 #else
     // to pass more arguments to the app, you need to change this line to reflect it
-    execl(appPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);
+    execl(lPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);
 #endif
 	}
 
