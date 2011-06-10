@@ -24,19 +24,21 @@
 #include "Launcher.h"
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-//#define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include "windows.h"
-//INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
-#endif
+INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
+  int argc = __argc;
+  char** argv = __argv;
+#else
 	int main( int argc, char **argv ) {
-//#endif
+#endif
 
 		try {
 			Pixy::Launcher::getSingleton().go(argc, argv);
 		}
 		catch ( std::exception& e ) {
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-			//MessageBox( NULL, e.what().c_str(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL );
+			MessageBox( NULL, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL );
 #else
 			std::cerr << "an exception has occured: " << e.what();
 #endif

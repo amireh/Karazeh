@@ -338,12 +338,14 @@ namespace Pixy {
       try {
         (this->*mProcessors[(*entry)->Op])((*entry), false);
       } catch (FileDoesNotExist& e) {
+        // TODO: inject renderer with the error        
         mRenderer->injectPatchFailed("A required file does not exist! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
-        // TODO: inject renderer with the error
+        mLog->errorStream() << e.what();
       } catch (FileAlreadyCreated& e) {
         mRenderer->injectPatchFailed("A file already exists! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
+        mLog->errorStream() << e.what();
       }
 
     return success;
@@ -368,9 +370,11 @@ namespace Pixy {
 	    buildRepositories();
 	  } catch (BadVersion& e) {
       mRenderer->injectPatchFailed( std::string("Bad application version"), mCurrentVersion );
+      mLog->errorStream() << e.what();
       return;
 	  } catch (BadFileStream& e) {
       mRenderer->injectPatchFailed( std::string("Bad file stream"), mCurrentVersion );
+      mLog->errorStream() << e.what();
       return;
 	  }
 

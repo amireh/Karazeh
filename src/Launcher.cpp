@@ -161,19 +161,23 @@ namespace Pixy
 
   void Launcher::initRenderer(int argc, char** argv) {
 
-		if (argc > 1) {
+		//if (argc > 1) {
 #ifdef KARAZEH_RENDERER_OGRE
-		  if (strcmp(argv[1], "Ogre") == 0)
-		    mRenderer = new OgreRenderer();
+  #ifndef KARAZEH_DEFAULT_RENDERER_OGRE
+	  if (strcmp(argv[1], "Ogre") == 0)
+  #endif
+	    mRenderer = new OgreRenderer();
 #endif
 #ifdef KARAZEH_RENDERER_QT
-		  if (strcmp(argv[1], "Qt") == 0)
-		    mRenderer = new QtRenderer();
+  #ifndef KARAZEH_DEFAULT_RENDERER_QT
+    if (strcmp(argv[1], "Qt") == 0)
+  #endif
+      mRenderer = new QtRenderer();
 #endif
-      if (!mRenderer) {
+    if (!mRenderer) {
         mLog->errorStream() << "unknown renderer specified! going vanilla";
       }
-		}
+		//}
 
     if (!mRenderer) {
       mRenderer = new VanillaRenderer();
