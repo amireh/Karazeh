@@ -21,40 +21,50 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyThreadPoco_H
+#define H_PixyThreadPoco_H
 
-#include "Pixy.h"
-#include <typeinfo>
+#include "Poco/Thread.h"
+#include "Poco/Runnable.h"
+#include "Patcher.h"
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
-#endif
+namespace Pixy {
 
-// can use only one of these, hence the USE_THREADS flag
+  class Worker : public Poco::Runnable {
+    public:
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Worker() {}
+    ~Worker() {}
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    void run() {
+      Patcher::getSingleton()();
+    }
+  };
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_TBB
-#include "Threads/PixyThreadTBB.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+  template <class T>
+  class Thread {
+    public:
+    Thread() {};
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_POCO
-#include "Threads/PixyThreadPoco.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T& inT) {
+      mPocoThread.start(mWorker);
+    };
 
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
+    Thread(T* inT) {
 
-#endif
+    };
+
+    virtual ~Thread() {
+    };
+
+    private:
+    Poco::Thread mPocoThread;
+    Worker mWorker;
+
+    Thread(const Thread& rhs);
+    Thread& operator=(const Thread& rhs);
+  };
+
+}
+
+#endif // H_PixyThreadPoco_H
