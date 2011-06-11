@@ -31,7 +31,6 @@
 #include <map>
 
 #include "Pixy.h"
-#include "PixyThread.h"
 #include "Renderer.h"
 #include "Patcher.h"
 #include "Downloader.h"

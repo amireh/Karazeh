@@ -16,18 +16,19 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake ${CMAKE_SO
 # if CMake can't find some of the libraries on windows, adjust these paths
 IF(WIN32)
   SET( CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} C:/Workspace/Build/Qt4.7.3 )
-	SET( CMAKE_LIBRARY_PATH 
-    ${CMAKE_LIBRARY_PATH} 
+	SET( CMAKE_LIBRARY_PATH
+    ${CMAKE_LIBRARY_PATH}
     C:/Workspace/Build/libcurl/lib
     C:/Workspace/Build/bzip2/Release
     C:/Workspace/Build/log4cpp/Release)
-	SET( CMAKE_INCLUDE_PATH 
-    ${CMAKE_INCLUDE_PATH} 
+	SET( CMAKE_INCLUDE_PATH
+    ${CMAKE_INCLUDE_PATH}
     C:/Workspace/Build/libcurl/include
     C:/Workspace/Build/bzip2/include
     C:/Workspace/Build/log4cpp/include)
-    
+
   ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS")
+  ADD_DEFINITIONS("-DCURL_STATICLIB")
 ELSE()
   ADD_DEFINITIONS("-DENABLE_BINRELOC")
 ENDIF()
@@ -42,8 +43,6 @@ FIND_PACKAGE(CURL REQUIRED)
 FIND_PACKAGE(BZip2 REQUIRED)
 # optional dependencies
 FIND_PACKAGE(log4cpp)
-
-ADD_DEFINITIONS("-DCURL_STATICLIB")
 
 # project version
 SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )

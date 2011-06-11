@@ -31,7 +31,8 @@
 #include "log4cpp/FixedContextCategory.hh"
 #include "log4cpp/FileAppender.hh"
 #include "PixyLogLayout.h"
-/* 
+#include "PixyThread.h"
+/*
  * log4cpp defines int64_t as __int64_t but does not use it at all,
  * and this conflicts with boost on WIN32, so we undefine it here
  */
@@ -78,7 +79,6 @@
  * 4) PROJECT_TEMP_DIR: a temp directory used for staging patch files
  *
  */
-
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
 #define PROJECT_LOG_DIR "log"
 #define PROJECT_RESOURCES "resources"
@@ -93,18 +93,18 @@ const int PIXY_DISTANCE_FROM_ROOT = 2; // how many directories the Launcher is l
 #define PROJECT_RESOURCES "/Resources"
 #define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "/Resources/tmp"
-#define PIXY_EXTERNAL_APP_PATH "Karazeh" // path to the application launched relative to this application
-#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
-#define PIXY_EXTERNAL_APP_ARG "Qt" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
+#define PIXY_EXTERNAL_APP_PATH "Karazeh"
+#define PIXY_EXTERNAL_APP_NAME "Karazeh"
+#define PIXY_EXTERNAL_APP_ARG "Qt"
 const int PIXY_DISTANCE_FROM_ROOT = 1;
-#else
+#else // Linux definitions
 #define PROJECT_LOG_DIR "log"
 #define PROJECT_RESOURCES "resources"
 #define PROJECT_OGRE_RESOURCES "ogre"
 #define PROJECT_TEMP_DIR "tmp"
-#define PIXY_EXTERNAL_APP_PATH "Karazeh" // path to the application launched relative to this application
-#define PIXY_EXTERNAL_APP_NAME "Karazeh" // name of the application to be launched
-#define PIXY_EXTERNAL_APP_ARG "Qt" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
+#define PIXY_EXTERNAL_APP_PATH "Karazeh"
+#define PIXY_EXTERNAL_APP_NAME "Karazeh"
+#define PIXY_EXTERNAL_APP_ARG "Qt"
 const int PIXY_DISTANCE_FROM_ROOT = 1;
 #endif
 

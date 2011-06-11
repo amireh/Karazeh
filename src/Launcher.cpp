@@ -53,7 +53,6 @@ namespace Pixy
   mPWorker(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
-	  //signal(SIGKILL, handle_interrupt);
 	}
 
 	Launcher::~Launcher() {
@@ -115,7 +114,7 @@ namespace Pixy
 
   void Launcher::resolvePaths() {
     using boost::filesystem::path;
-    
+
     // locate the binary and build its path
 #if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
     // use binreloc and boost::filesystem to build up our paths
@@ -148,10 +147,10 @@ namespace Pixy
     for (int i=0; i < PIXY_DISTANCE_FROM_ROOT; ++i) {
       lRoot = lRoot.remove_leaf();
     }
-    
+
     mRootPath = lRoot.make_preferred().string();
     mTempPath = (path(mRootPath) / path(PROJECT_TEMP_DIR)).make_preferred().string();
-    mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();    
+    mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();
 
 //#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
@@ -164,23 +163,22 @@ namespace Pixy
 
   void Launcher::initRenderer(int argc, char** argv) {
 
-		//if (argc > 1) {
 #ifdef KARAZEH_RENDERER_OGRE
   #ifndef KARAZEH_DEFAULT_RENDERER_OGRE
-	  if (strcmp(argv[1], "Ogre") == 0)
+	  if (argc > 1 && strcmp(argv[1], "Ogre") == 0)
   #endif
 	    mRenderer = new OgreRenderer();
 #endif
 #ifdef KARAZEH_RENDERER_QT
   #ifndef KARAZEH_DEFAULT_RENDERER_QT
-    if (strcmp(argv[1], "Qt") == 0)
+    if (argc > 1 && strcmp(argv[1], "Qt") == 0)
   #endif
+    if (!mRenderer)
       mRenderer = new QtRenderer();
 #endif
     if (!mRenderer) {
         mLog->errorStream() << "unknown renderer specified! going vanilla";
       }
-		//}
 
     if (!mRenderer) {
       mRenderer = new VanillaRenderer();
