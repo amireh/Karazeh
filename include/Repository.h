@@ -24,16 +24,19 @@
 #ifndef H_Repository_H
 #define H_Repository_H
 
-#include "Pixy.h"
+//#include "Pixy.h"
 #include "PatchEntry.h"
 #include "PixyUtility.h"
+#include "PixyExceptions.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 using std::ostream;
+namespace log4cpp { class Category; }
 namespace Pixy {
 
 /*! \struct Version
@@ -134,6 +137,7 @@ struct Version {
  *  \note
  *  The Patcher acts as the manager and interface to all repositories.
  */
+
 class Repository {
 
   public:

@@ -21,35 +21,29 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyPlatform_H
+#define H_PixyPlatform_H
 
-#include "Pixy.h"
-#include <typeinfo>
+/* Finds the current platform
+ * Note: proudly stolen from Ogre3D code in OgrePlatform.h */
+#define PIXY_PLATFORM_WIN32 1
+#define PIXY_PLATFORM_LINUX 2
+#define PIXY_PLATFORM_APPLE 3
+#define PIXY_PLATFORM_SYMBIAN 4
+#define PIXY_PLATFORM_IPHONE 5
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
+#if defined( __SYMBIAN32__ )
+#   define PIXY_PLATFORM PIXY_PLATFORM_SYMBIAN
+#elif defined( __WIN32__ ) || defined( _WIN32 )
+#   define PIXY_PLATFORM PIXY_PLATFORM_WIN32
+#elif defined( __APPLE_CC__)
+#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 30000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 30000
+#       define PIXY_PLATFORM PIXY_PLATFORM_IPHONE
+#   else
+#       define PIXY_PLATFORM PIXY_PLATFORM_APPLE
+#   endif
+#else
+#   define PIXY_PLATFORM PIXY_PLATFORM_LINUX
 #endif
-
-// can use only one of these, hence the USE_THREADS flag
-
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
-
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
-
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_TBB
-#include "Threads/PixyThreadTBB.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
-
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
 
 #endif

@@ -24,9 +24,9 @@
 #ifndef H_Renderer_H
 #define H_Renderer_H
 
-#include "Pixy.h"
 #include "Repository.h"
 
+namespace log4cpp { class Category; }
 namespace Pixy {
 
 	/*! \class Renderer

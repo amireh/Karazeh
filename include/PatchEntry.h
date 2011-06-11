@@ -24,7 +24,6 @@
 #ifndef H_PatchEntry_H
 #define H_PatchEntry_H
 
-#include "Pixy.h"
 #include <string>
 
 namespace Pixy {

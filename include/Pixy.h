@@ -30,6 +30,8 @@
 #include "log4cpp/Category.hh"
 #include "log4cpp/FixedContextCategory.hh"
 #include "log4cpp/FileAppender.hh"
+#include "PixyPlatform.h"
+#include "PixyExceptions.h"
 #include "PixyLogLayout.h"
 #include "PixyThread.h"
 /*
@@ -39,7 +41,6 @@
 #ifdef int64_t
   #undef int64_t
 #endif
-#include "PixyExceptions.h"
 
 /* Application specific definitions */
 #define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
@@ -48,28 +49,6 @@
 #define PIXY_RESOURCE "Karazeh.dat"
 #define PIXY_MIRRORS_RESOURCE "patch_mirrors.txt"
 //#define PIXY_PERSISTENT
-
-/* Finds the current platform
- * Note: proudly stolen from Ogre3D code in OgrePlatform.h */
-#define PIXY_PLATFORM_WIN32 1
-#define PIXY_PLATFORM_LINUX 2
-#define PIXY_PLATFORM_APPLE 3
-#define PIXY_PLATFORM_SYMBIAN 4
-#define PIXY_PLATFORM_IPHONE 5
-
-#if defined( __SYMBIAN32__ )
-#   define PIXY_PLATFORM PIXY_PLATFORM_SYMBIAN
-#elif defined( __WIN32__ ) || defined( _WIN32 )
-#   define PIXY_PLATFORM PIXY_PLATFORM_WIN32
-#elif defined( __APPLE_CC__)
-#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 30000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 30000
-#       define PIXY_PLATFORM PIXY_PLATFORM_IPHONE
-#   else
-#       define PIXY_PLATFORM PIXY_PLATFORM_APPLE
-#   endif
-#else
-#   define PIXY_PLATFORM PIXY_PLATFORM_LINUX
-#endif
 
 /* Application paths:
  *

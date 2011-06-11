@@ -21,35 +21,51 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyThreadTBB_H
+#define H_PixyThreadTBB_H
 
-#include "Pixy.h"
-#include <typeinfo>
+#include <tbb/tbb.h>
+#include <tbb/task.h>
+#include "Patcher.h"
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
-#endif
+namespace Pixy {
 
-// can use only one of these, hence the USE_THREADS flag
+  class PatcherTask : public tbb::task {
+    public:
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+      PatcherTask(){}
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+      task* execute() {
+        Patcher::getSingleton()();
+        return 0;
+      }
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_TBB
-#include "Threads/PixyThreadTBB.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+  };
 
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
+  template <class T>
+  class Thread {
+    public:
+    Thread() { };
 
-#endif
+    Thread(T& inT) {
+      PatcherTask& a = *new(tbb::task::allocate_root()) PatcherTask();
+      tbb::task::spawn_root_and_wait(a);
+    };
+
+    Thread(T* inT) {
+
+    };
+
+    virtual ~Thread() {
+    };
+
+    private:
+    Thread(const Thread& rhs);
+    Thread& operator=(const Thread& rhs);
+  };
+
+
+
+}
+
+#endif // H_PixyThreadTBB_H

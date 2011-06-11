@@ -25,7 +25,6 @@
 #define H_OgreRenderer_H
 
 #include "Renderer.h"
-#include <boost/filesystem.hpp>
 #include <Ogre.h>
 #include <OgreConfigFile.h>
 #include <OgreWindowEventUtilities.h>
