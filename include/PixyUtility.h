@@ -30,6 +30,9 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#if PIXY_PLATFORM == PIXY_PLATFORM_APPLE
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 
 namespace Pixy {
 
@@ -38,7 +41,6 @@ class Utility {
   public:
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_APPLE
-#include <CoreFoundation/CoreFoundation.h>
 
 	// This function will locate the path to our application on OS X,
 	// unlike windows you cannot rely on the current working directory

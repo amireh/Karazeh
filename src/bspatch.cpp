@@ -33,6 +33,9 @@ __FBSDID("$FreeBSD: src/usr.bin/bsdiff/bspatch/bspatch.c,v 1.1 2005/08/06 01:59:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef  __APPLE_CC__
+#include <sys/types.h> // Ahmad Amireh - OS X Compatibility
+#endif
 #ifndef _WIN32
 // KevinJ - Windows compatibility
 #include <err.h>

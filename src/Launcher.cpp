@@ -128,6 +128,9 @@ namespace Pixy
     mBinPath = path(mBinPath).make_preferred().string();
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
     // use NSBundlePath() to build up our paths
+    mBinPath = path(Utility::macBundlePath() + "/Contents/MacOS").make_preferred().string();
+    // create the Resources folder if it doesn't exist
+    boost::filesystem::create_directory(path(mBinPath + "/../Resources").make_preferred());
 #else
     // use GetModuleFileName() and boost::filesystem to build up our paths on Windows
     TCHAR szPath[MAX_PATH];
@@ -217,7 +220,7 @@ namespace Pixy
 #if PIXY_PLATFORM == PIXY_PLATFORM_WINDOWS
 		lLogPath = path(mLogPath + "/" + "Karazeh.log").string();
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
-		lLogPath = macBundlePath() + "/Contents/Logs/Launcher.log";
+		lLogPath = Utility::macBundlePath() + "/Contents/Logs/Launcher.log";
 #else
 		lLogPath = path(mLogPath + "/" + "Karazeh.log").make_preferred().string();
 #endif
