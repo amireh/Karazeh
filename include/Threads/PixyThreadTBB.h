@@ -49,7 +49,7 @@ namespace Pixy {
 
     Thread(T& inT) {
       PatcherTask& a = *new(tbb::task::allocate_root()) PatcherTask();
-      tbb::task::spawn_root_and_wait(a);
+      tbb::task::spawn(a);
     };
 
     Thread(T* inT) {
