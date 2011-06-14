@@ -40,13 +40,16 @@ Please refer to the [wiki](https://github.com/amireh/Karazeh/wiki) for building,
 ## Testing
 Karazeh and Kiwi have so far been tested on the following platforms/distributions:
 
-* Linux:
+* Windows
+  * XP SP2 32bit
+  * 7 32bit
+* Linux
   * Arch Linux 32bit
   * Ubuntu 10.04 LTS 32bit
-* Windows:
-  * XP SP2
+  * Debian Lenny 64bit
+* Mac OS X 10.6 32bit
 
-If you try any of the tools out and can be bothered with notifying me about any distribution-specific issues, please do.
+If you try the tools out and can be bothered with notifying me about any distribution-specific issues, please do.
 
 ## Upcoming Features
 * Integration *within* your current application: if you don't want your users to run the Launcher to use your game/application, simply embed Karazeh within it to provide patching support
