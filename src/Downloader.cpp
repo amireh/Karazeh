@@ -53,7 +53,7 @@ namespace Pixy {
     }
 
     // add hardcoded/fallback hosts
-		mHosts.push_back("http://127.0.0.1/");
+		//mHosts.push_back("http://127.0.0.1/");
 		mHosts.push_back("http://www.vertigo-game.com/patches/");
     
     mLog->infoStream() << "registered " << mHosts.size() << " patch hosts";

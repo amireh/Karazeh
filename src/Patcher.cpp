@@ -25,6 +25,10 @@
 #include "Downloader.h"
 #include "Launcher.h"
 
+#ifdef __OBJC__
+#include <Cocoa/Cocoa.h>
+#endif
+
 extern int bspatch(const char* src, const char* dest, const char* diff);
 
 namespace Pixy {
@@ -351,13 +355,29 @@ namespace Pixy {
     return success;
 	};
 
+#ifdef __OBJC__
+	void Patcher::operator()() {
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    if (!fValidated) {
+      validate();
+      [pool release];
+      return;
+    }
+    
+    // Cocoa renderer will crash if we don't sleep for some time here because
+    // this generates a race condition with displaying NSAlert sheets
+    sleep(1);
+    patch();
+    [pool release];
+	}
+#else
 	void Patcher::operator()() {
     if (!fValidated)
       return (void)validate();
 
     patch();
 	}
-
+#endif
 
 	void Patcher::patch() {
 	  if (fPatched)

@@ -68,7 +68,7 @@ namespace Pixy {
     return true;
 	};
 
-	void VanillaRenderer::go() {
+	void VanillaRenderer::go(int argc, char** argv) {
 
     cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
     while (!fShuttingDown) {

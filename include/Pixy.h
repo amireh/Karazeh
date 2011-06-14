@@ -68,13 +68,12 @@
 #define PIXY_EXTERNAL_APP_ARG "" // if you need to pass more than 1 argument, see Launcher::launchExternalApplication()
 const int PIXY_DISTANCE_FROM_ROOT = 2; // how many directories the Launcher is located from the app root
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
-#define PROJECT_LOG_DIR "Resources/log"
+#define PROJECT_LOG_DIR "Log"
 #define PROJECT_RESOURCES "Resources"
-#define PROJECT_OGRE_RESOURCES "ogre"
-#define PROJECT_TEMP_DIR "Resources/tmp"
+#define PROJECT_TEMP_DIR "Temp"
 #define PIXY_EXTERNAL_APP_PATH "Karazeh"
 #define PIXY_EXTERNAL_APP_NAME "Karazeh"
-#define PIXY_EXTERNAL_APP_ARG "Qt"
+#define PIXY_EXTERNAL_APP_ARG ""
 const int PIXY_DISTANCE_FROM_ROOT = 1;
 #else // Linux definitions
 #define PROJECT_LOG_DIR "log"

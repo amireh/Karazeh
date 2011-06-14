@@ -131,12 +131,8 @@ namespace Pixy {
     return true;
 	};
 
-	void QtRenderer::go() {
-
-
+	void QtRenderer::go(int argc, char** argv) {
     mApp->exec();
-
-	  //QApplication::instance()->exec();
 	};
 
 

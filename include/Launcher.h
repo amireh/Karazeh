@@ -55,6 +55,17 @@ namespace Pixy
 		static Launcher* getSingletonPtr();
 		static Launcher& getSingleton();
 
+    /*! \brief
+     * Destroys all components, namely the Patcher, Downloader, and the Renderer
+     * effectively cleaning up.
+     * 
+     * \warn
+     * This will call the Renderer's destructor so make sure you're not calling it
+     * directly from there. This method should be avoided unless the Renderer is
+     * a wrapper as is the case with Cocoa's.
+     */
+    static void shutdown();
+    
 		/*! \brief
 		 *	Starts up the components: InputManager, Renderer, Patcher and Downloader,
 		 *  fires Patcher::validate() in a thread, and begins the application loop.
@@ -72,6 +83,8 @@ namespace Pixy
 		 *  \arg inAppName: stripped name of the application, ie Foo
 		 */
 		void launchExternalApp();
+    
+    bool isLaunching() { return fLaunching; };
 
 		/*! \brief
 		 *	Shuts down the system and all components.
@@ -127,6 +140,9 @@ namespace Pixy
     std::string mLogPath; // where logs are dumped
 
     Thread<Patcher> *mVWorker, *mPWorker;
+    
+    bool fLaunching;
+    bool fShutdown;
 	};
 } // end of namespace
 

@@ -48,7 +48,7 @@ namespace Pixy {
 		 */
 		virtual bool setup(int argc, char** argv);
 
-		virtual void go();
+		virtual void go(int argc, char** argv);
 
 		/* \brief
 		 *

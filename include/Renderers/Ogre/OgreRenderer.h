@@ -65,7 +65,7 @@ namespace Pixy {
      *  Contains the main loop in which all the components are updated and
      *  the event loop.
      */
-		virtual void go();
+		virtual void go(int argc, char** argv);
 
 		/*! \brief
 		 *  Cleans up the SdkTray manager.

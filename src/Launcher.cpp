@@ -23,12 +23,17 @@
 
 #include "Launcher.h"
 #include "PixyLogLayout.h"
+
+/* registered renderers */
 #include "Renderers/Vanilla/VanillaRenderer.h"
 #ifdef KARAZEH_RENDERER_OGRE
 #include "Renderers/Ogre/OgreRenderer.h"
 #endif
 #ifdef KARAZEH_RENDERER_QT
 #include "Renderers/Qt/QtRenderer.h"
+#endif
+#ifdef KARAZEH_RENDERER_COCOA
+#include "Renderers/Cocoa/CocoaRenderer.h"
 #endif
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
@@ -53,10 +58,15 @@ namespace Pixy
   mPWorker(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
+    
+    fShutdown = false;
+    fLaunching = false;
 	}
 
 	Launcher::~Launcher() {
-
+    if (fShutdown)
+      return;
+    
     if (mRenderer)
       delete mRenderer;
 
@@ -74,10 +84,18 @@ namespace Pixy
 		  delete mLog;
 
 		log4cpp::Category::shutdown();
+    mRenderer = NULL;
+    
+    fShutdown = true;
+    
+    if (fLaunching)
+      launchExternalApp();
 
-		mRenderer = NULL;
+		
 	}
-
+  void Launcher::shutdown() {
+    delete __instance;
+  }
 	Launcher* Launcher::getSingletonPtr() {
 		if( !__instance ) {
 		    __instance = new Launcher();
@@ -109,11 +127,12 @@ namespace Pixy
     this->updateApplication();
 
 		// main loop
-    return mRenderer->go();
+    return mRenderer->go(argc,argv);
 	}
 
   void Launcher::resolvePaths() {
     using boost::filesystem::path;
+    bool dontOverride = false;
 
     // locate the binary and build its path
 #if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
@@ -129,8 +148,14 @@ namespace Pixy
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
     // use NSBundlePath() to build up our paths
     mBinPath = path(Utility::macBundlePath() + "/Contents/MacOS").make_preferred().string();
-    // create the Resources folder if it doesn't exist
+    // create the folders if they doesn't exist
     boost::filesystem::create_directory(path(mBinPath + "/../Resources").make_preferred());
+    boost::filesystem::create_directory(path(mBinPath + "/../Resources/Log").make_preferred());
+    boost::filesystem::create_directory(path(mBinPath + "/../Resources/Temp").make_preferred());
+    
+    mLogPath = (path(mBinPath).remove_leaf() / path("/Resources/Log").make_preferred()).string();
+    mTempPath = (path(mBinPath).remove_leaf() / path("/Resources/Temp").make_preferred()).string();
+    dontOverride = true;
 #else
     // use GetModuleFileName() and boost::filesystem to build up our paths on Windows
     TCHAR szPath[MAX_PATH];
@@ -152,9 +177,11 @@ namespace Pixy
     }
 
     mRootPath = lRoot.make_preferred().string();
-    mTempPath = (path(mRootPath) / path(PROJECT_TEMP_DIR)).make_preferred().string();
-    mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();
-
+    if (!dontOverride) {
+      mTempPath = (path(mRootPath) / path(PROJECT_TEMP_DIR)).make_preferred().string();
+      mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();
+    }
+    
 //#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
     std::cout << "Root path: " <<  mRootPath << "\n";
@@ -178,6 +205,10 @@ namespace Pixy
   #endif
     if (!mRenderer)
       mRenderer = new QtRenderer();
+#endif
+#ifdef KARAZEH_RENDERER_COCOA
+    if (!mRenderer)
+      mRenderer = new CocoaRenderer();
 #endif
     if (!mRenderer) {
         mLog->errorStream() << "unknown renderer specified! going vanilla";
@@ -214,19 +245,22 @@ namespace Pixy
     using boost::filesystem::path;
     using boost::filesystem::exists;
     using boost::filesystem::create_directory;
+    using boost::filesystem::is_directory;
 
     // TODO: fix other OSes paths
 		std::string lLogPath = mLogPath;
 #if PIXY_PLATFORM == PIXY_PLATFORM_WINDOWS
-		lLogPath = path(mLogPath + "/" + "Karazeh.log").string();
+		lLogPath = path(mLogPath + "/Karazeh.log").string();
 #elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
-		lLogPath = Utility::macBundlePath() + "/Contents/Logs/Launcher.log";
+		lLogPath = path(mLogPath + "/Karazeh.log").make_preferred().string();
 #else
-		lLogPath = path(mLogPath + "/" + "Karazeh.log").make_preferred().string();
+		lLogPath = path(mLogPath + "/Karazeh.log").make_preferred().string();
 #endif
 
-    if (!exists(path(mLogPath)))
-      create_directory(path(mLogPath));
+    if (!is_directory(path(mLogPath).root_directory())) {
+      create_directory(path(mLogPath).root_directory());
+      std::cout << "creating log dir @ " << path(mLogPath).root_directory() << "\n";
+    }
     std::cout << "Karazeh: initting log4cpp logger @ " << lLogPath << "!\n";
 
 		log4cpp::Appender* lApp = new
@@ -264,10 +298,16 @@ namespace Pixy
 	}
 
 	void Launcher::launchExternalApp() {
+    if (!fLaunching) {
+      fLaunching = true;
+      mLog->infoStream() << "preparing to launch";
+      shutdown();
+    }
+      
     using boost::filesystem::path;
     std::string lPath = path(mBinPath + "/" + std::string(PIXY_EXTERNAL_APP_PATH)).make_preferred().string();
-
-    mLog->infoStream() << "launching external app @ " << lPath;
+    
+    std::cout << "launching external app @ " << lPath;
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
     _execl(lPath.c_str(), PIXY_EXTERNAL_APP_NAME, PIXY_EXTERNAL_APP_ARG, NULL);

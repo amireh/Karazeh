@@ -259,7 +259,7 @@ namespace Pixy {
     return true;
 	};
 
-	void OgreRenderer::go() {
+	void OgreRenderer::go(int argc, char** argv) {
 
 		lTimeLastFrame = 0;
 		lTimeCurrentFrame = 0;

@@ -69,7 +69,7 @@ namespace Pixy {
      * that's why you have to make sure that you pass off the event in an appropriate
      * way to your toolkit to handle. See QtRenderer for an example.
 		 */
-		virtual void go()=0;
+		virtual void go(int argc, char** argv)=0;
 
 		/*! \brief
 		 *  Clean up here any resources you've allocated. This will be called

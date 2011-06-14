@@ -21,35 +21,35 @@
  *
  */
 
-#ifndef H_VanillaRenderer_H
-#define H_VanillaRenderer_H
+#ifndef H_CocoaRenderer_H
+#define H_CocoaRenderer_H
 
+#include "Pixy.h"
 #include "Renderer.h"
 
 namespace Pixy {
-
-	/*	\class VanillaRenderer
+  
+	/*	\class CocoaRenderer
 	 *	\brief
 	 *
 	 */
-	class VanillaRenderer : public Renderer {
-
+	class CocoaRenderer : public Renderer {
+    
 	public:
-	  VanillaRenderer();
-		virtual ~VanillaRenderer();
-
+	  CocoaRenderer();
+		virtual ~CocoaRenderer();
+    
 		/* \brief
 		 *
 		 */
 		virtual bool setup(int argc, char** argv);
-
-
+    
+    
 		/* \brief
 		 *
 		 */
  		virtual bool cleanup();
-
-    /* emit signals */
+    
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
@@ -58,16 +58,17 @@ namespace Pixy {
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
-
+    
 		virtual void go(int argc, char** argv);
-
+    
+    void assignRenderer();
+    
 	protected:
-
     bool fShuttingDown;
-
+    
 	private:
-		VanillaRenderer(const VanillaRenderer& src);
-		VanillaRenderer& operator=(const VanillaRenderer& rhs);
+		CocoaRenderer(const CocoaRenderer& src);
+		CocoaRenderer& operator=(const CocoaRenderer& rhs);
 	};
 }
 #endif
