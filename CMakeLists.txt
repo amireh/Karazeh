@@ -54,6 +54,7 @@ SET( ${PROJECT_NAME}_BUILD_LEVEL 0 )
 # options
 OPTION(KARAZEH_RENDERER_OGRE "Build Ogre renderer" OFF)
 OPTION(KARAZEH_RENDERER_QT "Build Qt renderer" OFF)
+OPTION(KARAZEH_RENDERER_GTK3 "Build the GTK3 renderer" OFF)
 if(Boost_THREAD_FOUND AND Boost_DATE_TIME_FOUND)
   OPTION(KARAZEH_THREADS_BOOST "Use boost threads, must choose EXACTLY one" OFF)
 endif()

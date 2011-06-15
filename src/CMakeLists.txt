@@ -12,18 +12,18 @@ SET(Karazeh_SRCS
   ../include/PixyLog.h
   ../include/PixyLogLayout.h
   ../include/PixyUtility.h
-  
+
   ../include/Renderer.h
   ../include/Renderers/Vanilla/VanillaRenderer.h
-  
+
   ../include/PixyThread.h
   ../include/Threads/PixyThreadless.h
   ../include/Threads/PixyThreadQt.h
   ../include/Threads/PixyThreadBoost.h
-  
+
   ../include/binreloc.h
   ../include/md5.hpp
-  
+
   Launcher.cpp
   Patcher.cpp
   Downloader.cpp
@@ -45,21 +45,21 @@ SET(Karazeh_SRCS
 IF(KARAZEH_RENDERER_OGRE)
   # help find Ogre and its dependencies on Windows
   IF(WIN32)
-    SET( CMAKE_LIBRARY_PATH 
-      ${CMAKE_LIBRARY_PATH} 
+    SET( CMAKE_LIBRARY_PATH
+      ${CMAKE_LIBRARY_PATH}
       C:/Workspace/Build/Ogre1.7.2/lib/Release
       C:/Workspace/Build/Ogre1.7.2/Dependencies/lib)
-    SET( CMAKE_INCLUDE_PATH 
-      ${CMAKE_INCLUDE_PATH} 
+    SET( CMAKE_INCLUDE_PATH
+      ${CMAKE_INCLUDE_PATH}
       C:/Workspace/Build/Ogre1.7.2/include
       C:/Workspace/Build/Ogre1.7.2/Dependencies/include)
   ENDIF()
-  
+
   FIND_PACKAGE(OGRE COMPONENTS RenderSystem_GL REQUIRED)
   FIND_PACKAGE(OIS REQUIRED)
 
   OPTION(KARAZEH_DEFAULT_RENDERER_OGRE "Set Ogre as the default renderer" ON)
-  
+
   INCLUDE_DIRECTORIES(${OGRE_INCLUDE_DIRS} ${OIS_INCLUDE_DIRS})
 
   LIST(APPEND Karazeh_SRCS
@@ -72,7 +72,7 @@ IF(KARAZEH_RENDERER_OGRE)
     ../include/Renderers/Ogre/Listener.h
     ../include/Renderers/Ogre/OgreRenderer.h
     ../include/Renderers/Ogre/OgreSdkTrays.h
-    
+
     Renderers/Ogre/Event.cpp
     Renderers/Ogre/EventListener.cpp
     Renderers/Ogre/EventManager.cpp
@@ -91,12 +91,12 @@ IF(KARAZEH_RENDERER_QT)
 
   OPTION(KARAZEH_DEFAULT_RENDERER_QT "Set Qt as the default renderer" ON)
   OPTION(KARAZEH_THREADS_QT "Use Qt threads, must choose EXACTLY one" ON)
-  
+
   INCLUDE(${QT_USE_FILE})
   INCLUDE_DIRECTORIES(${QT_INCLUDE_DIRS})
 
   LIST(APPEND Karazeh_SRCS
-    ../include/Renderers/Qt/QtRenderer.h 
+    ../include/Renderers/Qt/QtRenderer.h
     Renderers/Qt/QtRenderer.cpp)
 
   QT4_WRAP_UI(Karazeh_SRCS
@@ -108,6 +108,25 @@ IF(KARAZEH_RENDERER_QT)
   INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
   LINK_DIRECTORIES(${QT_LIBRARY_DIRS})
   LINK_LIBRARIES(${QT_LIBRARIES})
+ENDIF()
+
+IF(KARAZEH_RENDERER_GTK3)
+  FIND_PACKAGE(GTK3 3.0 REQUIRED gtk gtkmm glade glademm)
+  pkg_check_modules(GTKMM gtkmm-3.0)
+  pkg_check_modules(GLIBMM glibmm-2.4)
+  MESSAGE(STATUS "GTK include dirs: ${GTK3_INCLUDE_DIRS}")
+
+  OPTION(KARAZEH_DEFAULT_RENDERER_GTK3 "Set GTK3 as the default renderer" ON)
+
+  LIST(APPEND Karazeh_SRCS
+    ../include/Renderers/GTK3/GTK3Renderer.h
+    Renderers/GTK3/GTK3Renderer.cpp)
+
+  INCLUDE_DIRECTORIES(
+    ${GTK3_GTK_INCLUDE_DIRS}
+    ${GTKMM_INCLUDE_DIRS}
+    ${GLIBMM_INCLUDE_DIRS})
+  LINK_LIBRARIES(${GTK3_GTK_LIBRARY} ${GTKMM_LIBRARIES} ${GLIBMM_LIBRARIES})
 ENDIF()
 
 # ---
@@ -124,27 +143,27 @@ IF(APPLE)
   LIST(REMOVE_ITEM Karazeh_SRCS Patcher.cpp)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Patcher.cpp ${CMAKE_CURRENT_SOURCE_DIR}/Patcher.mm)
 
-  LIST(APPEND Karazeh_SRCS 
+  LIST(APPEND Karazeh_SRCS
     Patcher.mm
 
     ../include/Renderers/Cocoa/CocoaRenderer.h
     ../include/Renderers/Cocoa/KAppDelegate.h
     Renderers/Cocoa/CocoaRenderer.mm
     Renderers/Cocoa/KAppDelegate.mm
-    
+
     ${XIB_FILE}
     ${NIB_FILE}
     ${ICNS_FILE}
   )
-    
+
   # tell CMake that the NIB file will be generated so it won't error out now
   SET_SOURCE_FILES_PROPERTIES(${NIB_FILE} PROPERTIES GENERATED 1)
-  
+
   FIND_LIBRARY(COREFOUNDATION_LIBRARY NAMES CoreFoundation)
   FIND_LIBRARY(COCOA_LIBRARY Cocoa )
   MARK_AS_ADVANCED (COREFOUNDATION_LIBRARY COCOA_LIBRARY)
   SET(MAC_LIBS ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY})
-  
+
   OPTION(KARAZEH_RENDERER_COCOA "Use the native Cocoa renderer" ON)
   OPTION(KARAZEH_DEFAULT_RENDERER_COCOA "Use the native Cocoa renderer as the default one" ON)
 ENDIF(APPLE)
@@ -170,9 +189,9 @@ IF(APPLE)
 
   # ---
   # Generate Info.plist (see resources/cocoa/KarazehInfo.plist.in)
-  # --- 
+  # ---
   SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${PLIST_FILE})
-  
+
   # ---
   # generate the NIB file and move it to the Bundle
   # ---
@@ -185,7 +204,7 @@ IF(APPLE)
       COMMAND ${NIB_GENERATOR} ${NIB_GENERATOR_OPTS} --compile
       ${NIB_FILE}
       ${XIB_FILE})
-  
+
     # and copy it to the bundle's resources
     SET_SOURCE_FILES_PROPERTIES(
       ${NIB_FILE}
@@ -193,7 +212,7 @@ IF(APPLE)
      	MACOSX_PACKAGE_LOCATION Resources/English.lproj)
 
   ENDIF(NIB_GENERATOR)
-  
+
   # ---
   # copy the icon
   # ---
