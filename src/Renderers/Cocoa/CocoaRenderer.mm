@@ -30,37 +30,35 @@ namespace Pixy {
 	CocoaRenderer::CocoaRenderer() {
 		mName = "CocoaRenderer";
   }
-  
+
 	CocoaRenderer::~CocoaRenderer() {
-       
+
 		if (fSetup)
 		  cleanup();
-    
+
     mCocoaApp = 0;
 	}
-  
+
 	bool CocoaRenderer::setup(int argc, char** argv) {
     if (fSetup)
       return true;
-        
+
 	  return true;
 	};
-  
+
 	bool CocoaRenderer::cleanup() {
     return true;
 	};
-  
+
 	void CocoaRenderer::go(int argc, char** argv) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSApplicationMain(argc,  (const char **) argv);
     [pool release];
 	};
-  
+
   void CocoaRenderer::injectUnableToConnect( void ) {
   };
-  void CocoaRenderer::injectPatchProgress(int inPercent) {
-    [mCocoaApp patchProgress:inPercent];
-  }
+
 	void CocoaRenderer::injectValidateStarted( void ) {
     [mCocoaApp validateStarted];
 	}
@@ -70,6 +68,15 @@ namespace Pixy {
 	void CocoaRenderer::injectPatchStarted( Version const& inTargetVersion ) {
     [mCocoaApp patchStarted:inTargetVersion];
 	}
+
+  void CocoaRenderer::injectPatchSize( pbigint_t inBytes ) {
+
+  };
+
+  void CocoaRenderer::injectPatchProgress(float inPercent) {
+    [mCocoaApp patchProgress:inPercent];
+  }
+
 	void CocoaRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     NSString *lMsg = [[NSString alloc] initWithCString:inMsg.c_str() encoding:[NSString defaultCStringEncoding]];
     [mCocoaApp patchFailed: lMsg : inTargetVersion];
@@ -81,9 +88,9 @@ namespace Pixy {
   void CocoaRenderer::injectApplicationPatched( Version const& inCurrentVersion ) {
     [mCocoaApp applicationPatched: inCurrentVersion];
   }
-  
+
   void CocoaRenderer::assignRenderer() {
     mCocoaApp = static_cast<KAppDelegate*>([[NSApplication sharedApplication] delegate]);
   }
-  
+
 };

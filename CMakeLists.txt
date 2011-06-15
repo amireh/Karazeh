@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 IF(DEFINED CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 ELSE()
-  SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+  SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 ENDIF()
 
 INCLUDE (CheckIncludeFileCXX)
@@ -52,18 +52,29 @@ SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
 SET( ${PROJECT_NAME}_BUILD_LEVEL 0 )
 
 # options
-OPTION(KARAZEH_RENDERER_OGRE "Build Ogre renderer" OFF)
-OPTION(KARAZEH_RENDERER_QT "Build Qt renderer" OFF)
+OPTION(KARAZEH_PERSISTENT "Don't clean up patch data to enable resume support (experimental)" OFF)
+OPTION(KARAZEH_REAL_PROGRESS "Injects the Renderer with precise (bytes) downloading progress (recommended)" ON)
+OPTION(KARAZEH_RENDERER_OGRE "Build Ogre renderer (requires version 1.7.2+)" OFF)
+OPTION(KARAZEH_RENDERER_QT "Build Qt renderer  (requires version 4.7+)" OFF)
 OPTION(KARAZEH_RENDERER_GTK3 "Build the GTK3 renderer" OFF)
-if(Boost_THREAD_FOUND AND Boost_DATE_TIME_FOUND)
-  OPTION(KARAZEH_THREADS_BOOST "Use boost threads, must choose EXACTLY one" OFF)
-endif()
-OPTION(KARAZEH_USE_LOG4CPP "Use log4cpp for logging" ON)
+IF(DEFINED KARAZEH_DEFAULT_RENDERER)
+  SET(KARAZEH_DEFAULT_RENDERER
+    ${KARAZEH_DEFAULT_RENDERER}
+    CACHE STRING "Choose a renderer to be chosen by default when Karazeh is run, options are: Vanilla (CLI), Ogre, Qt, Cocoa (Mac only), GTK3")
+ELSE()
+  SET(KARAZEH_DEFAULT_RENDERER
+    Vanilla
+    CACHE STRING "Choose a renderer to be chosen by default when Karazeh is run, options are: Vanilla (CLI), Ogre, Qt, Cocoa (Mac only), GTK3")
+ENDIF()
+
+IF(Boost_THREAD_FOUND AND Boost_DATE_TIME_FOUND)
+  OPTION(KARAZEH_THREADS_BOOST "Use boost threads (you can choose AT MOST one thread providor)" OFF)
+ENDIF()
 IF(TBB_FOUND)
-  OPTION(KARAZEH_THREADS_TBB "Use Intel TBB threads, must choose EXACTLY one" OFF)
+  OPTION(KARAZEH_THREADS_TBB "Use Intel TBB threads (you can choose AT MOST one thread providor)" OFF)
 ENDIF()
 IF(POCO_FOUND)
-  OPTION(KARAZEH_THREADS_POCO "Use POCO for threading, must choose EXACTLY one" OFF)
+  OPTION(KARAZEH_THREADS_POCO "Use POCO for threading (you can choose AT MOST one thread providor)" OFF)
 ENDIF()
 
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
@@ -79,7 +90,7 @@ INCLUDE_DIRECTORIES(
 )
 
 IF(KARAZEH_USE_LOG4CPP)
-  INCLUDE_DIRECTORIES(${LOG4CPP_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${LOG4CPP_INCLUDE_DIR})
   LINK_LIBRARIES( ${LOG4CPP_LIBRARIES} )
 ENDIF()
 
@@ -101,3 +112,6 @@ LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS} ${CURL_LIBRARY_DIRS} ${BZip2_LIBRARY_DIRS
 LINK_LIBRARIES( ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${BZIP2_LIBRARIES})
 
 ADD_SUBDIRECTORY(src)
+
+# just hide this
+MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)

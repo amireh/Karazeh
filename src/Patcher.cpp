@@ -98,7 +98,7 @@ namespace Pixy {
 
     mProcessors.clear();
 
-#ifndef PIXY_PERSISTENT
+#ifndef KARAZEH_PERSISTENT
     // TODO: boost error checking
     boost::filesystem::remove_all(Launcher::getSingleton().getTempPath());
 #endif
@@ -342,14 +342,16 @@ namespace Pixy {
       try {
         (this->*mProcessors[(*entry)->Op])((*entry), false);
       } catch (FileDoesNotExist& e) {
-        // TODO: inject renderer with the error        
+        // TODO: inject renderer with the error
         mRenderer->injectPatchFailed("A required file does not exist! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
         mLog->errorStream() << e.what();
+        return success;
       } catch (FileAlreadyCreated& e) {
         mRenderer->injectPatchFailed("A file already exists! Possible application corruption, please re-install.", inRepo->getVersion());
         success = false;
         mLog->errorStream() << e.what();
+        return success;
       }
 
     return success;
@@ -363,7 +365,7 @@ namespace Pixy {
       [pool release];
       return;
     }
-    
+
     // Cocoa renderer will crash if we don't sleep for some time here because
     // this generates a race condition with displaying NSAlert sheets
     sleep(1);
@@ -411,7 +413,7 @@ namespace Pixy {
 	    // validate the repository
 	    if (!preprocess(*repo)) {
 	      // we cannot patch
-        mRenderer->injectPatchFailed( std::string("Bad application data, have you manually modified the application's files?"), (*repo)->getVersion() );
+        //mRenderer->injectPatchFailed( std::string("Bad application data, have you manually modified the application's files?"), (*repo)->getVersion() );
 
 	      success = false;
 	      break;

@@ -131,12 +131,15 @@ namespace Pixy {
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
-		virtual void injectPatchProgress( int inPercent );
+    virtual void injectPatchSize( pbigint_t inBytes );
+		virtual void injectPatchProgress( float inPercent );
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
 
 	protected:
+    bool evtGuiLoaded(Event* inEvt);
+
 		bool evtUnableToConnect( Event* inEvt );
 		bool evtValidateStarted( Event* inEvt );
 		bool evtValidateComplete( Event* inEvt );
@@ -169,6 +172,8 @@ namespace Pixy {
 
 		bool fShowingOkDialog;
     bool fShutdown;
+
+    pbigint_t mPatchSize;
 
     unsigned long lTimeLastFrame, lTimeCurrentFrame, lTimeSinceLastFrame;
 

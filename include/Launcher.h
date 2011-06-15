@@ -31,6 +31,7 @@
 #include <map>
 
 #include "Pixy.h"
+#include "PixyThread.h"
 #include "PixyUtility.h"
 #include "Renderer.h"
 #include "Patcher.h"
@@ -58,14 +59,14 @@ namespace Pixy
     /*! \brief
      * Destroys all components, namely the Patcher, Downloader, and the Renderer
      * effectively cleaning up.
-     * 
+     *
      * \warn
      * This will call the Renderer's destructor so make sure you're not calling it
      * directly from there. This method should be avoided unless the Renderer is
      * a wrapper as is the case with Cocoa's.
      */
-    static void shutdown();
-    
+    void shutdown();
+
 		/*! \brief
 		 *	Starts up the components: InputManager, Renderer, Patcher and Downloader,
 		 *  fires Patcher::validate() in a thread, and begins the application loop.
@@ -83,7 +84,7 @@ namespace Pixy
 		 *  \arg inAppName: stripped name of the application, ie Foo
 		 */
 		void launchExternalApp();
-    
+
     bool isLaunching() { return fLaunching; };
 
 		/*! \brief
@@ -92,14 +93,21 @@ namespace Pixy
 		void requestShutdown();
 
     /*! \brief
-     *  Fires up the processor thread which calls the Patcher.
+     *  Calls the Patcher to validate the client.
      *
-     * The first time Patcher() is called, it validates the application. The
-     * second call makes it actually process the patch. The first call is always
-     * triggered by the Launcher, while the second is triggered by the Renderer
-     * based on user input (if they want to update or not).
+     * \warn
+     * This MUST be called before initPatching()
      */
-    void updateApplication();
+    void startValidation();
+
+    /*! \brief
+     *  Calls the Patcher to update the client.
+     *
+     * \warn
+     * Make sure you call this after the validation is complete. Renderers
+     * are injected upon validation completion.
+     */
+    void startPatching();
 
 		Renderer* getRenderer();
 
@@ -140,7 +148,7 @@ namespace Pixy
     std::string mLogPath; // where logs are dumped
 
     Thread<Patcher> *mVWorker, *mPWorker;
-    
+
     bool fLaunching;
     bool fShutdown;
 	};

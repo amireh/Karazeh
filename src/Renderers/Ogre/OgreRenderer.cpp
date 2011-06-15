@@ -241,6 +241,7 @@ namespace Pixy {
 	  mProgress = mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 
+    bind("GuiLoaded", this, &OgreRenderer::evtGuiLoaded);
     bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
     bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
     bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
@@ -249,6 +250,8 @@ namespace Pixy {
     bind("PatchFailed", this, &OgreRenderer::evtPatchFailed);
     bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
     bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
+
+    mLog->infoStream() << "setup";
 
 	  return true;
 	};
@@ -267,7 +270,7 @@ namespace Pixy {
 
     mRoot->getTimer()->reset();
 
-		// main game loop
+    //mEvtMgr->hook(mEvtMgr->createEvt("GuiLoaded"));
 		while( !fShutdown ) {
 
 	    // calculate time since last frame and remember current time for next frame
@@ -289,10 +292,7 @@ namespace Pixy {
 
 			// render next frame
 		  mRoot->renderOneFrame();
-
 		}
-
-
 	}
 
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
@@ -333,28 +333,22 @@ namespace Pixy {
 
 	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
 	  if (yesHit) {
-      Launcher::getSingleton().updateApplication();
+      Launcher::getSingleton().startPatching();
 	  }
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
     if (b->getName() == "Launch") {
       Launcher::getSingleton().launchExternalApp();
-    } else if (b->getName() == "Patch") {
-      //Patcher::getSingleton().validate();
-      //Launcher::getSingleton().updateApplication();
     }
 
   };
-
+  bool OgreRenderer::evtGuiLoaded(Event* inEvt) {
+    Launcher::getSingleton().startValidation();
+    return true;
+  };
   void OgreRenderer::injectUnableToConnect( void ) {
     mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
   };
-
-  void OgreRenderer::injectPatchProgress(int inPercent) {
-    Event* lEvt = mEvtMgr->createEvt("PatchProgress");
-    lEvt->setProperty("Percent", Utility::stringify(inPercent));
-    mEvtMgr->hook(lEvt);
-  }
 
 	void OgreRenderer::injectValidateStarted( void ) {
     mEvtMgr->hook(mEvtMgr->createEvt("ValidateStarted"));
@@ -371,6 +365,17 @@ namespace Pixy {
     lEvt->setAny((void*)&inTargetVersion);
     mEvtMgr->hook(lEvt);
 	}
+
+  void OgreRenderer::injectPatchSize( pbigint_t inSize ) {
+    mPatchSize = inSize;
+  };
+
+  void OgreRenderer::injectPatchProgress(float inPercent) {
+    /*Event* lEvt = mEvtMgr->createEvt("PatchProgress");
+    lEvt->setProperty("Percent", Utility::stringify(inPercent));
+    mEvtMgr->hook(lEvt);*/
+  }
+
 
 	void OgreRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     Event* lEvt = mEvtMgr->createEvt("PatchFailed");
@@ -426,9 +431,9 @@ namespace Pixy {
     return true;
   }
   bool OgreRenderer::evtPatchProgress( Event* inEvt ) {
-    int inPercent = Utility::convertTo<int>(inEvt->getProperty("Percent"));
+    int inPercent = Utility::convertTo<float>(inEvt->getProperty("Percent"));
 
-    mProgress->setProgress(inPercent / 100.0f);
+    mProgress->setProgress((int)inPercent / 100.0f);
     return true;
   }
   bool OgreRenderer::evtPatchFailed( Event* inEvt ) {

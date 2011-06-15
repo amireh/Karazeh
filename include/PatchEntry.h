@@ -85,6 +85,9 @@ struct PatchEntry {
    * and in the case of CREATE, it's of the downloaded file.
    */
   std::string Checksum;
+
+  pbigint_t Filesize; // in bytes
+
 };
 
 };

@@ -31,6 +31,8 @@ namespace Pixy {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY,"Repository " + mVersion.Value);
 		mLog->infoStream() << "constructed";
 
+    mSize = 0;
+
   }
 
 	Repository::~Repository() {
@@ -96,4 +98,13 @@ namespace Pixy {
   const Version& Repository::getVersion() {
     return mVersion;
   }
+
+  long long Repository::getSize() {
+    return mSize;
+  }
+  void Repository::setSize(long long inSize) {
+    mSize = inSize;
+
+  }
+
 };

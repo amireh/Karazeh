@@ -35,6 +35,9 @@
 #ifdef KARAZEH_RENDERER_COCOA
 #include "Renderers/Cocoa/CocoaRenderer.h"
 #endif
+#ifdef KARAZEH_RENDERER_GTK3
+#include "Renderers/GTK3/GTK3Renderer.h"
+#endif
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
 #include <windows.h>
@@ -58,15 +61,22 @@ namespace Pixy
   mPWorker(0) {
 	  signal(SIGINT, handle_interrupt);
 	  signal(SIGTERM, handle_interrupt);
-    
+
     fShutdown = false;
     fLaunching = false;
 	}
 
 	Launcher::~Launcher() {
+
+
+
+
+	}
+  void Launcher::shutdown() {
     if (fShutdown)
       return;
-    
+
+    //delete __instance;
     if (mRenderer)
       delete mRenderer;
 
@@ -85,16 +95,11 @@ namespace Pixy
 
 		log4cpp::Category::shutdown();
     mRenderer = NULL;
-    
+
     fShutdown = true;
-    
+
     if (fLaunching)
       launchExternalApp();
-
-		
-	}
-  void Launcher::shutdown() {
-    delete __instance;
   }
 	Launcher* Launcher::getSingletonPtr() {
 		if( !__instance ) {
@@ -124,7 +129,9 @@ namespace Pixy
 
     this->initRenderer(argc, argv);
 
-    this->updateApplication();
+    // V0.2: Launcher is no longer responsible for the Patcher, Renderers
+    // have to explicitly start both the validation and the patching processes
+    //this->updateApplication();
 
 		// main loop
     return mRenderer->go(argc,argv);
@@ -136,6 +143,7 @@ namespace Pixy
 
     // locate the binary and build its path
 #if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
+    std::cout << "Platform: Linux\n";
     // use binreloc and boost::filesystem to build up our paths
     int brres = br_init(0);
     if (brres == 0) {
@@ -152,7 +160,7 @@ namespace Pixy
     boost::filesystem::create_directory(path(mBinPath + "/../Resources").make_preferred());
     boost::filesystem::create_directory(path(mBinPath + "/../Resources/Log").make_preferred());
     boost::filesystem::create_directory(path(mBinPath + "/../Resources/Temp").make_preferred());
-    
+
     mLogPath = (path(mBinPath).remove_leaf() / path("/Resources/Log").make_preferred()).string();
     mTempPath = (path(mBinPath).remove_leaf() / path("/Resources/Temp").make_preferred()).string();
     dontOverride = true;
@@ -181,40 +189,41 @@ namespace Pixy
       mTempPath = (path(mRootPath) / path(PROJECT_TEMP_DIR)).make_preferred().string();
       mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();
     }
-    
-//#ifdef DEBUG
+
+#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
     std::cout << "Root path: " <<  mRootPath << "\n";
     std::cout << "Temp path: " <<  mTempPath << "\n";
     std::cout << "Log path: " <<  mLogPath << "\n";
-//#endif
+#endif
 
   };
 
   void Launcher::initRenderer(int argc, char** argv) {
 
+#ifdef KARAZEH_RENDERER_COCOA
+    if ("Cocoa" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Cocoa") == 0))
+      if (!mRenderer)
+        mRenderer = new CocoaRenderer();
+#endif
 #ifdef KARAZEH_RENDERER_OGRE
-  #ifndef KARAZEH_DEFAULT_RENDERER_OGRE
-	  if (argc > 1 && strcmp(argv[1], "Ogre") == 0)
-  #endif
-	    mRenderer = new OgreRenderer();
+	  if ("Ogre" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Ogre") == 0))
+      if (!mRenderer)
+        mRenderer = new OgreRenderer();
 #endif
 #ifdef KARAZEH_RENDERER_QT
-  #ifndef KARAZEH_DEFAULT_RENDERER_QT
-    if (argc > 1 && strcmp(argv[1], "Qt") == 0)
-  #endif
-    if (!mRenderer)
-      mRenderer = new QtRenderer();
+    if ("Qt" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Qt") == 0))
+      if (!mRenderer)
+        mRenderer = new QtRenderer();
 #endif
-#ifdef KARAZEH_RENDERER_COCOA
-    if (!mRenderer)
-      mRenderer = new CocoaRenderer();
+#ifdef KARAZEH_RENDERER_GTK3
+    if ("GTK3" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "GTK3") == 0))
+      if (!mRenderer)
+        mRenderer = new GTK3Renderer();
 #endif
     if (!mRenderer) {
+      if (argc > 1)
         mLog->errorStream() << "unknown renderer specified! going vanilla";
-      }
-
-    if (!mRenderer) {
       mRenderer = new VanillaRenderer();
     }
 
@@ -303,10 +312,10 @@ namespace Pixy
       mLog->infoStream() << "preparing to launch";
       shutdown();
     }
-      
+
     using boost::filesystem::path;
     std::string lPath = path(mBinPath + "/" + std::string(PIXY_EXTERNAL_APP_PATH)).make_preferred().string();
-    
+
     std::cout << "launching external app @ " << lPath;
 
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
@@ -321,10 +330,24 @@ namespace Pixy
     return mRenderer;
   }
 
-  void Launcher::updateApplication() {
-    if (mVWorker)
-      mPWorker = new Thread<Patcher>(Patcher::getSingleton());
-    else
-      mVWorker = new Thread<Patcher>(Patcher::getSingleton());
+  void Launcher::startValidation() {
+    if (mVWorker) {
+      std::cerr << "Launcher: already validated, duplicate request, discarding...\n";
+      return;
+    } else if (mPWorker) {
+      std::cerr << "Launcher: Patcher is updating or has completed updating, don't call validate. Aborting\n";
+      return;
+    }
+
+    mVWorker = new Thread<Patcher>(Patcher::getSingleton());
+  }
+
+  void Launcher::startPatching() {
+    if (mPWorker) {
+      std::cerr << "Launcher: looks like Patcher is already updating, aborting request for patching\n";
+      return;
+    }
+
+    mPWorker = new Thread<Patcher>(Patcher::getSingleton());
   }
 } // end of namespace Pixy

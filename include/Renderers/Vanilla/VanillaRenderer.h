@@ -54,7 +54,8 @@ namespace Pixy {
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
-		virtual void injectPatchProgress( int inPercent );
+    virtual void injectPatchSize( long long inSize );
+		virtual void injectPatchProgress( float inPercent );
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
@@ -62,8 +63,9 @@ namespace Pixy {
 		virtual void go(int argc, char** argv);
 
 	protected:
-
+    long long lPatchSize;
     bool fShuttingDown;
+    bool fWantsToLaunch;
 
 	private:
 		VanillaRenderer(const VanillaRenderer& src);

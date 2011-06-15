@@ -59,6 +59,7 @@ namespace Pixy {
     margv = argv;
 
     qRegisterMetaType<Version>("Version");
+    qRegisterMetaType<pbigint_t>("pbigint_t");
 
     QObject::connect(this,
                      SIGNAL(emitUnableToConnect(void)),
@@ -77,9 +78,13 @@ namespace Pixy {
                      this,
                      SLOT(handlePatchStarted(Version const&)));
     QObject::connect(this,
-                     SIGNAL(emitPatchProgress(int)),
+                     SIGNAL(emitPatchProgress(float)),
                      this,
-                     SLOT(handlePatchProgress(int)));
+                     SLOT(handlePatchProgress(float)));
+    QObject::connect(this,
+                     SIGNAL(emitPatchSize(pbigint_t)),
+                     this,
+                     SLOT(handlePatchSize(pbigint_t)));
     QObject::connect(this,
                      SIGNAL(emitPatchFailed(QString, Version const&)),
                      this,
@@ -132,31 +137,38 @@ namespace Pixy {
 	};
 
 	void QtRenderer::go(int argc, char** argv) {
+    // start validating when the app is loaded
+    QObject::connect(this, SIGNAL(guiStarted()), this, SLOT(onGuiStart()));
+    QTimer::singleShot(0, this, SIGNAL(guiStarted()));
+
     mApp->exec();
 	};
 
+  void QtRenderer::onGuiStart() {
+    Launcher::getSingleton().startValidation();
+  };
 
   void QtRenderer::injectUnableToConnect( void ) {
     emit emitUnableToConnect();
   };
 
-  void QtRenderer::injectPatchProgress(int inPercent) {
+  void QtRenderer::injectPatchProgress(float inPercent) {
     emit emitPatchProgress(inPercent);
   }
 
 	void QtRenderer::injectValidateStarted( void ) {
-    mLog->infoStream() << "injecting validate started";
     emit emitValidateStarted();
 	}
 	void QtRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
-
-    mLog->infoStream() << "injecting validate complete";
-
     emit emitValidateComplete(inNeedUpdate, inTargetVersion);
 	}
 
 	void QtRenderer::injectPatchStarted( Version const& inTargetVersion ) {
     emit emitPatchStarted(inTargetVersion);
+	}
+
+  void QtRenderer::injectPatchSize( pbigint_t inBytes ) {
+    emit emitPatchSize(inBytes);
 	}
 
 	void QtRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
@@ -175,53 +187,48 @@ namespace Pixy {
     mUI.labelStatus->setText("Status: Unable to connect to patch server");
   }
   void QtRenderer::handleValidateStarted( void ) {
-    mLog->infoStream() << "validate started";
     mUI.labelStatus->setText("Status: Validating");
   }
   void QtRenderer::handleValidateComplete( bool inNeedUpdate, Version const& inTargetVersion ) {
-    mLog->infoStream() << "validate complete";
-
     if (inNeedUpdate) {
+      mUI.labelStatus->setText("Status: Out of date");
       std::string lMsg =
         "Application needs updating. Latest version is" + inTargetVersion.Value
         + " and current version is " + " .. would you like to update now?";
       mDlgUI.textBrowser->setText(QString(lMsg.c_str()));
       mYesNoDlg->exec();
-      mUI.labelStatus->setText("Status: Out of date");
-    } else {
-      mUI.labelStatus->setText("Status: Application is up to date");
-    }
+
+    } else
+      handleApplicationPatched(inTargetVersion);
   }
 
   void QtRenderer::handlePatchAccepted() {
-    Launcher::getSingleton().updateApplication();
+    Launcher::getSingleton().startPatching();
   }
   void QtRenderer::handlePatchStarted( Version const& inTargetVersion ) {
-    mLog->infoStream() << "started patching";
-
     std::string lMsg = "Status: Updating to " + inTargetVersion.Value;
     mUI.labelStatus->setText(lMsg.c_str());
+    mUI.progressBar->setValue(0);
   }
-  void QtRenderer::handlePatchProgress( int inPercent ) {
-    mLog->infoStream() << "updating patch progress";
+  void QtRenderer::handlePatchSize( pbigint_t inBytes ) {
+    //lPatchSize = inSize;
+  };
 
-    mUI.progressBar->setValue(inPercent);
+  void QtRenderer::handlePatchProgress(float inPercent) {
+    mUI.progressBar->setValue((int)inPercent);
   }
+
   void QtRenderer::handlePatchFailed( QString inMsg, Version const& inTargetVersion ) {
-    mLog->infoStream() << "patching failed, reason:";
-    mLog->infoStream() << inMsg.toStdString();
-
     QString lMsg = tr("Update failed! ") + inMsg;
     mUI.textPatchStatus->setText(lMsg);
-    mUI.labelStatus->setText("Status: Update failed, reason: " + inMsg);
+    mUI.labelStatus->setText("Status: " + lMsg);
   }
   void QtRenderer::handlePatchComplete( Version const& inCurrentVersion ) {
-    mLog->infoStream() << "patching cmoplete";
     mUI.labelStatus->setText("Status: Application updated");
   }
   void QtRenderer::handleApplicationPatched( Version const& inCurrentVersion ) {
-    mLog->infoStream() << "all patches complete";
-    mUI.labelStatus->setText("Status: Application is up to date");
+    mUI.progressBar->setValue(100);
+    mUI.labelStatus->setText("Status: Application is up to date, v" + QString(inCurrentVersion.toNumber().c_str()));
   }
 
   void QtRenderer::handleLaunchApplication() {

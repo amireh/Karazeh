@@ -24,16 +24,6 @@
 #ifndef H_Pixy_H
 #define H_Pixy_H
 
-#include "KarazehConfig.h"
-#include <exception>
-#include <stdint.h>
-#include "log4cpp/Category.hh"
-#include "log4cpp/FixedContextCategory.hh"
-#include "log4cpp/FileAppender.hh"
-#include "PixyPlatform.h"
-#include "PixyExceptions.h"
-#include "PixyLogLayout.h"
-#include "PixyThread.h"
 /*
  * log4cpp defines int64_t as __int64_t but does not use it at all,
  * and this conflicts with boost on WIN32, so we undefine it here
@@ -48,7 +38,19 @@
 #define PIXY_LOG_CATEGORY "Karazeh" // used in log4cpp
 #define PIXY_RESOURCE "Karazeh.dat"
 #define PIXY_MIRRORS_RESOURCE "patch_mirrors.txt"
-//#define PIXY_PERSISTENT
+
+typedef long long pbigint_t;
+
+#include "KarazehConfig.h"
+#include <exception>
+#include <stdint.h>
+#include "log4cpp/Category.hh"
+#include "log4cpp/FixedContextCategory.hh"
+#include "log4cpp/FileAppender.hh"
+#include "PixyPlatform.h"
+#include "PixyExceptions.h"
+#include "PixyLogLayout.h"
+//#include "PixyThread.h"
 
 /* Application paths:
  *
@@ -85,5 +87,6 @@ const int PIXY_DISTANCE_FROM_ROOT = 1;
 #define PIXY_EXTERNAL_APP_ARG "Qt"
 const int PIXY_DISTANCE_FROM_ROOT = 1;
 #endif
+
 
 #endif
