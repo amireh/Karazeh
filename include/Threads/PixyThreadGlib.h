@@ -1,3 +1,5 @@
+//
+
 /*
  *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
  *
@@ -21,45 +23,46 @@
  *
  */
 
-#ifndef H_PixyThread_H
-#define H_PixyThread_H
+#ifndef H_PixyThreadless_H
+#define H_PixyThreadless_H
 
-//#include "Patcher.h"
-#include <typeinfo>
+#include "glibmm.h"
+#include "Patcher.h"
 
-#ifdef KARAZEH_THREAD_PROVIDER
-#undef KARAZEH_THREAD_PROVIDER
-#endif
+namespace Pixy {
 
-// can use only one of these, hence the USE_THREADS flag
+  template <class T>
+  class Thread {
+    public:
+    Thread() {};
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_BOOST
-#include "Threads/PixyThreadBoost.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T& inT) {
+      doWork();
+    };
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_QT
-#include "Threads/PixyThreadQt.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    Thread(T* inT) {
+      doWork();
+    };
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_TBB
-#include "Threads/PixyThreadTBB.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    virtual ~Thread() {
+      g_return_if_fail(mWorker == 0);
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_POCO
-#include "Threads/PixyThreadPoco.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+      mWorker = 0;
+    };
 
-#if !defined KARAZEH_THREAD_PROVIDER && defined KARAZEH_THREADS_GLIB
-#include "Threads/PixyThreadGlib.h"
-#define KARAZEH_THREAD_PROVIDER
-#endif
+    private:
 
-#ifndef KARAZEH_THREAD_PROVIDER
-#include "Threads/PixyThreadless.h"
-#endif // ifndef KARAZEH_THREAD_PROVIDOR
+    void doWork() {
+      mWorker = Glib::Thread::create(sigc::mem_fun(Patcher::getSingleton(), &Patcher::operator()), true);
+      mWorker = 0;
+    }
 
-#endif
+    Thread(const Thread& rhs);
+    Thread& operator=(const Thread& rhs);
+
+    Glib::Thread* mWorker;
+  };
+
+}
+
+#endif // H_PixyThreadless_H

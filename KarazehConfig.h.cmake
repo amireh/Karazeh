@@ -6,6 +6,7 @@
 #cmakedefine KARAZEH_THREADS_BOOST
 #cmakedefine KARAZEH_THREADS_TBB
 #cmakedefine KARAZEH_THREADS_POCO
+#cmakedefine KARAZEH_THREADS_GLIB
 #cmakedefine KARAZEH_USE_LOG4CPP
 #cmakedefine KARAZEH_REAL_PROGRESS
 #cmakedefine KARAZEH_PERSISTENT

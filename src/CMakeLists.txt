@@ -114,7 +114,8 @@ IF(KARAZEH_RENDERER_GTK3)
   FIND_PACKAGE(GTK3 3.0 REQUIRED gtk gtkmm glade glademm)
   pkg_check_modules(GTKMM gtkmm-3.0)
   pkg_check_modules(GLIBMM glibmm-2.4)
-  MESSAGE(STATUS "GTK include dirs: ${GTK3_INCLUDE_DIRS}")
+
+  OPTION(KARAZEH_THREADS_GLIB "Use Glib threads (you can choose AT MOST one thread providor)" ON)
 
   LIST(APPEND Karazeh_SRCS
     ../include/Renderers/GTK3/GTK3Renderer.h
