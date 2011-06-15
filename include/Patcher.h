@@ -24,7 +24,7 @@
 #ifndef H_Patcher_H
 #define H_Patcher_H
 
-//#include "Pixy.h"
+#include "Pixy.h"
 #include "Repository.h"
 #include "Renderer.h"
 #include <list>

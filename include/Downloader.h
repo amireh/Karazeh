@@ -91,9 +91,16 @@ class Downloader {
 	   */
 	  bool _fetchRepository(Repository* inRepo, int nrRetries = 3);
 
+    void _updateDownloadProgress(double inStep);
+
 	protected:
+    Repository *mCurrentRepo;
+    pbigint_t mDownloadedBytes;
+
 	  //! grabs a file from url using libcurl and dumps it to out
 	  void fetchFile(std::string url, std::string out);
+
+    pbigint_t calcRepositorySize(Repository* inRepo);
 
 	  std::list<std::string> mHosts;
 	  std::string* mActiveHost;
@@ -128,12 +135,16 @@ class Downloader {
         };
         ~Fetcher() { };
 
-        bool operator()(std::string url, std::string out, int retries=0, CURL* curl=0);
+        bool operator()(std::string url, std::string out, int retries=0, bool withProgress = false, CURL* curl=0);
 
         static size_t write_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
         static size_t read_func(void *ptr, size_t size, size_t nmemb, FILE *stream);
+        static size_t handle_headers(void *ptr, size_t size, size_t nmemb, void *stream);
         static int progress_func(void* something, double t, double d, double ultotal, double ulnow);
+        static double delta;
+        pbigint_t fileSize(std::string url, CURL* curl=0);
 
+        static std::string last_content_length;
       private:
         void clone(const Fetcher& src) { };
     };

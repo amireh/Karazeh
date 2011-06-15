@@ -37,11 +37,16 @@ namespace Pixy {
 		mLog->infoStream() << "firing up";
 
 		mName = "VanillaRenderer";
+
+    fShuttingDown = false;
+    fWantsToLaunch = false;
   }
 
 	VanillaRenderer::~VanillaRenderer() {
 
 		mLog->infoStream() << "shutting down";
+
+    fShuttingDown = true;
 
 		if (fSetup)
 		  cleanup();
@@ -83,15 +88,16 @@ namespace Pixy {
 
     cout << "Shutting down. Bye!\n";
     cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
+
+    if (fWantsToLaunch)
+      return (void)Launcher::getSingleton().launchExternalApp();
 	};
 
   void VanillaRenderer::injectUnableToConnect( void ) {
     cout << "Unable to connect to patch server, please check your internet connectivity.\n";
     fShuttingDown = true;
   };
-  void VanillaRenderer::injectPatchProgress(int inPercent) {
-    cout << "Patch " << inPercent << "% complete\n";
-  }
+
 	void VanillaRenderer::injectValidateStarted( void ) {
     cout << "Validating application version...\n";
 	}
@@ -100,24 +106,39 @@ namespace Pixy {
     if (inNeedUpdate) {
       cout << "Application is out of date. Would you like to update now? [Y/n] ";
       cin >> answer;
-      if (answer == "Y" || answer == "y") {
-        Launcher::getSingleton().startPatching();
-      } else {
+      if (answer == "n" || answer == "N") {
         fShuttingDown = true;
+      } else {
+        Launcher::getSingleton().startPatching();
       }
     } else {
       cout << "Application is up to date. Would you like to launch it now? [Y/n] ";
       cin >> answer;
-      if (answer == "Y" || answer == "y") {
-        Launcher::getSingleton().launchExternalApp();
-      } else {
+      if (answer == "n" || answer == "N") {
         fShuttingDown = true;
+      } else {
+        Launcher::getSingleton().launchExternalApp();
       }
     }
 	}
 	void VanillaRenderer::injectPatchStarted( Version const& inTargetVersion ) {
     cout << "Patch started: upgrading to version " << inTargetVersion.toNumber() << "\n";
 	}
+
+  void VanillaRenderer::injectPatchSize( long long inSize ) {
+    cout << "Patch size: " << inSize << " bytes\n";
+    lPatchSize = inSize;
+  };
+
+  void VanillaRenderer::injectPatchProgress(float inPercent) {
+#ifdef KARAZEH_REAL_PROGRESS
+    cout << "Patch " << (int)inPercent << "% complete (";
+    cout << lPatchSize * (inPercent / 100.0f) << "b of " << lPatchSize << " bytes) \n";
+#else
+    cout << "Patch " << inPercent << "% complete \n";
+#endif
+  }
+
 	void VanillaRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     cout << "Patch failed! Error: " << inMsg << "\n";
     fShuttingDown = true;
@@ -132,7 +153,8 @@ namespace Pixy {
     cout << "Would you like to launch the application? [Y/n] ";
     cin >> answer;
     if (answer == "Y" || answer == "y") {
-      Launcher::getSingleton().launchExternalApp();
+      fWantsToLaunch = true;
+      fShuttingDown = true;
     } else {
       fShuttingDown = true;
     }

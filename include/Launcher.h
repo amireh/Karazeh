@@ -31,6 +31,7 @@
 #include <map>
 
 #include "Pixy.h"
+#include "PixyThread.h"
 #include "PixyUtility.h"
 #include "Renderer.h"
 #include "Patcher.h"
@@ -64,7 +65,7 @@ namespace Pixy
      * directly from there. This method should be avoided unless the Renderer is
      * a wrapper as is the case with Cocoa's.
      */
-    static void shutdown();
+    void shutdown();
 
 		/*! \brief
 		 *	Starts up the components: InputManager, Renderer, Patcher and Downloader,

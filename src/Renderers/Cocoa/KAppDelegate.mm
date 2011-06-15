@@ -33,7 +33,7 @@ enum DIALOG_TYPE {
   // if the launcher is going to launch the external app now, there's no
   // need to shut it down; it's already shutting down
   if (!Pixy::Launcher::getSingleton().isLaunching())
-    Pixy::Launcher::shutdown();
+    Pixy::Launcher::getSingleton().shutdown();
 }
 
 -(void) showDialog: (DIALOG_TYPE) dtype : (NSString*) dcaption : (NSString*) dmsg : (void*)dcontext {

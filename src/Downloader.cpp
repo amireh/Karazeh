@@ -28,10 +28,15 @@
 
 namespace Pixy {
 	Downloader* Downloader::__instance;
+  std::string Downloader::Fetcher::last_content_length = "";
+  double Downloader::Fetcher::delta = 0;
 
 	Downloader::Downloader() {
 	  mLog = new log4cpp::FixedContextCategory(PIXY_LOG_CATEGORY, "Downloader");
 		mLog->infoStream() << "firing up";
+
+    mDownloadedBytes = 0;
+    mCurrentRepo = 0;
 
     // Build hosts list
     using boost::filesystem::exists;
@@ -55,7 +60,7 @@ namespace Pixy {
     // add hardcoded/fallback hosts
 		//mHosts.push_back("http://127.0.0.1/");
 		mHosts.push_back("http://www.vertigo-game.com/patches/");
-    
+
     mLog->infoStream() << "registered " << mHosts.size() << " patch hosts";
     mPatchScriptName = "patch.txt";
 
@@ -130,6 +135,45 @@ namespace Pixy {
 
 	};
 
+  pbigint_t
+  Downloader::calcRepositorySize(Repository* inRepo)
+  {
+
+    std::cout << "Calculating repositority size " << inRepo->getVersion().toNumber() << "\n";
+    int i;
+    pbigint_t lSize = 0;
+    //int nrEntries = inRepo->getEntries().size();
+    std::string url;
+    std::vector<PatchEntry*> lEntries;
+
+    CURL *curl = curl_easy_init();
+    for (i = 0; i < 2; ++i) {
+      PATCHOP op = (i == 0) ? P_CREATE : P_MODIFY;
+
+      lEntries = inRepo->getEntries(op);
+      PatchEntry* lEntry = 0;
+      while (!lEntries.empty()) {
+        lEntry = lEntries.back();
+
+        // build up target URL
+        url = *mActiveHost + lEntry->Remote;
+
+        lEntry->Filesize = mFetcher.fileSize(url, curl);
+        lSize += lEntry->Filesize;
+
+        //std::cout << "Found file with size: " << lEntry->Filesize << "\n";
+
+        lEntry = 0;
+        lEntries.pop_back();
+      };
+
+    }
+    curl_easy_cleanup(curl);
+
+    inRepo->setSize(lSize);
+
+    return lSize;
+  }
 
   bool
   Downloader::_fetchRepository(Repository *inRepo,
@@ -144,18 +188,30 @@ namespace Pixy {
 	    nrRetries = 0;
 
     mLog->infoStream() << "downloading patch files";
+    this->calcRepositorySize(inRepo);
+    Launcher::getSingleton().getRenderer()->injectPatchSize(inRepo->getSize());
+
+    bool realProgress = false;
+#ifdef KARAZEH_REAL_PROGRESS
+    mCurrentRepo = inRepo;
+    mDownloadedBytes = 0;
+    realProgress = true;
+#else
+    int idx = 0;
+    int nrEntries = inRepo->getEntries().size();
+#endif
 
     // download all CREATE and MODIFY entries' remote files
     int i;
-    int nrEntries = inRepo->getEntries().size();
-    int idx = 0;
+
+    std::string url;
+    std::vector<PatchEntry*> lEntries;
     CURL *curl = curl_easy_init();
     for (i = 0; i < 2; ++i) {
       PATCHOP op = (i == 0) ? P_CREATE : P_MODIFY;
 
-      std::vector<PatchEntry*> lEntries = inRepo->getEntries(op);
+      lEntries = inRepo->getEntries(op);
       PatchEntry* lEntry = 0;
-      std::string url;
       while (!lEntries.empty()) {
         lEntry = lEntries.back();
 
@@ -178,12 +234,13 @@ namespace Pixy {
         // TODO: re-try in case of download failure
         if (!downloaded) {
           //fetchFile(url, lEntry->Temp);
-          mFetcher(url, lEntry->Temp, nrRetries, curl);
+          mFetcher(url, lEntry->Temp, nrRetries, realProgress, curl);
         }
 
+#ifndef KARAZEH_REAL_PROGRESS
         ++idx;
-
-        Launcher::getSingleton().getRenderer()->injectPatchProgress(idx * 1.0f / nrEntries * 100.0f);
+        Launcher::getSingleton().getRenderer()->injectPatchProgress(idx * 1.0f / (nrEntries-1) * 100.0f);
+#endif
 
         lEntry = 0;
         lEntries.pop_back();
@@ -194,14 +251,14 @@ namespace Pixy {
 
     return true;
   };
-
+/*
   void Downloader::fetchFile(std::string url, std::string out)
   {
     mFetcher(url,out);
     //boost::thread mWorker(mFetcher, url, out);
     //mWorker.join();
   }
-
+*/
   size_t Downloader::Fetcher::write_func(void *ptr, size_t size, size_t nmemb, FILE *stream)
   {
     return fwrite(ptr, size, nmemb, stream);
@@ -212,18 +269,28 @@ namespace Pixy {
     return fread(ptr, size, nmemb, stream);
   }
 
+  void Downloader::_updateDownloadProgress(double inStep) {
+    mDownloadedBytes += inStep;
+
+    Launcher::getSingleton().getRenderer()->
+      injectPatchProgress(mDownloadedBytes * 1.0f / mCurrentRepo->getSize() * 100.0f);
+  }
+
   int Downloader::Fetcher::progress_func(void* something,
                        double t, /* dltotal */
                        double d, /* dlnow */
                        double ultotal,
                        double ulnow)
   {
-    //printf("%f / %f (%g %%)\n", d, t, d*100.0/t);
+    Downloader::getSingleton()._updateDownloadProgress(d-delta);
+
+    //printf("%f / %f (%g %%), delta = %f\n", d, t, d*100.0/t, d - delta);
+    delta = d;
 
     return 0;
   }
 
-  bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries, CURL* curl) {
+  bool Downloader::Fetcher::operator()(std::string url, std::string out, int retries, bool withProgress, CURL* curl) {
 
     //std::cout << "fetching URL: " << url << " => " << out << "...\n";
 
@@ -243,17 +310,24 @@ namespace Pixy {
       // TODO: make sure the directory exists and create it if it doesn't
       outfile = fopen(out.c_str(), "w");
       if (!outfile) {
-        curl_easy_cleanup(curl);
+        if (!external)
+          curl_easy_cleanup(curl);
         //std::cout << "ERROR! Couldn't open file for writing: " << out;
         return false;
       }
+
+      delta = 0;
+
+      curl_easy_reset(curl);
 
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Fetcher::write_func);
       curl_easy_setopt(curl, CURLOPT_READFUNCTION, Fetcher::read_func);
-      curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Fetcher::progress_func);
+      if (withProgress) {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Fetcher::progress_func);
+      }
       curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
       //curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, Bar);
 
@@ -280,4 +354,50 @@ namespace Pixy {
 
     return true;
   }
+
+  size_t Downloader::Fetcher::handle_headers(void *ptr, size_t size, size_t nmemb, void *stream)
+  {
+    using std::string;
+
+    //std::cout << "Header str: " << (char*)ptr << "\n";
+    //const boost::regex content_length_regex("Content-Length: [0-9]{1,}"); // Regex do video do youtube...
+    //const boost::regex content_length_remove_regex("Content-Length: ");
+    int numbytes = size*nmemb;
+    // The data is not null-terminated, so get the last character, and replace
+    // it with '\0'.
+    char lastchar = *((char *) ptr + numbytes - 1);
+    *((char *) ptr + numbytes - 1) = '\0';
+    //string last_char = ((char *)ptr);
+
+    string header((char*)ptr);
+    if (header.find("Content-Length") != string::npos)
+      last_content_length = header.substr(16); // "Content-Length: "
+
+    /*if (regex_search(last_char,content_length_regex) == 1) // Se for 1, foi retornado sim para o match
+    {
+      last_content_length = regex_replace(last_char, content_length_remove_regex, nothing);
+    }*/
+
+    return size*nmemb;
+  }
+
+  pbigint_t Downloader::Fetcher::fileSize(std::string url, CURL* curl) {
+    bool external = (curl != 0);
+    if (!curl) {
+      curl = curl_easy_init();
+    }
+    curl_easy_reset(curl);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, handle_headers);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (!external)
+      curl_easy_cleanup(curl);
+
+    return atoll(last_content_length.c_str());
+  };
 };

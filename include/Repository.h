@@ -24,7 +24,7 @@
 #ifndef H_Repository_H
 #define H_Repository_H
 
-//#include "Pixy.h"
+#include "Pixy.h"
 #include "PatchEntry.h"
 #include "PixyUtility.h"
 #include "PixyExceptions.h"
@@ -113,7 +113,7 @@ struct Version {
     return (!(*this == rhs) && !(*this < rhs));
   }
   inline friend ostream& operator<<(ostream& stream, Version& version) {
-    stream << version.Value;
+    stream << version.toNumber();
     return stream;
   }
   inline const std::string toNumber() const {
@@ -163,10 +163,15 @@ class Repository {
 
 		Version const& getVersion();
 
+    pbigint_t getSize();
+    void setSize(pbigint_t inSize);
+
 	protected:
 	  std::vector<PatchEntry*> mEntries;
     log4cpp::Category* mLog;
     Version mVersion;
+
+    long long mSize;
 
   private:
     // Repositores can not be copied

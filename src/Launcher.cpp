@@ -68,6 +68,15 @@ namespace Pixy
 
 	Launcher::~Launcher() {
 
+
+
+
+	}
+  void Launcher::shutdown() {
+    if (fShutdown)
+      return;
+
+    //delete __instance;
     if (mRenderer)
       delete mRenderer;
 
@@ -91,11 +100,6 @@ namespace Pixy
 
     if (fLaunching)
       launchExternalApp();
-
-
-	}
-  void Launcher::shutdown() {
-    delete __instance;
   }
 	Launcher* Launcher::getSingletonPtr() {
 		if( !__instance ) {
@@ -139,6 +143,7 @@ namespace Pixy
 
     // locate the binary and build its path
 #if PIXY_PLATFORM == PIXY_PLATFORM_LINUX
+    std::cout << "Platform: Linux\n";
     // use binreloc and boost::filesystem to build up our paths
     int brres = br_init(0);
     if (brres == 0) {
@@ -185,46 +190,40 @@ namespace Pixy
       mLogPath = (path(mRootPath) / path(PROJECT_LOG_DIR)).make_preferred().string();
     }
 
-//#ifdef DEBUG
+#ifdef DEBUG
     std::cout << "Binary path: " <<  mBinPath << "\n";
     std::cout << "Root path: " <<  mRootPath << "\n";
     std::cout << "Temp path: " <<  mTempPath << "\n";
     std::cout << "Log path: " <<  mLogPath << "\n";
-//#endif
+#endif
 
   };
 
   void Launcher::initRenderer(int argc, char** argv) {
 
+#ifdef KARAZEH_RENDERER_COCOA
+    if ("Cocoa" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Cocoa") == 0))
+      if (!mRenderer)
+        mRenderer = new CocoaRenderer();
+#endif
 #ifdef KARAZEH_RENDERER_OGRE
-  #ifndef KARAZEH_DEFAULT_RENDERER_OGRE
-	  if (argc > 1 && strcmp(argv[1], "Ogre") == 0)
-  #endif
-	    mRenderer = new OgreRenderer();
+	  if ("Ogre" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Ogre") == 0))
+      if (!mRenderer)
+        mRenderer = new OgreRenderer();
 #endif
 #ifdef KARAZEH_RENDERER_QT
-  #ifndef KARAZEH_DEFAULT_RENDERER_QT
-    if (argc > 1 && strcmp(argv[1], "Qt") == 0)
-  #endif
-    if (!mRenderer)
-      mRenderer = new QtRenderer();
-#endif
-#ifdef KARAZEH_RENDERER_COCOA
-    if (!mRenderer)
-      mRenderer = new CocoaRenderer();
+    if ("Qt" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "Qt") == 0))
+      if (!mRenderer)
+        mRenderer = new QtRenderer();
 #endif
 #ifdef KARAZEH_RENDERER_GTK3
-  #ifndef KARAZEH_DEFAULT_RENDERER_GTK3
-    if (argc > 1 && strcmp(argv[1], "Qt") == 0)
-  #endif
-    if (!mRenderer)
-      mRenderer = new GTK3Renderer();
+    if ("GTK3" == KARAZEH_DEFAULT_RENDERER || (argc > 1 && strcmp(argv[1], "GTK3") == 0))
+      if (!mRenderer)
+        mRenderer = new GTK3Renderer();
 #endif
     if (!mRenderer) {
+      if (argc > 1)
         mLog->errorStream() << "unknown renderer specified! going vanilla";
-      }
-
-    if (!mRenderer) {
       mRenderer = new VanillaRenderer();
     }
 

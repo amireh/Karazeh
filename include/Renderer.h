@@ -108,11 +108,13 @@ namespace Pixy {
      */
 		virtual void injectPatchStarted( Version const& inTargetVersion )=0;
 
+    virtual void injectPatchSize( pbigint_t inBytes )=0;
+
 		/*! \brief
      *  Triggered while the Downloader is fetching files from the remote
      *  patch server indicating how much it has completed.
      */
-		virtual void injectPatchProgress( int inPercent )=0;
+		virtual void injectPatchProgress( float inPercent )=0;
 
 		/*! \brief
      *  Triggered if any error occurs within the Patcher or the Downloader

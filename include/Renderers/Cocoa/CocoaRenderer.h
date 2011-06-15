@@ -28,44 +28,45 @@
 #include "Renderer.h"
 
 namespace Pixy {
-  
+
 	/*	\class CocoaRenderer
 	 *	\brief
 	 *
 	 */
 	class CocoaRenderer : public Renderer {
-    
+
 	public:
 	  CocoaRenderer();
 		virtual ~CocoaRenderer();
-    
+
 		/* \brief
 		 *
 		 */
 		virtual bool setup(int argc, char** argv);
-    
-    
+
+
 		/* \brief
 		 *
 		 */
  		virtual bool cleanup();
-    
+
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
-		virtual void injectPatchProgress( int inPercent );
+    virtual void injectPatchSize( pbigint_t inBytes );
+		virtual void injectPatchProgress( float inPercent );
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
-    
+
 		virtual void go(int argc, char** argv);
-    
+
     void assignRenderer();
-    
+
 	protected:
     bool fShuttingDown;
-    
+
 	private:
 		CocoaRenderer(const CocoaRenderer& src);
 		CocoaRenderer& operator=(const CocoaRenderer& rhs);

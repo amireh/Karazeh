@@ -64,7 +64,8 @@ namespace Pixy {
 		void handleValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
     void handlePatchAccepted();
     void handlePatchStarted( Version const& inTargetVersion );
-		void handlePatchProgress( int inPercent );
+    void handlePatchSize( pbigint_t inBytes );
+		void handlePatchProgress( float inPercent );
 		void handlePatchFailed( QString inMsg, Version const& inTargetVersion );
 		void handlePatchComplete( Version const& inCurrentVersion );
 		void handleApplicationPatched( Version const& inCurrentVersion );
@@ -76,7 +77,8 @@ namespace Pixy {
 		void emitValidateStarted( void );
 		void emitValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		void emitPatchStarted( Version const& inTargetVersion );
-		void emitPatchProgress( int inPercent );
+    void emitPatchSize( pbigint_t inBytes );
+		void emitPatchProgress( float inPercent );
 		void emitPatchFailed( QString inMsg, Version const& inTargetVersion );
 		void emitPatchComplete( Version const& inCurrentVersion );
 		void emitApplicationPatched( Version const& inCurrentVersion );
@@ -87,7 +89,8 @@ namespace Pixy {
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
-		virtual void injectPatchProgress( int inPercent );
+    virtual void injectPatchSize( pbigint_t inBytes );
+		virtual void injectPatchProgress( float inPercent );
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );

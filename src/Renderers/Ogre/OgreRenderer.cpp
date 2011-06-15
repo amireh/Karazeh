@@ -251,6 +251,8 @@ namespace Pixy {
     bind("PatchComplete", this, &OgreRenderer::evtPatchComplete);
     bind("ApplicationPatched", this, &OgreRenderer::evtApplicationPatched);
 
+    mLog->infoStream() << "setup";
+
 	  return true;
 	};
 
@@ -268,8 +270,7 @@ namespace Pixy {
 
     mRoot->getTimer()->reset();
 
-    mEvtMgr->hook(mEvtMgr->createEvt("GuiLoaded"));
-		// main game loop
+    //mEvtMgr->hook(mEvtMgr->createEvt("GuiLoaded"));
 		while( !fShutdown ) {
 
 	    // calculate time since last frame and remember current time for next frame
@@ -291,10 +292,7 @@ namespace Pixy {
 
 			// render next frame
 		  mRoot->renderOneFrame();
-
 		}
-
-
 	}
 
 	bool OgreRenderer::keyPressed( const OIS::KeyEvent &e ) {
@@ -341,9 +339,6 @@ namespace Pixy {
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
     if (b->getName() == "Launch") {
       Launcher::getSingleton().launchExternalApp();
-    } else if (b->getName() == "Patch") {
-      //Patcher::getSingleton().validate();
-      //Launcher::getSingleton().updateApplication();
     }
 
   };
@@ -354,12 +349,6 @@ namespace Pixy {
   void OgreRenderer::injectUnableToConnect( void ) {
     mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
   };
-
-  void OgreRenderer::injectPatchProgress(int inPercent) {
-    Event* lEvt = mEvtMgr->createEvt("PatchProgress");
-    lEvt->setProperty("Percent", Utility::stringify(inPercent));
-    mEvtMgr->hook(lEvt);
-  }
 
 	void OgreRenderer::injectValidateStarted( void ) {
     mEvtMgr->hook(mEvtMgr->createEvt("ValidateStarted"));
@@ -376,6 +365,17 @@ namespace Pixy {
     lEvt->setAny((void*)&inTargetVersion);
     mEvtMgr->hook(lEvt);
 	}
+
+  void OgreRenderer::injectPatchSize( pbigint_t inSize ) {
+    mPatchSize = inSize;
+  };
+
+  void OgreRenderer::injectPatchProgress(float inPercent) {
+    /*Event* lEvt = mEvtMgr->createEvt("PatchProgress");
+    lEvt->setProperty("Percent", Utility::stringify(inPercent));
+    mEvtMgr->hook(lEvt);*/
+  }
+
 
 	void OgreRenderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
     Event* lEvt = mEvtMgr->createEvt("PatchFailed");
@@ -431,9 +431,9 @@ namespace Pixy {
     return true;
   }
   bool OgreRenderer::evtPatchProgress( Event* inEvt ) {
-    int inPercent = Utility::convertTo<int>(inEvt->getProperty("Percent"));
+    int inPercent = Utility::convertTo<float>(inEvt->getProperty("Percent"));
 
-    mProgress->setProgress(inPercent / 100.0f);
+    mProgress->setProgress((int)inPercent / 100.0f);
     return true;
   }
   bool OgreRenderer::evtPatchFailed( Event* inEvt ) {

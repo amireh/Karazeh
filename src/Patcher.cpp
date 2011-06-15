@@ -98,7 +98,7 @@ namespace Pixy {
 
     mProcessors.clear();
 
-#ifndef PIXY_PERSISTENT
+#ifndef KARAZEH_PERSISTENT
     // TODO: boost error checking
     boost::filesystem::remove_all(Launcher::getSingleton().getTempPath());
 #endif

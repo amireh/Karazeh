@@ -44,6 +44,7 @@ INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
 #endif
 		}
 
+    Pixy::Launcher::getSingleton().shutdown();
 		delete Pixy::Launcher::getSingletonPtr();
 
 		return 0;
