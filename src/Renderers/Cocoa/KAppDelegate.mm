@@ -25,6 +25,7 @@ enum DIALOG_TYPE {
 
 -(void) applicationDidFinishLaunching:(NSNotification *)aNotification {
   static_cast<Pixy::CocoaRenderer*>(Pixy::Launcher::getSingleton().getRenderer())->assignRenderer();
+  Pixy::Launcher::getSingleton().startValidation();
   [txtLatestChanges setEditable: false];
 }
 
@@ -43,12 +44,12 @@ enum DIALOG_TYPE {
   [alert setMessageText:dcaption];
   [alert setInformativeText:dmsg];
   [alert setAlertStyle: (dtype == DIALOG_PROMPT) ? NSInformationalAlertStyle : NSCriticalAlertStyle];
-  
-  [alert beginSheetModalForWindow:window 
-                   modalDelegate:self 
-                   didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) 
+
+  [alert beginSheetModalForWindow:window
+                   modalDelegate:self
+                   didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
                    contextInfo:(void*)dcontext];
-  
+
 }
 
 -(void) alertDidEnd:(NSWindow *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
@@ -57,13 +58,13 @@ enum DIALOG_TYPE {
     [[NSApplication sharedApplication] terminate:self];
     return;
   }
-  
+
   // patch or quit?
   if (returnCode == NSAlertFirstButtonReturn)
     Pixy::Launcher::getSingleton().updateApplication();
   else
     [[NSApplication sharedApplication] terminate:self];
-  
+
 }
 
 -(void) unableToConnect {
@@ -76,11 +77,11 @@ enum DIALOG_TYPE {
 
 -(void) validateComplete: (BOOL) inNeedUpdate : (Version&) inVersion {
   if (inNeedUpdate) {
-    [self showDialog:DIALOG_PROMPT 
-                    : @"Updates are available." 
-                    : @"Would you like to install them now?" 
+    [self showDialog:DIALOG_PROMPT
+                    : @"Updates are available."
+                    : @"Would you like to install them now?"
                     : (void*)&PATCH_AVAILABLE];
-    
+
     [txtStatus setStringValue:@"Update available"];
   } else {
     [txtStatus setStringValue:@"Application is up to date"];
@@ -89,7 +90,7 @@ enum DIALOG_TYPE {
 }
 
 -(void) patchStarted: (Version&) inVersion {
-  [txtStatus setStringValue: 
+  [txtStatus setStringValue:
    [NSString stringWithFormat:@"Updating to version %s", inVersion.toNumber().c_str()]];
 
 }
@@ -101,11 +102,11 @@ enum DIALOG_TYPE {
 -(void) patchFailed: (NSString*)inMsg : (Version&) inVersion {
 
   [self showDialog:DIALOG_ERROR : @"Update failed."  : inMsg : (void*)&PATCH_FAILED];
-  
+
 }
 
 -(void) patchComplete: (Version&) inVersion {
-  [txtStatus setStringValue: 
+  [txtStatus setStringValue:
    [NSString stringWithFormat:@"Successfully updated to version %s", inVersion.toNumber().c_str()]];
 }
 

@@ -137,6 +137,8 @@ namespace Pixy {
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
 
 	protected:
+    bool evtGuiLoaded(Event* inEvt);
+
 		bool evtUnableToConnect( Event* inEvt );
 		bool evtValidateStarted( Event* inEvt );
 		bool evtValidateComplete( Event* inEvt );

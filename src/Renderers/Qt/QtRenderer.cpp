@@ -132,9 +132,16 @@ namespace Pixy {
 	};
 
 	void QtRenderer::go(int argc, char** argv) {
+    // start validating when the app is loaded
+    QObject::connect(this, SIGNAL(guiStarted()), this, SLOT(onGuiStart()));
+    QTimer::singleShot(0, this, SIGNAL(guiStarted()));
+
     mApp->exec();
 	};
 
+  void QtRenderer::onGuiStart() {
+    Launcher::getSingleton().startValidation();
+  };
 
   void QtRenderer::injectUnableToConnect( void ) {
     emit emitUnableToConnect();
@@ -182,19 +189,20 @@ namespace Pixy {
     mLog->infoStream() << "validate complete";
 
     if (inNeedUpdate) {
+      mUI.labelStatus->setText("Status: Out of date");
       std::string lMsg =
         "Application needs updating. Latest version is" + inTargetVersion.Value
         + " and current version is " + " .. would you like to update now?";
       mDlgUI.textBrowser->setText(QString(lMsg.c_str()));
       mYesNoDlg->exec();
-      mUI.labelStatus->setText("Status: Out of date");
+
     } else {
       mUI.labelStatus->setText("Status: Application is up to date");
     }
   }
 
   void QtRenderer::handlePatchAccepted() {
-    Launcher::getSingleton().updateApplication();
+    Launcher::getSingleton().startPatching();
   }
   void QtRenderer::handlePatchStarted( Version const& inTargetVersion ) {
     mLog->infoStream() << "started patching";

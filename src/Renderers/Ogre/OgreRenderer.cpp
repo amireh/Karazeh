@@ -241,6 +241,7 @@ namespace Pixy {
 	  mProgress = mTrayMgr->createProgressBar(TL_BOTTOM, "Progess", "Progress", 480, 20);
 	  mTrayMgr->adjustTrays();
 
+    bind("GuiLoaded", this, &OgreRenderer::evtGuiLoaded);
     bind("UnableToConnect", this, &OgreRenderer::evtUnableToConnect);
     bind("ValidateStarted", this, &OgreRenderer::evtValidateStarted);
     bind("ValidateComplete", this, &OgreRenderer::evtValidateComplete);
@@ -267,6 +268,7 @@ namespace Pixy {
 
     mRoot->getTimer()->reset();
 
+    mEvtMgr->hook(mEvtMgr->createEvt("GuiLoaded"));
 		// main game loop
 		while( !fShutdown ) {
 
@@ -333,7 +335,7 @@ namespace Pixy {
 
 	void OgreRenderer::yesNoDialogClosed(const Ogre::DisplayString& question, bool yesHit) {
 	  if (yesHit) {
-      Launcher::getSingleton().updateApplication();
+      Launcher::getSingleton().startPatching();
 	  }
 	}
   void OgreRenderer::buttonHit(OgreBites::Button* b) {
@@ -345,7 +347,10 @@ namespace Pixy {
     }
 
   };
-
+  bool OgreRenderer::evtGuiLoaded(Event* inEvt) {
+    Launcher::getSingleton().startValidation();
+    return true;
+  };
   void OgreRenderer::injectUnableToConnect( void ) {
     mEvtMgr->hook(mEvtMgr->createEvt("UnableToConnect"));
   };

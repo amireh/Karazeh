@@ -56,6 +56,8 @@ namespace Pixy {
  		virtual bool cleanup();
 
   public slots:
+    void onGuiStart();
+
     /* handle signals */
 		void handleUnableToConnect( void );
 		void handleValidateStarted( void );
@@ -69,6 +71,7 @@ namespace Pixy {
     void handleLaunchApplication();
 
   signals:
+    void guiStarted();
 		void emitUnableToConnect( void );
 		void emitValidateStarted( void );
 		void emitValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );

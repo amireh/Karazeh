@@ -71,6 +71,8 @@ namespace Pixy {
 	void VanillaRenderer::go(int argc, char** argv) {
 
     cout << "+-+-" << PIXY_APP_NAME << "-+-+\n";
+    Launcher::getSingleton().startValidation();
+
     while (!fShuttingDown) {
 #if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
       Sleep(1/60);
@@ -99,7 +101,7 @@ namespace Pixy {
       cout << "Application is out of date. Would you like to update now? [Y/n] ";
       cin >> answer;
       if (answer == "Y" || answer == "y") {
-        Launcher::getSingleton().updateApplication();
+        Launcher::getSingleton().startPatching();
       } else {
         fShuttingDown = true;
       }
