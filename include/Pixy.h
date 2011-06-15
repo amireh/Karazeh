@@ -24,13 +24,6 @@
 #ifndef H_Pixy_H
 #define H_Pixy_H
 
-/*
- * log4cpp defines int64_t as __int64_t but does not use it at all,
- * and this conflicts with boost on WIN32, so we undefine it here
- */
-#ifdef int64_t
-  #undef int64_t
-#endif
 
 /* Application specific definitions */
 #define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
@@ -50,7 +43,18 @@ typedef long long pbigint_t;
 #include "PixyPlatform.h"
 #include "PixyExceptions.h"
 #include "PixyLogLayout.h"
-//#include "PixyThread.h"
+
+/*
+ * log4cpp defines int64_t as __int64_t but does not use it at all,
+ * and this conflicts with boost on WIN32, so we undefine it here
+ */
+#ifdef int64_t
+  #undef int64_t
+#endif
+
+#ifdef KARAZEH_THREADS_BOOST
+#include "PixyThread.h" // boost 1.46.3 on Linux is failing if #include-ed later.. I don't know why
+#endif
 
 /* Application paths:
  *

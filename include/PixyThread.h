@@ -24,7 +24,7 @@
 #ifndef H_PixyThread_H
 #define H_PixyThread_H
 
-#include "Patcher.h"
+//#include "Patcher.h"
 #include <typeinfo>
 
 #ifdef KARAZEH_THREAD_PROVIDER

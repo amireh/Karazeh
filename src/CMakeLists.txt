@@ -116,8 +116,6 @@ IF(KARAZEH_RENDERER_GTK3)
   pkg_check_modules(GLIBMM glibmm-2.4)
   MESSAGE(STATUS "GTK include dirs: ${GTK3_INCLUDE_DIRS}")
 
-  OPTION(KARAZEH_DEFAULT_RENDERER_GTK3 "Set GTK3 as the default renderer" ON)
-
   LIST(APPEND Karazeh_SRCS
     ../include/Renderers/GTK3/GTK3Renderer.h
     Renderers/GTK3/GTK3Renderer.cpp)

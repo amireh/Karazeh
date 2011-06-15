@@ -59,8 +59,8 @@ namespace Pixy
 	mRenderer(0),
   mVWorker(0),
   mPWorker(0) {
-	  signal(SIGINT, handle_interrupt);
-	  signal(SIGTERM, handle_interrupt);
+	  //signal(SIGINT, handle_interrupt);
+	  //signal(SIGTERM, handle_interrupt);
 
     fShutdown = false;
     fLaunching = false;

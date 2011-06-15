@@ -55,9 +55,6 @@ namespace Pixy {
     btnLaunch = 0;
     progressBar = 0;
     window = 0;
-    //gdk_threads_enter();
-    //Gtk::Main::quit();
-    //gdk_threads_leave();
 
 	}
 
@@ -78,12 +75,6 @@ namespace Pixy {
 
     fShuttingDown = true;
 
-    //gdk_threads_enter();
-    //Gtk::Main::quit();
-    //gdk_threads_leave();
-
-    //Launcher::shutdown();
-
     return true;
 	};
 
@@ -91,24 +82,41 @@ namespace Pixy {
     std::string lPath = Launcher::getSingleton().getRootPath();
     lPath += "/resources/gtk3/karazeh.glade";
 
-    g_thread_init(0);
+    g_thread_init( NULL );
     gdk_threads_init();
+    Glib::thread_init();
 
     gdk_threads_enter();
     Gtk::Main kit(argc, argv);
-    gdk_threads_leave();
+
+    //main_loop_ = Glib::MainLoop::create();
+    //main_loop_->run();
 
     builder = Gtk::Builder::create_from_file(lPath.c_str());
 
+    // bind references to widgets
     builder->get_widget("Karazeh", window);
     builder->get_widget("btnLaunch", btnLaunch);
     builder->get_widget("progressBar", progressBar);
     builder->get_widget("txtStatus", txtStatus);
     builder->get_widget("txtLatestChanges", txtLatestChanges);
 
+    // bind Glib::Dispatchers
+    d_guiStarted.connect(sigc::mem_fun(*this, &GTK3Renderer::onGuiStart));
+    d_unableToConnect.connect(sigc::mem_fun(*this, &GTK3Renderer::handleUnableToConnect));
+    d_validateStarted.connect(sigc::mem_fun(*this, &GTK3Renderer::handleValidateStarted));
+    d_validateComplete.connect(sigc::mem_fun(*this, &GTK3Renderer::handleValidateComplete));
+    d_patchStarted.connect(sigc::mem_fun(*this, &GTK3Renderer::handlePatchStarted));
+    d_patchSize.connect(sigc::mem_fun(*this, &GTK3Renderer::handlePatchSize));
+    d_patchProgress.connect(sigc::mem_fun(*this, &GTK3Renderer::handlePatchProgress));
+    d_patchFailed.connect(sigc::mem_fun(*this, &GTK3Renderer::handlePatchFailed));
+    d_patchComplete.connect(sigc::mem_fun(*this, &GTK3Renderer::handlePatchComplete));
+    d_applicationPatched.connect(sigc::mem_fun(*this, &GTK3Renderer::handleApplicationPatched));
 
+    btnLaunch->signal_released().connect(sigc::mem_fun(*this, &GTK3Renderer::doLaunch));
+    // start the validation once the gui is loaded
+    d_guiStarted.emit();
 
-    gdk_threads_enter();
     kit.run(*window);
     gdk_threads_leave();
 	};
@@ -147,68 +155,127 @@ namespace Pixy {
     return res;
   };
 
-  void GTK3Renderer::injectUnableToConnect( void ) {
-    gdk_threads_enter();
-    txtStatus->set_label("Unable to connect, please verify your internet connectivity.");
-    gdk_threads_leave();
+
+  void GTK3Renderer::onGuiStart() {
+    Launcher::getSingleton().startValidation();
+
+    // disable the launch button while we're patching
+    btnLaunch->set_sensitive(false);
   };
-  void GTK3Renderer::injectPatchProgress(int inPercent) {
-    gdk_threads_enter();
-    progressBar->set_fraction(inPercent / 100.0f);
-    gdk_threads_leave();
+
+  void GTK3Renderer::doReqPatch() {
+    Launcher::getSingleton().startPatching();
   }
+
+  void GTK3Renderer::doLaunch() {
+    Launcher::getSingleton().launchExternalApp();
+  }
+
+  void GTK3Renderer::injectUnableToConnect( void ) {
+    d_unableToConnect.emit();
+  };
 	void GTK3Renderer::injectValidateStarted( void ) {
-    /*gdk_threads_enter();
-    txtStatus->set_label("Validating version, please wait...");
-    gdk_threads_leave();*/
+    d_validateStarted.emit();
 	}
 	void GTK3Renderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
-    string answer;
-    if (inNeedUpdate) {
-      if (promptDialog("Updates are available.", "Would you like to install them now?"))
-        Launcher::getSingleton().updateApplication();
-      else {
-    gdk_threads_enter();
-    Gtk::Main::quit();
-    gdk_threads_leave();
-    return;
-      }
-        //return Launcher::getSingleton().requestShutdown();
+    fNeedUpdate = inNeedUpdate;
+    mTargetVersion = inTargetVersion;
+    if (!inNeedUpdate)
+      mCurrentVersion = mTargetVersion;
 
-    } else {
-      gdk_threads_enter();
-      txtStatus->set_label("Application is up to date.");
-      gdk_threads_leave();
-    }
+    d_validateComplete.emit();
+  }
 
-	}
 	void GTK3Renderer::injectPatchStarted( Version const& inTargetVersion ) {
-    std::string lMsg = "Updating to version " + inTargetVersion.toNumber();
+    mTargetVersion = inTargetVersion;
 
-    gdk_threads_enter();
-    txtStatus->set_label(lMsg.c_str());
-    gdk_threads_leave();
-
+    d_patchStarted.emit();
 	}
+
+  void GTK3Renderer::injectPatchSize( pbigint_t inBytes ) {
+    mPatchSize = inBytes;
+
+    d_patchSize.emit();
+	}
+  void GTK3Renderer::injectPatchProgress(float inPercent) {
+    if (inPercent == 0)
+      return;
+
+    mProgress = inPercent;
+    d_patchProgress.emit();
+  }
 	void GTK3Renderer::injectPatchFailed(std::string inMsg, Version const& inTargetVersion) {
-    errorDialog("Update failed!", inMsg);
-    Launcher::getSingleton().requestShutdown();
+    mFailMsg = inMsg;
+    mTargetVersion = inTargetVersion;
+
+    d_patchFailed.emit();
 	}
 
 	void GTK3Renderer::injectPatchComplete(Version const& inCurrentVersion) {
-    std::string lMsg = "Successfully updated to version " + inCurrentVersion.toNumber();
-
-    gdk_threads_enter();
-    txtStatus->set_label(lMsg.c_str());
-    gdk_threads_leave();
+    mCurrentVersion = inCurrentVersion;
+    d_patchComplete.emit();
   }
 
   void GTK3Renderer::injectApplicationPatched( Version const& inCurrentVersion ) {
-    std::string lMsg = "Application is up to date, version " + inCurrentVersion.toNumber();
+    mCurrentVersion = inCurrentVersion;
+    d_applicationPatched.emit();
+  }
 
-    gdk_threads_enter();
+
+  void GTK3Renderer::handleUnableToConnect( ) {
+    txtStatus->set_label("Unable to connect, please verify your internet connectivity.");
+  };
+
+	void GTK3Renderer::handleValidateStarted( ) {
+    txtStatus->set_label("Validating version, please wait...");
+	}
+	void GTK3Renderer::handleValidateComplete( ) {
+
+    if (fNeedUpdate) {
+      if (promptDialog("Updates are available.", "Would you like to install them now?")) {
+        //Launcher::getSingleton().startPatching();
+          sigc::signal<void> sig;
+          sig.connect(sigc::mem_fun(*this, &GTK3Renderer::doReqPatch));
+          sig.emit();
+      } else {
+        Gtk::Main::quit();
+        return;
+      }
+
+    } else {
+      handleApplicationPatched();
+    }
+
+	}
+	void GTK3Renderer::handlePatchStarted( ) {
+    std::string lMsg = "Updating to version " + mTargetVersion.toNumber();
+
     txtStatus->set_label(lMsg.c_str());
-    gdk_threads_leave();
+    progressBar->set_fraction(0);
+
+	}
+  void GTK3Renderer::handlePatchSize() {
+  }
+
+  void GTK3Renderer::handlePatchProgress() {
+    progressBar->set_fraction(mProgress / 100.0f);
+  }
+	void GTK3Renderer::handlePatchFailed() {
+    errorDialog("Update failed!", mFailMsg);
+    Gtk::Main::quit();
+	}
+
+	void GTK3Renderer::handlePatchComplete() {
+    std::string lMsg = "Successfully updated to version " + mCurrentVersion.toNumber();
+
+    txtStatus->set_label(lMsg.c_str());
+  }
+
+  void GTK3Renderer::handleApplicationPatched() {
+    std::string lMsg = "Application is up to date, version " + mCurrentVersion.toNumber();
+
+    txtStatus->set_label(lMsg.c_str());
+    btnLaunch->set_sensitive(true);
   }
 
 };

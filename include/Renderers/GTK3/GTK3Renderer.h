@@ -25,9 +25,12 @@
 #define H_GTK3Renderer_H
 
 #include "Renderer.h"
+#include "PatchVersion.h"
 //#include "Renderers/GTK3/GTK3Window.h"
 #include <gtkmm.h>
 #include <gtkmm/main.h>
+#include <glibmm/dispatcher.h>
+#include <sigc++/sigc++.h>
 
 namespace Pixy {
 
@@ -35,7 +38,7 @@ namespace Pixy {
 	 *	\brief
 	 *
 	 */
-	class GTK3Renderer : public Renderer {
+	class GTK3Renderer : public Renderer, public sigc::trackable {
 
 	public:
 	  GTK3Renderer();
@@ -45,11 +48,12 @@ namespace Pixy {
     virtual void go(int argc, char** argv);
  		virtual bool cleanup();
 
-		virtual void injectUnableToConnect( void );
+    virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
-		virtual void injectPatchProgress( int inPercent );
+    virtual void injectPatchSize(pbigint_t inBytes);
+		virtual void injectPatchProgress( float inPercent );
 		virtual void injectPatchFailed( std::string inMsg, Version const& inTargetVersion );
 		virtual void injectPatchComplete( Version const& inCurrentVersion );
 		virtual void injectApplicationPatched( Version const& inCurrentVersion );
@@ -58,17 +62,35 @@ namespace Pixy {
 
     bool fShuttingDown;
 
+    // Signal handlers:
+		void handleUnableToConnect(  );
+		void handleValidateStarted(  );
+		void handleValidateComplete(  );
+		void handlePatchStarted(  );
+    void handlePatchSize( );
+		void handlePatchProgress(  );
+		void handlePatchFailed(  );
+		void handlePatchComplete(  );
+		void handleApplicationPatched(  );
+
+    void onGuiStart();
+    void doReqPatch();
+    void doLaunch();
+
     void infoDialog(std::string inCaption, std::string inMsg);
     void errorDialog(std::string inCaption, std::string inMsg);
     bool promptDialog(std::string inCaption, std::string inMsg);
 
-    //Signal handlers:
-    //void evtButtonInfoClicked();
-    //void evtButtonQuestionClicked();
 
-    //Child widgets:
-    //Gtk::VButtonBox m_ButtonBox;
-    //Gtk::Button m_Button_Info, m_Button_Question;
+
+    // since we can't pass additional args using the dispatcher's slot, and our
+    // args are fairly few, there's no need to create an asynchronous queue
+    // we'll just hard-bind them here
+    bool fNeedUpdate;
+    Version mCurrentVersion, mTargetVersion;
+    pbigint_t mPatchSize;
+    float mProgress;
+    std::string mFailMsg;
 
     Gtk::TextView *txtLatestChanges;
     Gtk::Label *txtStatus;
@@ -76,6 +98,17 @@ namespace Pixy {
     Gtk::ProgressBar *progressBar;
     Gtk::Window *window;
     Glib::RefPtr<Gtk::Builder> builder;
+
+    Glib::Dispatcher d_guiStarted;
+    Glib::Dispatcher d_unableToConnect;
+    Glib::Dispatcher d_validateStarted;
+    Glib::Dispatcher d_validateComplete;
+    Glib::Dispatcher d_patchStarted;
+    Glib::Dispatcher d_patchSize;
+    Glib::Dispatcher d_patchProgress;
+    Glib::Dispatcher d_patchFailed;
+    Glib::Dispatcher d_patchComplete;
+    Glib::Dispatcher d_applicationPatched;
 
 	private:
 		GTK3Renderer(const GTK3Renderer& src);

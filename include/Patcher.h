@@ -25,6 +25,8 @@
 #define H_Patcher_H
 
 #include "Pixy.h"
+#include "PatchEntry.h"
+#include "PatchVersion.h"
 #include "Repository.h"
 #include "Renderer.h"
 #include <list>
