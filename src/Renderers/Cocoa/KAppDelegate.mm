@@ -61,7 +61,7 @@ enum DIALOG_TYPE {
 
   // patch or quit?
   if (returnCode == NSAlertFirstButtonReturn)
-    Pixy::Launcher::getSingleton().updateApplication();
+    Pixy::Launcher::getSingleton().startPatching();
   else
     [[NSApplication sharedApplication] terminate:self];
 
