@@ -27,6 +27,7 @@ enum DIALOG_TYPE {
   static_cast<Pixy::CocoaRenderer*>(Pixy::Launcher::getSingleton().getRenderer())->assignRenderer();
   Pixy::Launcher::getSingleton().startValidation();
   [txtLatestChanges setEditable: false];
+  [txtLatestChanges setTextContainerInset: NSMakeSize(10.0, 10.0)];
 }
 
 -(void) applicationWillTerminate:(NSNotification *)notification {
@@ -77,6 +78,15 @@ enum DIALOG_TYPE {
 
 -(void) validateStarted {
   [txtStatus setStringValue: @"Validating version..."];
+}
+
+-(void) showPatchLog: (NSString*) inLogPath {
+  NSLog(@"Showing latest changes from %@", inLogPath);
+  NSString* fileRoot = [[NSBundle mainBundle] pathForResource:inLogPath ofType:@"txt"];
+  NSString* fileContents = 
+    [NSString stringWithContentsOfFile:inLogPath encoding:NSUTF8StringEncoding error:nil];
+  [txtLatestChanges setString:fileContents];
+  
 }
 
 -(void) validateComplete: (BOOL) inNeedUpdate : (Version&) inVersion {

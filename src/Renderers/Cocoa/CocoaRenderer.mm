@@ -59,10 +59,17 @@ namespace Pixy {
   void CocoaRenderer::injectUnableToConnect( void ) {
     [mCocoaApp unableToConnect];
   };
-
+  
 	void CocoaRenderer::injectValidateStarted( void ) {
     [mCocoaApp validateStarted];
 	}
+
+  void CocoaRenderer::injectShowPatchLog(std::string inLogPath) {
+    NSString *lPath = [[NSString alloc] initWithCString:inLogPath.c_str() encoding:[NSString defaultCStringEncoding]];
+    [mCocoaApp showPatchLog: lPath];
+    [lPath release];
+  }
+  
 	void CocoaRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
     [mCocoaApp validateComplete:inNeedUpdate : inTargetVersion];
 	}

@@ -72,6 +72,7 @@ namespace Pixy {
 
     mLog->infoStream() << "registered " << mHosts.size() << " patch hosts";
     mPatchScriptName = "patch.txt";
+    mPatchLogName = "latest_changes.txt";
 
 		mActiveHost = 0;
 
@@ -143,6 +144,18 @@ namespace Pixy {
     }
 
 	};
+	
+	void Downloader::_fetchPatchLog(std::string out)
+	{
+    assert(mActiveHost);
+    std::string url = (*mActiveHost) + mPatchLogName;
+    mLog->infoStream() << "fetching patch log from " << url;
+    
+    bool res = mFetcher(url, out, 3);
+    if (!res) {
+      throw BadPatchURL("could not find an active host for patch log!");
+    }
+	}
 
   pbigint_t
   Downloader::calcRepositorySize(Repository* inRepo)

@@ -66,6 +66,18 @@ class Downloader {
      */
 	  void _fetchPatchScript(std::string out);
 
+    /*! \brief
+     *  Attempts to retrieve the patch log (latest changes) from the 
+     *  active host.
+     *
+     *  \note
+     *  This is called internally in the Patcher::validate() routine.
+     *
+     *  \warn
+     *  MUST be called aftrer _fetchPatchScript && mActiveHost != 0
+     */
+	  void _fetchPatchLog(std::string out);
+	  
 	  /*!
 	   * \brief
 	   *  Downloads all the files and diffs needed by every repository only if
@@ -104,7 +116,16 @@ class Downloader {
 
 	  std::list<std::string> mHosts;
 	  std::string* mActiveHost;
-	  std::string mPatchScriptName;
+	  std::string mPatchScriptName, mPatchLogName;
+	  
+	  /* Karazeh expects the patch server repository to host three
+	   * directories for each OS; 
+	   *  "mac" for Apple patches
+	   *  "win32" for Windows patches
+	   *  "linux" for Linux patches
+	   * mOSPrefix will be set to one of the above and will be appended
+	   * to the ActiveHost or mirror
+	   */
     std::string mOSPrefix;
 
   private:

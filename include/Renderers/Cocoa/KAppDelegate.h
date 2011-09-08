@@ -29,6 +29,7 @@ typedef const Pixy::Version Version;
 
 -(void) unableToConnect;
 -(void) validateStarted;
+-(void) showPatchLog: (NSString*) inLogPath;
 -(void) validateComplete: (BOOL) inNeedUpdate : (Version&) inVersion;
 -(void) patchStarted: (Version&) inVersion;
 -(void) patchProgress: (double)inPercent;

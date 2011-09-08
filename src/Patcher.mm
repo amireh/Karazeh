@@ -74,7 +74,9 @@ namespace Pixy {
 		}
 
 		mLog->infoStream() << "Application version: " << mCurrentVersion.Value;
-		mPatchScriptPath = path(Launcher::getSingleton().getTempPath() + "/" + std::string("/patch.txt")).string();
+		
+		mPatchScriptPath = (path(Launcher::getSingleton().getTempPath()) / std::string("/patch.txt")).string();
+		mPatchLogPath = (path(Launcher::getSingleton().getTempPath()) / std::string("/latest_changes.txt")).string();
 
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_CREATE, &Patcher::processCreate));
 		mProcessors.insert(std::make_pair<PATCHOP, t_proc>(P_DELETE, &Patcher::processDelete));
@@ -148,6 +150,9 @@ namespace Pixy {
       mRenderer->injectUnableToConnect();
 	    return;
 	  }
+	  
+	  Downloader::getSingleton()._fetchPatchLog(mPatchLogPath);
+    mRenderer->injectShowPatchLog(mPatchLogPath);
 
     // find the latest version
     std::ifstream mPatchScript;

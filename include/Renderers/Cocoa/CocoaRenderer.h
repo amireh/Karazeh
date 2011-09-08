@@ -52,6 +52,7 @@ namespace Pixy {
 
 		virtual void injectUnableToConnect( void );
 		virtual void injectValidateStarted( void );
+		virtual void injectShowPatchLog( std::string inLogPath );
 		virtual void injectValidateComplete( bool inNeedUpdate, Version const& inTargetVersion );
 		virtual void injectPatchStarted( Version const& inTargetVersion );
     virtual void injectPatchSize( pbigint_t inBytes );

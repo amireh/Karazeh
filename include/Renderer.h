@@ -96,6 +96,8 @@ namespace Pixy {
      *  version by parsing the patch list.
      */
 		virtual void injectValidateStarted( void )=0;
+		
+    virtual void injectShowPatchLog( std::string inLogPath )=0;
 
 		/*! \brief
      *  Contains whether the application is out of date or up to date. In the

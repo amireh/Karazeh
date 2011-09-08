@@ -12,8 +12,8 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="372"/>
 			<integer value="29"/>
+			<integer value="558"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -186,7 +186,7 @@
 			<object class="NSWindowTemplate" id="972006081">
 				<int key="NSWindowStyleMask">263</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{443, 272}, {547, 388}}</string>
+				<string key="NSWindowRect">{{443, 122}, {724, 538}}</string>
 				<int key="NSWTFlags">880279552</int>
 				<string key="NSWindowTitle">Karazeh</string>
 				<string key="NSWindowClass">NSWindow</string>
@@ -201,7 +201,7 @@
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">1292</int>
 							<object class="NSPSMatrix" key="NSDrawMatrix"/>
-							<string key="NSFrame">{{18, 41}, {420, 20}}</string>
+							<string key="NSFrame">{{18, 67}, {594, 20}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<bool key="NSViewCanDrawConcurrently">YES</bool>
 							<int key="NSpiFlags">16392</int>
@@ -210,7 +210,7 @@
 						<object class="NSButton" id="589082292">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">268</int>
-							<string key="NSFrame">{{438, 33}, {96, 32}}</string>
+							<string key="NSFrame">{{612, 16}, {98, 75}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSButtonCell" key="NSCell" id="55655423">
@@ -223,9 +223,8 @@
 									<int key="NSfFlags">1044</int>
 								</object>
 								<reference key="NSControlView" ref="589082292"/>
-								<int key="NSButtonFlags">-2038021889</int>
-								<int key="NSButtonFlags2">129</int>
-								<reference key="NSAlternateImage" ref="876060937"/>
+								<int key="NSButtonFlags">-2034482945</int>
+								<int key="NSButtonFlags2">2</int>
 								<string key="NSAlternateContents"/>
 								<string key="NSKeyEquivalent"/>
 								<int key="NSPeriodicDelay">200</int>
@@ -235,12 +234,12 @@
 						<object class="NSTextField" id="899802464">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">268</int>
-							<string key="NSFrame">{{17, 20}, {422, 17}}</string>
+							<string key="NSFrame">{{17, 20}, {596, 42}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSTextFieldCell" key="NSCell" id="403766691">
-								<int key="NSCellFlags">68288064</int>
-								<int key="NSCellFlags2">272630784</int>
+								<int key="NSCellFlags">67239424</int>
+								<int key="NSCellFlags2">272629760</int>
 								<string key="NSContents">Initializing, please wait...</string>
 								<reference key="NSSupport" ref="876060937"/>
 								<reference key="NSControlView" ref="899802464"/>
@@ -300,7 +299,7 @@
 													<string>public.url</string>
 												</object>
 											</object>
-											<string key="NSFrameSize">{223, 14}</string>
+											<string key="NSFrameSize">{316, 14}</string>
 											<reference key="NSSuperview" ref="899382087"/>
 											<object class="NSTextContainer" key="NSTextContainer" id="52909698">
 												<object class="NSLayoutManager" key="NSLayoutManager">
@@ -318,7 +317,7 @@
 													<nil key="NSDelegate"/>
 												</object>
 												<reference key="NSTextView" ref="708141602"/>
-												<double key="NSWidth">223</double>
+												<double key="NSWidth">316</double>
 												<int key="NSTCFlags">1</int>
 											</object>
 											<object class="NSTextViewSharedData" key="NSSharedData">
@@ -382,7 +381,7 @@
 											<nil key="NSDelegate"/>
 										</object>
 									</object>
-									<string key="NSFrame">{{1, 1}, {223, 297}}</string>
+									<string key="NSFrame">{{1, 1}, {316, 421}}</string>
 									<reference key="NSSuperview" ref="1036959004"/>
 									<reference key="NSNextKeyView" ref="708141602"/>
 									<reference key="NSDocView" ref="708141602"/>
@@ -414,7 +413,7 @@
 									<double key="NSPercent">0.94565218687057495</double>
 								</object>
 							</object>
-							<string key="NSFrame">{{20, 69}, {225, 299}}</string>
+							<string key="NSFrame">{{20, 95}, {318, 423}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<reference key="NSNextKeyView" ref="899382087"/>
 							<int key="NSsFlags">530</int>
@@ -437,7 +436,7 @@
 									<string>NeXT TIFF v4.0 pasteboard type</string>
 								</object>
 							</object>
-							<string key="NSFrame">{{250, 66}, {280, 305}}</string>
+							<string key="NSFrame">{{346, 95}, {358, 443}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSImageCell" key="NSCell" id="1015674462">
@@ -455,7 +454,7 @@
 							<bool key="NSEditable">YES</bool>
 						</object>
 					</object>
-					<string key="NSFrameSize">{547, 388}</string>
+					<string key="NSFrameSize">{724, 538}</string>
 					<reference key="NSSuperview"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
@@ -710,10 +709,10 @@
 						<reference key="object" ref="439893737"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="697236512"/>
-							<reference ref="589082292"/>
-							<reference ref="899802464"/>
 							<reference ref="1036959004"/>
+							<reference ref="697236512"/>
+							<reference ref="899802464"/>
+							<reference ref="589082292"/>
 							<reference ref="586455092"/>
 						</object>
 						<reference key="parent" ref="972006081"/>
@@ -902,9 +901,9 @@
 					<integer value="1"/>
 					<string>{74, 862}</string>
 					<string>{{6, 978}, {478, 20}}</string>
-					<string>{{425, 394}, {547, 388}}</string>
+					<string>{{425, 244}, {724, 538}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{425, 394}, {547, 388}}</string>
+					<string>{{425, 244}, {724, 538}}</string>
 					<integer value="1"/>
 					<string>{{33, 99}, {480, 360}}</string>
 					<string>{3.40282e+38, 3.40282e+38}</string>

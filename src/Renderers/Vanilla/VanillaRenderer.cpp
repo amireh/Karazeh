@@ -101,6 +101,11 @@ namespace Pixy {
 	void VanillaRenderer::injectValidateStarted( void ) {
     cout << "Validating application version...\n";
 	}
+
+  void VanillaRenderer::injectShowPatchLog(std::string inLogPath) {
+    cout << "";
+  }
+  	
 	void VanillaRenderer::injectValidateComplete(bool inNeedUpdate, Version const& inTargetVersion) {
     string answer;
     if (inNeedUpdate) {

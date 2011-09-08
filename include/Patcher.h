@@ -126,7 +126,7 @@ class Patcher {
 
 	protected:
 	  std::list<Repository*> mRepos;
-    std::string mPatchScriptPath;
+    std::string mPatchScriptPath, mPatchLogPath;
     Version mCurrentVersion, mTargetVersion;
 
     /*! \brief
