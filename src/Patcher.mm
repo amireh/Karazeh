@@ -272,7 +272,8 @@ namespace Pixy {
           lRepo->getVersion().PathValue + "/" +
           path(dest).filename().string()
         );
-
+        std::cout << "\tD: Dest path: " << dest << "\n";
+        
         if (!exists(lTempPath.parent_path()))
          create_directory(lTempPath.parent_path());
       }
@@ -496,12 +497,13 @@ namespace Pixy {
     using boost::filesystem::path;
 
     // extract the archive
-    mLog->infoStream() << "decompressing bz2 archive";
     std::string fp = inEntry->Temp;
-    std::string ofp = path(inEntry->Temp).stem().string();
+    //std::string ofp = path(inEntry->Temp).stem().string();
+    std::string ofp = (path(inEntry->Temp).parent_path() / "__temp_patch_archive.tar").string();
+    std::string archive_extraction_path = path(inEntry->Temp).parent_path().string();
     std::cout << fp << "\n";
     std::cout << ofp << "\n";
-
+    mLog->infoStream() << "decompressing bz2 archive from " << fp << " to " << ofp;
     //throw std::runtime_error("");
 
     int bzError;
@@ -513,7 +515,7 @@ namespace Pixy {
       // something wrong happened, find out what it was
       mLog->errorStream() << "couldnt open bz2 archive: ec " << bzError;
       BZ2_bzReadClose( &bzError, bz2File );
-      return;
+      throw BadArchive("Couldn't open bz2 archive" + bzError);
     }
 
     // decompress it
@@ -525,6 +527,19 @@ namespace Pixy {
       bytes = BZ2_bzRead ( &bzError, bz2File, buf, BUF_SIZE );
       if (bzError == BZ_OK)
         fwrite( buf, sizeof(char), bytes, tarFile );
+      else if (bzError == BZ_STREAM_END) {
+        mLog->debugStream() << "Reached BZ_STREAM_END .. breaking";
+        break;
+      }
+        
+      /*else if (bzError == BZ_SEQUENCE_END) {
+        mLog->debugStream() << "Reached BZ_SEQUENCE_END .. discarding unused bytes";
+        int nrUnusedBytes = 0;
+        BZ2_bzReadGetUnused( &bzError, bz2File, NULL, &nrUnusedBytes );
+        break;
+      }*/
+      else
+        throw BadArchive("something went wrong while decompressing archive" + bzError);
     }
     mLog->infoStream() << "done decompressing bz2 archive";
     BZ2_bzReadClose( &bzError, bz2File );
@@ -537,21 +552,22 @@ namespace Pixy {
     if (tar_open(&t, (char*)ofp.c_str(), NULL, O_RDONLY, 0, 0) == -1) {
       std::cerr << "tar_open()\n";
       //fprintf(stderr, "tar_open(): %s\n", strerror(errno));
-      return;
+      throw BadArchive("couldn't open tarfile");
     }
 
-    if (tar_extract_all(t, (char*)Launcher::getSingleton().getTempPath().c_str()) != 0)
+    //if (tar_extract_all(t, (char*)Launcher::getSingleton().getTempPath().c_str()) != 0)
+    if (tar_extract_all(t, (char*)archive_extraction_path.c_str()) != 0)
     {
       std::cerr << "tar_extract_all()\n";
       //fprintf(stderr, "tar_extract_all(): %s\n", strerror(errno));
-      return;
+      throw BadArchive("couldn't extract tar archive to" + Launcher::getSingleton().getTempPath());
     }
 
     if (tar_close(t) != 0)
     {
       std::cerr << "tar_close()\n";
       //fprintf(stderr, "tar_close(): %s\n", strerror(errno));
-      return;
+      throw BadArchive("couldn't close tar archive!");
     }
 
     int i;
@@ -606,6 +622,12 @@ namespace Pixy {
 	  if (!is_directory(local.parent_path()))
 	    create_directory(local.parent_path());
 
+    // make sure the source exists!
+	  if (!exists(temp)) {
+	    mLog->errorStream() << "temp source of file to be created doesn't exist! " << temp << " aborting...";
+	    throw FileDoesNotExist("Could not create file!", inEntry);
+	  }
+	  
 	  // now we move the file
 
 	  // TODO: fix this, we shouldn't be copying, we should be moving
@@ -665,10 +687,11 @@ namespace Pixy {
 
 
 	  //patch(inEntry->Local.c_str(), inEntry->Local.c_str(), inEntry->Temp.c_str());
-	  copy_file(inEntry->Local, tmp);
+	  //copy_file(inEntry->Local, tmp);
+	  rename(inEntry->Local, tmp);
 	  bspatch(tmp.c_str(), tmp.c_str(), inEntry->Temp.c_str());
 	  //remove(path(inEntry->Temp));
-	  remove(path(inEntry->Local));
+	  //remove(path(inEntry->Local));
 	  rename(tmp, inEntry->Local);
 
 
@@ -681,7 +704,6 @@ namespace Pixy {
 	  using boost::filesystem::create_directory;
 	  using boost::filesystem::path;
 	  using boost::filesystem::rename;
-	  using boost::filesystem::copy_file;
 
 	  // TODO: boost error checking
 

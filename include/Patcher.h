@@ -25,6 +25,9 @@
 #define H_Patcher_H
 
 #include "Pixy.h"
+#include <bzlib.h>
+#include <libtar.h>
+#include "TarManager.h"
 #include "PatchEntry.h"
 #include "PatchVersion.h"
 #include "Repository.h"
@@ -159,6 +162,8 @@ class Patcher {
 
     t_procmap mProcessors;
 
+    void processArchive(PatchEntry* inEntriy, bool fCommit);
+
     /*! \brief
      *  Creates a local file at inEntry->Local, from remote source: inEntry->Remote,
      *  while stored temporarily in inEntry->Temp.
@@ -216,6 +221,8 @@ class Patcher {
      *  Writes mCurrentVersion to PIXY_RESOURCE_PATH file.
      */
     void updateVersion(const Version& inVersion);
+
+    bool fHandledArchive;
 
   private:
     bool fValidated; //! set to true if validate() was properly completed

@@ -34,7 +34,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <curl/curl.h>
-#include <curl/types.h>
+//#include <curl/types.h>
 #include <curl/easy.h>
 #include <boost/filesystem.hpp>
 #include "md5.hpp"
@@ -105,6 +105,7 @@ class Downloader {
 	  std::list<std::string> mHosts;
 	  std::string* mActiveHost;
 	  std::string mPatchScriptName;
+    std::string mOSPrefix;
 
   private:
 	  Downloader();

@@ -32,7 +32,8 @@ typedef enum {
   P_CREATE, //! creates a file locally from a given remote file URL
   P_DELETE, //! deletes a file locally
   P_MODIFY, //! patches a file locally from a given remote diff URL
-  P_RENAME
+  P_RENAME,
+  P_ARCHIVE
 } PATCHOP;
 
 class Repository;

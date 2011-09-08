@@ -49,6 +49,11 @@ use_pkgconfig(OIS_PKGC OIS)
 # For OIS, prefer static library over framework (important when referencing OIS source build)
 set(CMAKE_FIND_FRAMEWORK "LAST")
 
+IF(APPLE)
+  set(OIS_LIB_SEARCH_PATH ${OIS_LIB_SEARCH_PATH} /opt/local/lib)
+  set(OIS_INC_SEARCH_PATH ${OIS_INC_SEARCH_PATH} /opt/local/include/OIS)  
+ENDIF()
+
 findpkg_framework(OIS)
 if (OIS_HOME)
   # OIS uses the 'includes' path for its headers in the source release, not 'include'

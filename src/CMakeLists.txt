@@ -220,4 +220,14 @@ IF(APPLE)
 		PROPERTIES
    	MACOSX_PACKAGE_LOCATION Resources/English.lproj)
 
+  SET(OSX_FWK_DEST Karazeh.app/Contents)
+  SET(OSX_RES_DEST Karazeh.app/Contents/Resources)
+     
+  # Copy the dependency frameworks (log4cpp)
+  SET(OSX_FWK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/osx/Frameworks")
+  INSTALL(DIRECTORY "${OSX_FWK_PATH}" DESTINATION ${OSX_FWK_DEST} COMPONENT Runtime)
+  
+  # Copy resources
+  INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../resources/cocoa/Shroom.png" DESTINATION ${OSX_RES_DEST} COMPONENT Runtime)
+  
 ENDIF(APPLE)

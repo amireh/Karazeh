@@ -68,7 +68,11 @@ enum DIALOG_TYPE {
 }
 
 -(void) unableToConnect {
-  [txtStatus setStringValue: @"Unable to resolve patch server, please verify your internet connectivity."];
+  [txtStatus setStringValue: @"Unable to resolve patch server."];
+  [self showDialog:DIALOG_ERROR
+    : @"Could not connect"
+    : @"Unable to resolve patch server, please verify your internet connectivity."
+    : (void*)&PATCH_FAILED];
 }
 
 -(void) validateStarted {

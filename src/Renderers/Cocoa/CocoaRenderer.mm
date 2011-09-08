@@ -57,6 +57,7 @@ namespace Pixy {
 	};
 
   void CocoaRenderer::injectUnableToConnect( void ) {
+    [mCocoaApp unableToConnect];
   };
 
 	void CocoaRenderer::injectValidateStarted( void ) {

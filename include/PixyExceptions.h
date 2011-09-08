@@ -92,6 +92,16 @@ namespace Pixy {
 		{ }
 	};
 
+	/*! \brief
+	 * raised if there was an error extracting or decompressing a BZ2 tar archive
+	 */
+	class BadArchive : public std::runtime_error {
+	public:
+		inline BadArchive(const std::string& s)
+		: std::runtime_error(s)
+		{ }
+	};
+	
 	struct PatchEntry;
 	class PatchException : public std::runtime_error {
 	public:

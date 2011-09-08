@@ -32,6 +32,7 @@ namespace Pixy {
 		mLog->infoStream() << "constructed";
 
     mSize = 0;
+    mArchive = 0;
 
   }
 
@@ -52,7 +53,7 @@ namespace Pixy {
 	}
 
 
-  void
+  PatchEntry* const
   Repository::registerEntry(PATCHOP Op,
                             std::string Local,
                             std::string Remote,
@@ -61,8 +62,10 @@ namespace Pixy {
                             )
   {
     mLog->debugStream() << "registering entry of type " <<
-      ( (Op == P_CREATE) ? "CREATE" : (Op == P_MODIFY) ? "MODIFY" : "DELETE" );
-      //<< " with src: " << Local << " and dest: " << Remote;
+      ( (Op == P_CREATE) ? "CREATE" : (Op == P_MODIFY)
+      ? "MODIFY" : (Op == P_ARCHIVE) ? "ARCHIVE" : "DELETE" )
+      << " with: \n\t\tLocal: " << Local << "\n\t\tdest: " << Remote
+      << "\n\t\tTemp: " << Temp;
 
     PatchEntry *lEntry = new PatchEntry();
 
@@ -74,7 +77,7 @@ namespace Pixy {
     lEntry->Repo = this;
 
     mEntries.push_back(lEntry);
-    lEntry = 0;
+    return lEntry;
   }
 
   std::vector<PatchEntry*>
@@ -105,6 +108,16 @@ namespace Pixy {
   void Repository::setSize(long long inSize) {
     mSize = inSize;
 
+  }
+
+  void Repository::setArchive(PatchEntry* inArchive) {
+    mArchive = inArchive;
+  }
+  PatchEntry* const Repository::getArchive() {
+    return mArchive;
+  }
+  bool Repository::isArchived() {
+    return mArchive != NULL;
   }
 
 };

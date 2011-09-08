@@ -26,13 +26,12 @@
 
 #include "Pixy.h"
 #include <string>
-//#include "Repository.h"
+#include "Repository.h"
+#include "PatchVersion.h"
 
 namespace log4cpp { class Category; }
 namespace Pixy {
 
-  class Version;
-  class Repository;
 	/*! \class Renderer
 	 * \brief
 	 *	The Renderer is the interface the user will interact with. Renderers are

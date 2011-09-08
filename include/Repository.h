@@ -55,7 +55,7 @@ namespace Pixy {
       Repository(Version inVersion);
       virtual ~Repository();
 
-      void
+      PatchEntry* const
       registerEntry(PATCHOP op,
                     std::string local,
                     std::string remote = "",
@@ -77,12 +77,17 @@ namespace Pixy {
       pbigint_t getSize();
       void setSize(pbigint_t inSize);
 
+      void setArchive(PatchEntry* inArchive);
+      PatchEntry* const getArchive();
+      bool isArchived();
+
     protected:
       std::vector<PatchEntry*> mEntries;
       log4cpp::Category* mLog;
       Version mVersion;
 
       long long mSize;
+      PatchEntry* mArchive;
 
     private:
       // Repositores can not be copied

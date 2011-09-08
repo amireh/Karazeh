@@ -24,6 +24,7 @@
 #ifndef H_Pixy_H
 #define H_Pixy_H
 
+//#define DEBUG
 
 /* Application specific definitions */
 #define PIXY_APP_VERSION "VERSION 1.0.0" // used in log
@@ -43,6 +44,7 @@ typedef long long pbigint_t;
 #include "PixyPlatform.h"
 #include "PixyExceptions.h"
 #include "PixyLogLayout.h"
+
 
 /*
  * log4cpp defines int64_t as __int64_t but does not use it at all,
@@ -91,6 +93,5 @@ const int PIXY_DISTANCE_FROM_ROOT = 1;
 #define PIXY_EXTERNAL_APP_ARG "Qt"
 const int PIXY_DISTANCE_FROM_ROOT = 1;
 #endif
-
 
 #endif

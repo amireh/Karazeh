@@ -38,6 +38,15 @@ namespace Pixy {
     mDownloadedBytes = 0;
     mCurrentRepo = 0;
 
+    // find out which OS we're running
+#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
+    mOSPrefix = "win32";
+#elif PIXY_PLATFORM == PIXY_PLATFORM_APPLE
+    mOSPrefix = "mac";
+#else
+    mOSPrefix = "linux";
+#endif
+
     // Build hosts list
     using boost::filesystem::exists;
     using boost::filesystem::path;
@@ -50,7 +59,7 @@ namespace Pixy {
         while (lMirrorsFile.good()) {
           getline(lMirrorsFile, lMirror);
           // TODO: some sanity checks on the mirror url
-          mHosts.push_back(lMirror);
+          mHosts.push_back(lMirror + mOSPrefix + "/");
         }
         mLog->infoStream() << "registered " << mHosts.size() << " patch mirrors";
         lMirrorsFile.close();
@@ -59,7 +68,7 @@ namespace Pixy {
 
     // add hardcoded/fallback hosts
 		//mHosts.push_back("http://127.0.0.1/");
-		mHosts.push_back("http://www.vertigo-game.com/patches/");
+		mHosts.push_back("http://www.vertigo-game.com/patches/" + mOSPrefix + "/");
 
     mLog->infoStream() << "registered " << mHosts.size() << " patch hosts";
     mPatchScriptName = "patch.txt";
@@ -143,10 +152,24 @@ namespace Pixy {
     int i;
     pbigint_t lSize = 0;
     //int nrEntries = inRepo->getEntries().size();
-    std::string url;
+    std::string lUrl;
     std::vector<PatchEntry*> lEntries;
 
     CURL *curl = curl_easy_init();
+
+    if (inRepo->isArchived()) {
+      PatchEntry* lArchive = inRepo->getArchive();
+      lUrl = *mActiveHost + lArchive->Remote;
+
+      lArchive->Filesize = mFetcher.fileSize(lUrl, curl);
+      lSize = lArchive->Filesize;
+
+      curl_easy_cleanup(curl);
+
+      inRepo->setSize(lSize);
+      return lSize;
+    };
+
     for (i = 0; i < 2; ++i) {
       PATCHOP op = (i == 0) ? P_CREATE : P_MODIFY;
 
@@ -156,9 +179,9 @@ namespace Pixy {
         lEntry = lEntries.back();
 
         // build up target URL
-        url = *mActiveHost + lEntry->Remote;
+        lUrl = *mActiveHost + lEntry->Remote;
 
-        lEntry->Filesize = mFetcher.fileSize(url, curl);
+        lEntry->Filesize = mFetcher.fileSize(lUrl, curl);
         lSize += lEntry->Filesize;
 
         //std::cout << "Found file with size: " << lEntry->Filesize << "\n";
@@ -172,6 +195,7 @@ namespace Pixy {
 
     inRepo->setSize(lSize);
 
+    std::cout << "Repositority " << inRepo->getVersion().toNumber() << " is " << lSize << " bytes large\n";
     return lSize;
   }
 
@@ -207,6 +231,36 @@ namespace Pixy {
     std::string url;
     std::vector<PatchEntry*> lEntries;
     CURL *curl = curl_easy_init();
+
+    // if it's an archived repository, fetch the archive only
+    if (inRepo->isArchived()) {
+
+      PatchEntry *lArchive = inRepo->getArchive();
+      bool downloaded = false;
+      if (exists(lArchive->Temp)) {
+        // compare the checksum to verify the file
+        MD5 md5;
+        if (md5.digestFile((char*)lArchive->Temp.c_str()) == lArchive->Checksum) {
+          // no need to download
+          downloaded = true;
+          mLog->debugStream() << "Archive already downloaded, skipping";
+        } else
+          mLog->infoStream() << "MD5 mismatch, re-downloading " << lArchive->Temp;
+      }
+
+      // TODO: re-try in case of download failure
+      std::string lUrl = *mActiveHost + lArchive->Remote;
+      mLog->infoStream() << "downloading archive " << lUrl;
+      if (!downloaded) {
+        //fetchFile(url, lEntry->Temp);
+        mFetcher(lUrl, lArchive->Temp, nrRetries, realProgress, curl);
+      }
+
+      curl_easy_cleanup(curl);
+      return true;
+    };
+
+    // it's not archived, get all the files
     for (i = 0; i < 2; ++i) {
       PATCHOP op = (i == 0) ? P_CREATE : P_MODIFY;
 

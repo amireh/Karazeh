@@ -11,7 +11,10 @@
 
 @interface KAppDelegate : NSObject <NSApplicationDelegate> {
   NSWindow *window;
-  
+  NSButton *btnLaunch;
+  NSProgressIndicator *progressBar;
+  NSTextView *txtLatestChanges;
+  NSTextField *txtStatus;  
 }
 
 @property (assign) IBOutlet NSWindow *window;
