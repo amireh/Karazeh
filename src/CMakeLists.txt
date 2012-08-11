@@ -1,0 +1,26 @@
+# add sources
+SET(Karazeh_SRCS
+  ${Karazeh_SRCS}
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/karazeh.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/logger.hpp
+  
+  logger.cpp
+
+  main.cpp
+)
+
+# ---
+# generate target
+# ---
+IF(WIN32 AND (KARAZEH_RENDERER_QT OR KARAZEH_RENDERER_OGRE))
+  ADD_EXECUTABLE(${PROJECT_NAME} WIN32 ${Karazeh_SRCS})
+ELSEIF(APPLE)
+  ADD_EXECUTABLE(${PROJECT_NAME} MACOSX_BUNDLE ${Karazeh_SRCS})
+  IF(KARAZEH_RENDERER_COCOA)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${MAC_LIBS})
+  ENDIF()
+ELSE()
+  ADD_EXECUTABLE(${PROJECT_NAME} ${Karazeh_SRCS})
+ENDIF()
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES})

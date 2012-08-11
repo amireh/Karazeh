@@ -1,0 +1,27 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+IF(DEFINED CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+ELSE()
+  SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
+ENDIF()
+
+INCLUDE (CheckIncludeFileCXX)
+INCLUDE (CMakeDependentOption)
+
+PROJECT(Karazeh)
+
+SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake ${CMAKE_SOURCE_DIR}/CMake/Utils ${CMAKE_SOURCE_DIR}/CMake/Packages )
+
+SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
+
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  SET(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "Karazeh install prefix" FORCE)
+ENDIF()
+
+# common includes and libraries
+INCLUDE_DIRECTORIES(
+  include
+)
+
+ADD_SUBDIRECTORY(src)
