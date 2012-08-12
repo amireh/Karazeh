@@ -33,6 +33,7 @@ namespace kzh {
   ostream*      logger::out = &std::cout;
   bool          logger::with_timestamps = true;
   string_t      logger::app_name = "";
+  int           logger::indent_level = 0;
 
   void logger::set_threshold(char level) {
     threshold = level;
@@ -48,6 +49,14 @@ namespace kzh {
 
   void logger::set_app_name(string_t const& in_app_name) { 
     app_name = in_app_name;
+  }
+
+  void logger::indent() {
+    ++indent_level;
+  }
+
+  void logger::deindent() {
+    --indent_level;
   }
 
   logger::logger(string_t context)
@@ -88,7 +97,12 @@ namespace kzh {
       (*out) << app_name << " ";
     }
 
-    (*out) << "[" << lvl << "]" << uuid_prefix_ << " " << context_ << ": ";
+    for (int i = 0; i < indent_level; ++i)
+      (*out) << "  ";
+
+    (*out) << "[" << lvl << "]" << uuid_prefix_ << " "
+      << (context_.empty() ? "" : context_ + ": ");
+
     return *out;
   }
 
@@ -106,6 +120,7 @@ namespace kzh {
   logstream logger::error()  { return logstream(log('E')); }
   logstream logger::alert()  { return logstream(log('A')); }
   logstream logger::crit()   { return logstream(log('C')); }
+  logstream logger::plain()  { return logstream(*out); }
 
   logstream::logstream(std::ostream& in_s)
   : s(in_s) {}
@@ -114,4 +129,7 @@ namespace kzh {
     s << std::endl;
   }
 
+  void logger::rename_context(string_t const& new_ctx) {
+    context_ = new_ctx;
+  }
 }

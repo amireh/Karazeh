@@ -74,6 +74,9 @@ namespace kzh {
     /** All messages will be prefixed by the specified application name */
     static void set_app_name(string_t const& app_name);
 
+    static void indent();
+    static void deindent();
+
     /** Message will be prefixed with [D] */
     logstream debug();
     /** Message will be prefixed with [I] */
@@ -89,6 +92,8 @@ namespace kzh {
     /** Message will be prefixed with [C] */
     logstream crit();
 
+    logstream plain();
+
     /** 
      * Subsequent messages will be prefixed with {IN_UUID}
      * positioned right after the [LEVEL] part.
@@ -97,6 +102,9 @@ namespace kzh {
 
     /** The assigned UUID prefix, if any */
     string_t const& uuid_prefix() const;
+
+  protected:
+    void rename_context(string_t const&);
 
   private:
     ostream& log(char lvl);
@@ -107,6 +115,7 @@ namespace kzh {
     static bool           with_timestamps;
     static bool           with_app_name;
     static string_t       app_name;
+    static int            indent_level;
 
     string_t uuid_prefix_;
   }; // end of logger class
