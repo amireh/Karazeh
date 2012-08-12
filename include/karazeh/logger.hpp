@@ -35,10 +35,9 @@ namespace kzh {
   using std::ostringstream;
 
   struct logstream;
-	class logger
-	{
-	public:
-
+  class logger {
+  public:
+    
     /**
      * Creates a new logger instance that can be used to spit out
      * messages using a stream interface.
@@ -49,7 +48,7 @@ namespace kzh {
      * represents, ie: GameManager, db_adapter, UIEngine, etc.
      */
     logger(string_t context);
-		virtual ~logger();
+    virtual ~logger();
 
     /**
      * Assigns the threshold to use for filtering messages.
@@ -110,7 +109,7 @@ namespace kzh {
     static string_t       app_name;
 
     string_t uuid_prefix_;
-	}; // end of logger class
+  }; // end of logger class
   
   struct logstream {
     logstream(std::ostream&);
@@ -121,6 +120,7 @@ namespace kzh {
     template<typename T>
     inline logstream& operator<<(T const& data) {
       s << data;
+      return *this;
     }
   };
 

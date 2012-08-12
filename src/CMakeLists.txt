@@ -1,13 +1,28 @@
+# dependencies
+SET(DEPS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../deps)
+INCLUDE_DIRECTORIES(${DEPS_PATH})
+INCLUDE_DIRECTORIES(${DEPS_PATH}/tinyxml2)
+# INCLUDE_DIRECTORIES(${DEPS_PATH}/MurmurHash3)
+INCLUDE_DIRECTORIES(${DEPS_PATH}/md5)
+
+SET(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/karazeh)
+INCLUDE_DIRECTORIES(${HEADERS_PATH})
+
 # add sources
 SET(Karazeh_SRCS
   ${Karazeh_SRCS}
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/karazeh.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/logger.hpp
+  ${HEADERS_PATH}/karazeh.hpp
+  ${HEADERS_PATH}/logger.hpp
   
+  ${DEPS_PATH}/tinyxml2/tinyxml2.cpp
+  # ${DEPS_PATH}/MurmurHash3/MurmurHash3.cpp
+  ${DEPS_PATH}/md5/md5.cpp  
+
+  hashers/md5_hasher.cpp
+
   logger.cpp
 
-  main.cpp
 )
 
 # ---
@@ -21,6 +36,7 @@ ELSEIF(APPLE)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${MAC_LIBS})
   ENDIF()
 ELSE()
-  ADD_EXECUTABLE(${PROJECT_NAME} ${Karazeh_SRCS})
+  ADD_EXECUTABLE(${PROJECT_NAME} ${Karazeh_SRCS} main.cpp)
+  ADD_LIBRARY(kzh SHARED ${Karazeh_SRCS})
 ENDIF()
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES})
