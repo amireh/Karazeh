@@ -15,7 +15,5 @@ MACRO(ADD_TEST TEST)
   TARGET_LINK_LIBRARIES(${TEST} kzh)
 ENDMACRO()
 
-# -------------------------------------- #
-# md5_hasher test
-# -------------------------------------- #
 ADD_TEST("md5_hasher_test")
+ADD_TEST("resources_test")

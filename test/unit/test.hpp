@@ -31,6 +31,7 @@
 #include <cassert>
 #include <exception>
 #include <stdexcept>
+#include <vector>
 
 namespace kzh {
 
@@ -53,7 +54,8 @@ namespace kzh {
     explicit test(std::string in_name)
     : name_(in_name),
       result_(failed),
-      logger(in_name + "_test")
+      logger(in_name + "_test"),
+      stage_(NULL)
     {
       enable_timestamps(false);
       info() << "starting";
@@ -62,6 +64,25 @@ namespace kzh {
     virtual ~test()
     {
       stop();
+
+      if (!stages_.empty()) {
+        int i = 1;
+        plain() << "Status breakdown:";
+        for (stages_t::const_iterator stage = stages_.begin();
+          stage != stages_.end();
+          ++stage, ++i)
+        {
+          logger::indent();
+          plain() << "  Stage#" << i << " - " << (*stage)->title << ": " << status_to_string((*stage)->result);
+          logger::deindent();
+        }
+
+        while (!stages_.empty()) {
+          delete stages_.back();
+          stages_.pop_back();
+        }
+
+      }
     }
 
     /**
@@ -70,6 +91,12 @@ namespace kzh {
     virtual result_t run(int argc, char** argv)=0;
     virtual void stop()
     {
+      if (stage_) {
+        stages_.push_back(stage_);
+        stage_ = NULL;
+        deindent();
+      }
+
       info() << "tearing down";
     }
 
@@ -79,7 +106,8 @@ namespace kzh {
     };
 
     inline virtual void report(result_t rc) {
-      info() << "finished: " << status_to_string(rc);
+      if (stages_.empty())
+        info() << "finished: " << status_to_string(rc);
     }
 
   protected:
@@ -93,8 +121,24 @@ namespace kzh {
      * The result of the stage is determined by the results of all assertions
      * occuring inside it.
      */
-    void stage(string_t, bool) {
+    void stage(string_t title, bool is_timed = false) {
+      if (stage_) {
+        // info() << "complete: " << status_to_string(stage_->result);
+        deindent();
+        stages_.push_back(stage_);
+        stage_ = NULL;
+      }
 
+      stage_ = new stage_t();
+      stage_->title = title;
+      stage_->result = passed;
+      stage_->timed = is_timed;
+
+      logger::rename_context("");
+      plain() << "\033[0;33mStage#" << stages_.size() + 1 << "\033[0m " << title << " --";
+      logger::rename_context(name_ + "_test");
+
+      logger::indent();
     }
 
     /**
@@ -110,6 +154,9 @@ namespace kzh {
       } else {
         notice() << explanation << " \033[0;32m[ PASSED ]\033[0m";
       }
+
+      if (stage_)
+        stage_->result = stage_->result && condition;
 
       return condition;
     }
@@ -144,11 +191,15 @@ namespace kzh {
     test& operator=(const test&);
 
     struct stage_t {
-      string_t        name;
+      string_t        title;
       bool            timed;
       unsigned long   elapsed_ms;
       result_t        result;
     };
+
+    typedef std::vector<stage_t*> stages_t;
+    stages_t stages_;
+    stage_t* stage_;
   };
 }
 #endif

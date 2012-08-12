@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(${DEPS_PATH}/tinyxml2)
 INCLUDE_DIRECTORIES(${DEPS_PATH}/md5)
 
 SET(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/karazeh)
-INCLUDE_DIRECTORIES(${HEADERS_PATH})
+INCLUDE_DIRECTORIES(${HEADERS_PATH} ${HEADERS_PATH}/../)
 
 # add sources
 SET(Karazeh_SRCS
@@ -22,6 +22,7 @@ SET(Karazeh_SRCS
   hashers/md5_hasher.cpp
 
   logger.cpp
+  resource_manager.cpp
 
 )
 

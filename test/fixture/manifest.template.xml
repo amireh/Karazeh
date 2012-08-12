@@ -1,0 +1,28 @@
+<karazeh>
+  <release version="0.1.0">
+    
+    <meta name="changelist" value="http://localhost:9333/patches/changelist/0.1.0.txt" />
+    <meta name="checksum" value="foobar" />
+    <meta name="archived" value="false" />
+
+    <create>
+      <source checksum="1234" size="500"><![CDATA[/path/to/source]]></source>
+      <destination><![CDATA[/path/to/destination]]></destination>
+    </create>
+
+    <update>
+      <target checksum="1234"><![CDATA[/path/to/file]]></target>
+      <patch  checksum="5678" size="100"><![CDATA[/path/to/patch]]></patch>
+    </update>
+
+    <rename>
+      <from><![CDATA[/path/to/file]]></from>
+      <to><![CDATA[/new/path/to/file]]></to>
+    </rename>
+
+    <delete>
+      <target><![CDATA[/path/to/file-or-directory]]></target>
+    </delete>
+
+  </release>
+</karazeh>
