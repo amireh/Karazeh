@@ -54,7 +54,9 @@ namespace kzh {
     bool is_readable(string_t const &path) const;
 
     /**
-     * downloads the file found at URL and stores it in out_buf
+     * Downloads the file found at URL and stores it in out_buf. If
+     * @URL does not start with http:// then it will be prefixed by
+     * the assigned server URI.
      *
      * @return true if the file was correctly DLed, false otherwise
      */

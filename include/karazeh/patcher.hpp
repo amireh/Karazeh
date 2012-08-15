@@ -28,6 +28,10 @@
 #include "karazeh/logger.hpp"
 #include "karazeh/resource_manager.hpp"
 #include "karazeh/hasher.hpp"
+#include "karazeh/release_manifest.hpp"
+#include "karazeh/operation.hpp"
+#include "karazeh/operations/create_operation.hpp"
+#include "karazeh/utility.hpp"
 #include "tinyxml2/tinyxml2.h"
 #include <map>
 #include <vector>
@@ -36,12 +40,6 @@ namespace kzh {
   using tinyxml2::XMLDocument;
 
   typedef string_t identity_t;
-
-  struct release_manifest {
-    identity_t  checksum;
-    string_t    tag;
-    string_t    uri;
-  };
 
   class patcher : protected logger {
   public:
@@ -83,6 +81,11 @@ namespace kzh {
     /**
      *
      * @throw kzh::invalid_state if no new releases are pending
+     * @throw kzh::invalid_resource if the release manifest couldn't be DLed
+     * @throw kzh::invalid_manifest if:
+     *  => 1. the release manifest is empty
+     *  => 2. the release manifest has no <release> node
+     *  => 3. the release manifest's <release> node has no children (operations)
      */
     void apply_next_update();
 

@@ -25,10 +25,6 @@
 
 namespace kzh {
 
-  std::ostream& operator<<(std::ostream& s, release_manifest* rm) {
-    s << "release[" << rm->tag << "] => " << rm->uri;
-  }
-
   patcher::patcher(resource_manager& rmgr)
   : logger("patcher"),
     rmgr_(rmgr)
@@ -195,5 +191,75 @@ namespace kzh {
     release_manifest *next_update = new_releases_.front();
 
     info() << "applying update: " << next_update;
+
+    // Download the manifest and parse it
+    string_t rm_xml;
+    
+    if (!rmgr_.get_remote(next_update->uri, rm_xml)) {
+      throw invalid_resource(next_update->uri);
+    }
+
+    using namespace tinyxml2;
+
+    // Parse the manifest
+    XMLDocument rm_doc;
+    int xml_rc = XML_NO_ERROR;
+    xml_rc = rm_doc.Parse(rm_xml.c_str());
+    if (xml_rc != XML_NO_ERROR) {
+      error() << "Unable to parse release manifest, xml error: "
+              << utility::tinyxml2_ec_to_string(xml_rc);
+      if (rm_doc.GetErrorStr1())
+        error() << "tinyxml2 error string#1: " << rm_doc.GetErrorStr1();
+      if (rm_doc.GetErrorStr2())
+        error() << "tinyxml2 error string#2: " << rm_doc.GetErrorStr2();
+
+      throw invalid_manifest("Release manifest could not be parsed. More info can be found in the log.");
+    }
+
+    struct {
+      std::vector<operation*> operations;
+    } patch;
+
+    // Go through each operation node and build up the patch
+    XMLElement *root = rm_doc.RootElement();
+    if (!root) {
+      throw invalid_manifest("Release manifest seems to be empty!");
+    }
+
+    XMLElement *release = root->FirstChildElement("release");
+    if (!release) {
+      throw missing_node(next_update, "karazeh", "release");
+    }
+    else if (release->NoChildren()) {
+      throw invalid_manifest("Release manifest seems to have no operations!");
+    }
+
+    XMLElement* op_node = release->FirstChildElement();
+    while (op_node) {
+      debug() << op_node->Value();
+      if (strcmp(op_node->Value(), "create") == 0) {
+        // <create> operations have two nodes: <source> and <destination>
+        XMLElement *src_node = op_node->FirstChildElement("source");
+        if (!src_node) {
+          throw missing_node(next_update, "create", "source");
+        } else {
+          if (!src_node->Attribute("checksum")) {
+            throw missing_attribute(next_update, "source", "checksum");
+          }
+          if (!src_node->Attribute("size")) {
+            throw missing_attribute(next_update, "source", "size");
+          }
+        }
+        XMLElement *dst_node = op_node->FirstChildElement("destination");
+        if (!dst_node) {
+          throw missing_node(next_update, "create", "destination");
+        }
+
+        // create_operation* op = new create_operation();
+        // op->src_checksum = 
+      }
+      op_node = op_node->NextSiblingElement();
+    }
+
   }
 }

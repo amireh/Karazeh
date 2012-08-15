@@ -204,8 +204,13 @@ namespace kzh {
     return realsize;
   }
 
-  bool resource_manager::get_remote(string_t const& uri, string_t& out_buf)
+  bool resource_manager::get_remote(string_t const& in_uri, string_t& out_buf)
   {
+    string_t uri(in_uri);
+    if (uri.find("http://") == std::string::npos) {
+      uri = string_t(host_ + in_uri);
+    }
+    
     CURL* curl_ = curl_easy_init();
     CURLcode curlrc_;
 

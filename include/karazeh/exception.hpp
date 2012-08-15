@@ -75,7 +75,6 @@ namespace kzh {
     { }
   };
 
-
 } // end of namespace kzh
 
 #endif // H_KARAZEH_EXCEPTION_H
