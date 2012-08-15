@@ -55,6 +55,27 @@ namespace kzh {
   };
 
 
+  /** Thrown when an un-initialized component has been called to do some
+    * work without calling its setup routine first.
+    */
+  class uninitialized : public internal_error {
+  public:
+    inline uninitialized(const std::string& s)
+    : internal_error(s)
+    { }
+  };
+
+  /** Thrown when an operation depends on another which has not bee
+    * completed successfully (or at all).
+    */
+  class invalid_state : public internal_error {
+  public:
+    inline invalid_state(const std::string& s)
+    : internal_error(s)
+    { }
+  };
+
+
 } // end of namespace kzh
 
 #endif // H_KARAZEH_EXCEPTION_H
