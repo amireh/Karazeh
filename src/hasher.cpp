@@ -21,25 +21,29 @@
  *
  */
 
-#ifndef H_KARAZEH_HASHER_MD5_H
-#define H_KARAZEH_HASHER_MD5_H
-
 #include "hasher.hpp"
-#include "md5/md5.hpp"
-
+#include "logger.hpp"
+ 
 namespace kzh {
 
-  class md5_hasher : public hasher
-  {
-    public:
-    
-    inline md5_hasher() : hasher("MD5") { }
-    inline virtual ~md5_hasher() { }
+  hasher* hasher::hasher_instance_ = NULL;
 
-    virtual digest_rc hex_digest(string_t const& data) const;
-    virtual digest_rc hex_digest(std::ifstream& src) const;
-  };
+  void hasher::assign_hasher(hasher* h) {
+    assert(h);
 
-} // end of namespace kzh
+    hasher_instance_ = h;
 
-#endif
+    logger l("hasher"); l.info() << "will be using " << h->name() << " for hashing";
+  }
+
+  hasher const* const hasher::instance() {
+    if (!hasher_instance_)
+      throw uninitialized("No Hasher instance has been assigned!");
+
+    return hasher_instance_;
+  }
+
+  string_t const& hasher::name() const {
+    return name_;
+  }
+}

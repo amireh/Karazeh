@@ -32,7 +32,7 @@ namespace kzh {
   {
     public:
     
-    inline hasher() { }
+    inline hasher(string_t const& name) : name_(name) { }
     inline virtual ~hasher() { }
 
     /** 
@@ -51,10 +51,24 @@ namespace kzh {
     };
 
     /** digests can be calculated directly off raw data */
-    virtual digest_rc hex_digest(string_t const& data) = 0;
+    virtual digest_rc hex_digest(string_t const& data) const = 0;
 
     /** digests can be calculated off data in a _valid_ file stream */
-    virtual digest_rc hex_digest(std::ifstream& src) = 0;
+    virtual digest_rc hex_digest(std::ifstream& src) const = 0;
+
+    /** A hasher must be assigned so the other components can transparently
+      * use it to calculate digests.
+      */
+    static void assign_hasher(hasher*);
+
+    /** Returns a usable hasher instance. */
+    static hasher const* const instance();
+
+    string_t const& name() const;
+
+  protected:
+    static hasher* hasher_instance_;
+    string_t name_;
   };
 
 } // end of namespace kzh

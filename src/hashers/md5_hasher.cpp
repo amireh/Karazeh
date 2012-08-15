@@ -26,7 +26,7 @@
  
 namespace kzh {
 
-  hasher::digest_rc md5_hasher::hex_digest(string_t const& data) {
+  hasher::digest_rc md5_hasher::hex_digest(string_t const& data) const {
     digest_rc rc;
 
     rc.digest = MD5(data).hex_digest();
@@ -35,7 +35,7 @@ namespace kzh {
     return rc;
   }
 
-  hasher::digest_rc md5_hasher::hex_digest(std::ifstream& fh) {
+  hasher::digest_rc md5_hasher::hex_digest(std::ifstream& fh) const {
     digest_rc rc;
 
     if (!fh.is_open() || !fh.good()) {
