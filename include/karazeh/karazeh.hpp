@@ -25,10 +25,11 @@
 #define H_KARAZEH_H
 
 #include <string>
+#include <cassert>
 #include "karazeh/exception.hpp"
 
 #define KZH_DISTANCE_FROM_ROOT 1
- 
+
 namespace kzh {
   typedef std::string string_t;
 }

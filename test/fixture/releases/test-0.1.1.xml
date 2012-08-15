@@ -1,0 +1,10 @@
+<karazeh>
+  <release tag="0.1.1">
+    <create>
+      <source checksum="3858f62230ac3c915f300c664312c63f" size="6">
+        <![CDATA[/data/media/materials/programs/celshader.cg]]>
+      </source>
+      <destination><![CDATA[/data/media/materials/programs/celshader.cg]]></destination>
+    </create>
+  </release>
+</karazeh>

@@ -21,6 +21,7 @@ SET(Karazeh_SRCS
   ${DEPS_PATH}/binreloc/binreloc.c  
 
   hashers/md5_hasher.cpp
+  hasher.cpp
 
   logger.cpp
   resource_manager.cpp
@@ -39,7 +40,7 @@ ELSEIF(APPLE)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${MAC_LIBS})
   ENDIF()
 ELSE()
-  ADD_EXECUTABLE(${PROJECT_NAME} ${Karazeh_SRCS} main.cpp)
+  ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)
   ADD_LIBRARY(kzh SHARED ${Karazeh_SRCS})
 ENDIF()
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES} kzh)

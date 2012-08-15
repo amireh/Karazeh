@@ -27,6 +27,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/resource_manager.hpp"
+#include "karazeh/hasher.hpp"
 #include "tinyxml2/tinyxml2.h"
 #include <map>
 #include <vector>
@@ -35,10 +36,20 @@ namespace kzh {
   using tinyxml2::XMLDocument;
 
   typedef string_t identity_t;
+
+  struct release_manifest {
+    identity_t  checksum;
+    string_t    tag;
+    string_t    uri;
+  };
+
   class patcher : protected logger {
   public:
     
-    patcher();
+    /** Given resource manager must have the paths resolved, 
+      * see resource_manager::resolve_paths()
+      */
+    patcher(resource_manager&);
     virtual ~patcher();
 
     /**
@@ -53,25 +64,47 @@ namespace kzh {
      */
     bool identify(string_t const& version_manifest_url);
 
+    /** The application current version, if identified */
+    identity_t const& version() const;
+
     /**
-     * Determines whether an update is available. True if a patch is pending,
+     * Determines whether an update is available. True if a patch(es) is/are pending,
      * and false if the application is up to date.
      *
-     * @throw kzh::unidentified if the application version has not been identified
+     * @throw kzh::invalid_state:
+     *  => identify() has not been called or wasn't successful
+     * @throw kzh::invalid_manifest:
+     *  => one of the release manifest entries lacked a required attribute
+     * @throw kzh::integrity_violation:
+     *  => the application version could not be located in the version manifest
      */
     bool is_update_available();
 
-  protected:
-    typedef std::vector<string_t> identity_files_t;
+    /**
+     *
+     * @throw kzh::invalid_state if no new releases are pending
+     */
+    void apply_next_update();
 
-    identity_t version_;
-    identity_files_t identity_files_;
+  protected:
+    struct identifier {
+      path_t    filepath;
+      string_t  checksum;
+    };
+    
+    typedef std::vector<identifier*> identifiers_t;
+    typedef std::vector<release_manifest*> rmanifests_t;
+
+    resource_manager  &rmgr_;
+    identity_t        version_;
+    identifiers_t     identifiers_;
+    XMLDocument       vmanifest_;
+    rmanifests_t      rmanifests_, new_releases_;
 
     /** Whether the version has been correctly identified and is a valid one */
     bool is_identified() const;
 
   private:
-    XMLDocument version_manifest_;
   };
 
 } // end of namespace kzh
