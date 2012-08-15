@@ -46,6 +46,14 @@ namespace kzh {
     { }
   };
 
+  /** Thrown when the patcher was unable to parse the version or release manifest. */
+  class integrity_violation : public internal_error {
+  public:
+    inline integrity_violation(const std::string& s)
+    : internal_error(s)
+    { }
+  };
+
 
 } // end of namespace kzh
 

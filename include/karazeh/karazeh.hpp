@@ -26,6 +26,8 @@
 
 #include <string>
 #include "karazeh/exception.hpp"
+
+#define KZH_DISTANCE_FROM_ROOT 1
  
 namespace kzh {
   typedef std::string string_t;

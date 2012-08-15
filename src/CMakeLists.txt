@@ -18,6 +18,7 @@ SET(Karazeh_SRCS
   ${DEPS_PATH}/tinyxml2/tinyxml2.cpp
   # ${DEPS_PATH}/MurmurHash3/MurmurHash3.cpp
   ${DEPS_PATH}/md5/md5.cpp  
+  ${DEPS_PATH}/binreloc/binreloc.c  
 
   hashers/md5_hasher.cpp
 

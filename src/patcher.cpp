@@ -37,6 +37,7 @@ namespace kzh {
   bool patcher::identify(string_t const& manifest_uri) {
     string_t manifest_xml;
     resource_manager rmgr;
+    rmgr.resolve_paths();
     
     if (!rmgr.get_remote(manifest_uri, manifest_xml)) {
       throw invalid_resource(manifest_uri);
@@ -70,7 +71,9 @@ namespace kzh {
       debug() << "Identity file: " << identity_files_.back();
       
       /** verify that the file exists and is readable */
-      
+      if (!rmgr.is_readable(rmgr.root_path() / identity_files_.back())) {
+        throw integrity_violation("Identity file " + (rmgr.root_path() / identity_files_.back()).string() + " is not readable.");
+      }
     }
   }
 
