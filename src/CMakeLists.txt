@@ -27,7 +27,7 @@ SET(Karazeh_SRCS
   resource_manager.cpp
   release_manifest.cpp
   patcher.cpp
-  operations/create_operation.cpp
+  operations/create.cpp
 
 )
 

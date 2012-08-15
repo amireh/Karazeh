@@ -25,39 +25,63 @@
 #define H_KARAZEH_UTILITY_H
 
 #include "karazeh/karazeh.hpp"
-
-#define KZH_DISTANCE_FROM_ROOT 1
+#include "karazeh/exception.hpp"
 
 namespace kzh {
-  namespace utility {
-    static const string_t tinyxml2_errors[] = {
-      "XML_NO_ATTRIBUTE",
-      "XML_WRONG_ATTRIBUTE_TYPE",
-      "XML_ERROR_FILE_NOT_FOUND",
-      "XML_ERROR_FILE_COULD_NOT_BE_OPENED",
-      "XML_ERROR_FILE_READ_ERROR",
-      "XML_ERROR_ELEMENT_MISMATCH",
-      "XML_ERROR_PARSING_ELEMENT",
-      "XML_ERROR_PARSING_ATTRIBUTE",
-      "XML_ERROR_IDENTIFYING_TAG",
-      "XML_ERROR_PARSING_TEXT",
-      "XML_ERROR_PARSING_CDATA",
-      "XML_ERROR_PARSING_COMMENT",
-      "XML_ERROR_PARSING_DECLARATION",
-      "XML_ERROR_PARSING_UNKNOWN",
-      "XML_ERROR_EMPTY_DOCUMENT",
-      "XML_ERROR_MISMATCHED_ELEMENT",
-      "XML_ERROR_PARSING",
-      "XML_CAN_NOT_CONVERT_TEXT",
-      "XML_NO_TEXT_NODE"
-    };
+namespace utility {
+  static const string_t tinyxml2_errors[] = {
+    "XML_NO_ATTRIBUTE",
+    "XML_WRONG_ATTRIBUTE_TYPE",
+    "XML_ERROR_FILE_NOT_FOUND",
+    "XML_ERROR_FILE_COULD_NOT_BE_OPENED",
+    "XML_ERROR_FILE_READ_ERROR",
+    "XML_ERROR_ELEMENT_MISMATCH",
+    "XML_ERROR_PARSING_ELEMENT",
+    "XML_ERROR_PARSING_ATTRIBUTE",
+    "XML_ERROR_IDENTIFYING_TAG",
+    "XML_ERROR_PARSING_TEXT",
+    "XML_ERROR_PARSING_CDATA",
+    "XML_ERROR_PARSING_COMMENT",
+    "XML_ERROR_PARSING_DECLARATION",
+    "XML_ERROR_PARSING_UNKNOWN",
+    "XML_ERROR_EMPTY_DOCUMENT",
+    "XML_ERROR_MISMATCHED_ELEMENT",
+    "XML_ERROR_PARSING",
+    "XML_CAN_NOT_CONVERT_TEXT",
+    "XML_NO_TEXT_NODE"
+  };
 
-    string_t tinyxml2_ec_to_string(int ec) {
-      std::ostringstream s;
-      s << tinyxml2_errors[ec-1] << " (" << ec << ')';
-      return s.str();
-    }
+  string_t tinyxml2_ec_to_string(int ec) {
+    std::ostringstream s;
+    s << tinyxml2_errors[ec-1] << " (" << ec << ')';
+    return s.str();
   }
-}
+
+  // helper; converts an integer-based type to a string
+  template<typename T>
+  inline static void convert(string_t const& s, T& inValue,
+            bool fail_if_leftovers = true)
+  {
+    std::istringstream _buffer(s);
+    char c;
+    if (!(_buffer >> inValue) || (fail_if_leftovers && _buffer.get(c)))
+      throw bad_conversion(s);
+  }
+
+  template<typename T>
+  inline static T convert_to(const std::string& s, bool fail_if_leftovers = true)
+  {
+    T _value;
+    convert(s, _value, fail_if_leftovers);
+    return _value;
+  } 
+
+  inline static uint64_t tonumber(string_t const& s) {
+    return convert_to<uint64_t>(s);
+  }
+
+
+} // namespace utility
+} // namespace kzh
 
 #endif

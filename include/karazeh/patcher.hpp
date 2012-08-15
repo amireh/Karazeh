@@ -30,7 +30,7 @@
 #include "karazeh/hasher.hpp"
 #include "karazeh/release_manifest.hpp"
 #include "karazeh/operation.hpp"
-#include "karazeh/operations/create_operation.hpp"
+#include "karazeh/operations/create.hpp"
 #include "karazeh/utility.hpp"
 #include "tinyxml2/tinyxml2.h"
 #include <map>

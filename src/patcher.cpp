@@ -239,6 +239,8 @@ namespace kzh {
       debug() << op_node->Value();
       if (strcmp(op_node->Value(), "create") == 0) {
         // <create> operations have two nodes: <source> and <destination>
+
+        // <source checksum="a-z0-9" size="0-9">PATH</source>
         XMLElement *src_node = op_node->FirstChildElement("source");
         if (!src_node) {
           throw missing_node(next_update, "create", "source");
@@ -250,15 +252,40 @@ namespace kzh {
             throw missing_attribute(next_update, "source", "size");
           }
         }
+
+        // <destination>PATH</destination>
         XMLElement *dst_node = op_node->FirstChildElement("destination");
         if (!dst_node) {
           throw missing_node(next_update, "create", "destination");
         }
 
-        // create_operation* op = new create_operation();
-        // op->src_checksum = 
-      }
+        create_operation* op = new create_operation();
+        op->src_checksum = src_node->Attribute("checksum");
+        op->src_size = utility::tonumber(src_node->Attribute("size"));
+        op->src_uri = src_node->GetText();
+        op->dst_path = dst_node->GetText();
+
+        debug() << op->tostring();
+
+        patch.operations.push_back(op);
+      } // <create>
+
+      else if (strcmp(op_node->Value(), "update")) {
+        notice() << "update operations are not yet implemented";
+      } // <update>
+      else if (strcmp(op_node->Value(), "rename")) {
+        notice() << "rename operations are not yet implemented";
+      } // <rename>
+      else if (strcmp(op_node->Value(), "delete")) {
+        notice() << "delete operations are not yet implemented";
+      } // <delete>
+
       op_node = op_node->NextSiblingElement();
+    }
+
+    while (!patch.operations.empty()) {
+      delete patch.operations.back();
+      patch.operations.pop_back();
     }
 
   }

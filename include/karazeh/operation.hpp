@@ -36,6 +36,8 @@ namespace kzh {
     virtual bool stage() = 0;
     virtual bool commit() = 0;
     virtual bool rollback() = 0;
+
+    inline virtual string_t tostring() { return ""; }
   };
 
 } // end of namespace kzh

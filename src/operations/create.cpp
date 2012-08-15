@@ -21,24 +21,38 @@
  *
  */
 
-#ifndef H_KARAZEH_OPERATION_CREATE_H
-#define H_KARAZEH_OPERATION_CREATE_H
-
-#include "karazeh/operation.hpp"
-#include "karazeh/logger.hpp"
+#include "karazeh/operations/create.hpp"
  
 namespace kzh {
-  
-  class create_operation : public operation, protected logger {
-  public:
-    create_operation();
-    virtual ~create_operation();
 
-    virtual bool stage();
-    virtual bool commit();
-    virtual bool rollback();
-  };
+  create_operation::create_operation()
+  : operation(),
+    logger("op_create") {
 
-} // end of namespace kzh
+  }
 
-#endif
+  create_operation::~create_operation() {
+
+  }
+
+  bool create_operation::stage() {
+    return false;
+  }
+
+  bool create_operation::commit() {
+    return false;
+  }
+
+  bool create_operation::rollback() {
+    return false;
+  }
+
+  string_t create_operation::tostring() {
+    std::ostringstream s;
+    s << "create from[" << this->src_uri << ']'
+      << " to[" << this->dst_path << ']'
+      << " checksum[" << this->src_checksum << ']'
+      << " size[" << this->src_size << ']';
+    return s.str();
+  }
+}

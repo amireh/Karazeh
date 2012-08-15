@@ -21,29 +21,31 @@
  *
  */
 
-#include "karazeh/operations/create_operation.hpp"
+#ifndef H_KARAZEH_OPERATION_CREATE_H
+#define H_KARAZEH_OPERATION_CREATE_H
+
+#include "karazeh/operation.hpp"
+#include "karazeh/logger.hpp"
  
 namespace kzh {
+  
+  class create_operation : public operation, protected logger {
+  public:
+    create_operation();
+    virtual ~create_operation();
 
-  create_operation::create_operation()
-  : operation(),
-    logger("op_create") {
+    virtual bool stage();
+    virtual bool commit();
+    virtual bool rollback();
 
-  }
+    virtual string_t tostring();
 
-  create_operation::~create_operation() {
+    string_t src_checksum;
+    uint64_t src_size;
+    string_t src_uri;
+    string_t dst_path;
+  };
 
-  }
+} // end of namespace kzh
 
-  bool create_operation::stage() {
-    return false;
-  }
-
-  bool create_operation::commit() {
-    return false;
-  }
-
-  bool create_operation::rollback() {
-    return false;
-  }
-}
+#endif
