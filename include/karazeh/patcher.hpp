@@ -21,47 +21,57 @@
  *
  */
 
-#ifndef H_KARAZEH_RESOURCE_MANAGER_H
-#define H_KARAZEH_RESOURCE_MANAGER_H
+#ifndef H_KARAZEH_PATCHER_H
+#define H_KARAZEH_PATCHER_H
 
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
-#include <curl/curl.h>
-// #include <boost/filesystem.hpp>
+#include "karazeh/resource_manager.hpp"
+#include "tinyxml2/tinyxml2.h"
+#include <map>
+#include <vector>
  
 namespace kzh {
+  using tinyxml2::XMLDocument;
 
-  class resource_manager : protected logger {
+  typedef string_t identity_t;
+  class patcher : protected logger {
   public:
     
-    resource_manager();
-    virtual ~resource_manager();
-
-    /** Loads the content of a file into memory */
-    bool load_file(std::ifstream &fs, string_t& out_buf);
-    bool load_file(string_t const& path, string_t& out_buf);
-
-    /** Checks if the resource at the given path exists and is readable. */
-    bool is_readable(string_t path);
+    patcher();
+    virtual ~patcher();
 
     /**
-     * downloads the file found at URL and stores it in out_buf
+     * Retrieves the manifest from one of the assigned patch servers
+     * and attempts to identify the application's current version.
      *
-     * @return true if the file was correctly DLed, false otherwise
+     * Returns true if the version has been identified and is valid,
+     * false otherwise.
+     *
+     * @throw kzh::invalid_resource if the manifest could not be retrieved
+     * @throw kzh::invalid_manifest if the manifest could not be parsed
      */
-    bool get_remote(string_t const& URL, string_t& out_buf);
+    bool identify(string_t const& version_manifest_url);
 
-    /** same as above but outputs to file instead of buffer */
-    bool get_remote(string_t const& URL, std::ofstream& out_file);
+    /**
+     * Determines whether an update is available. True if a patch is pending,
+     * and false if the application is up to date.
+     *
+     * @throw kzh::unidentified if the application version has not been identified
+     */
+    bool is_update_available();
 
+  protected:
+    typedef std::vector<string_t> identity_files_t;
+
+    identity_t version_;
+    identity_files_t identity_files_;
+
+    /** Whether the version has been correctly identified and is a valid one */
+    bool is_identified() const;
 
   private:
-  };
-
-  struct download_t {
-    string_t  *buf;
-    string_t  uri;
-    bool      status;
+    XMLDocument version_manifest_;
   };
 
 } // end of namespace kzh

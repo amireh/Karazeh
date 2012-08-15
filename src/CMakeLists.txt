@@ -23,6 +23,7 @@ SET(Karazeh_SRCS
 
   logger.cpp
   resource_manager.cpp
+  patcher.cpp
 
 )
 

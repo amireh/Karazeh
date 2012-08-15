@@ -1,0 +1,51 @@
+<karazeh>
+  <!-- the version tag isn't used, it's there for the developer only -->
+  <release version="0.1.0">
+    
+    <!-- a text file of change list to be optionally downloaded and displayed to the user -->
+    <meta name="changelist" value="http://localhost:9333/patches/changelist/0.1.0.txt" />
+    <!-- whether the patch is archived or not -->
+    <meta name="archived" value="false" />
+    <!-- URI to the patch archive (tarball, zip, etc.) -->
+    <meta name="archive-url" value="" />
+
+    <!-- 
+      <create> entries:
+        1. source: the file to be downloaded and "created"
+        2. destination: where it will be moved if the patch succeeds
+    -->
+    <create>
+      <source checksum="1234" size="500"><![CDATA[/path/to/source]]></source>
+      <destination><![CDATA[/path/to/destination]]></destination>
+    </create>
+
+    <!-- 
+      <update> entries:
+        1. target: the file to be patched and its pre-patch and post-patch checksums
+        2. patch: the actual patch file, its checksum and its size
+    -->
+    <update>
+      <target pre-checksum="1234" post-checksum="5678"><![CDATA[/path/to/file]]></target>
+      <patch  checksum="5678" size="100"><![CDATA[/path/to/patch]]></patch>
+    </update>
+
+    <!-- 
+      <rename> entries:
+        1. from: the file to be moved along with its checksum unless its a directory
+        2. to: the new destination
+    -->
+    <rename>
+      <from checksum="[1234]"><![CDATA[/path/to/file]]></from>
+      <to><![CDATA[/new/path/to/file]]></to>
+    </rename>
+
+    <!-- 
+      <delete> entries:
+        1. target: the file to be deleted, its checksum unless its a directory
+    -->
+    <delete>
+      <target checksum="[1234]"><![CDATA[/path/to/file-or-directory]]></target>
+    </delete>
+
+  </release>
+</karazeh>

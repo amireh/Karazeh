@@ -1,3 +1,7 @@
 <karazeh>
-  <manifest version="0.1.0" url="/release_manifests/test-0.1.0.xml" />
+  <identity>
+    <source><![CDATA[/bin/test]]></source>
+  </identity>
+
+  <manifest version="0.1.0" url="/releases/test-0.1.0.xml" checksum="d41d8cd98f00b204e9800998ecf8427e" />
 </karazeh>

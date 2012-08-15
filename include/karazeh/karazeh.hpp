@@ -25,9 +25,11 @@
 #define H_KARAZEH_H
 
 #include <string>
-
+#include "karazeh/exception.hpp"
+ 
 namespace kzh {
   typedef std::string string_t;
 }
+
 
 #endif
