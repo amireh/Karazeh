@@ -37,8 +37,11 @@ namespace kzh {
   class resource_manager : protected logger {
   public:
     
-    resource_manager();
+    /** @param host a fully-qualified URI of the patch server */
+    resource_manager(string_t const& host);
     virtual ~resource_manager();
+
+    string_t const& host_address() const;
 
     void resolve_paths(path_t root = "");
 
@@ -60,12 +63,14 @@ namespace kzh {
     /** same as above but outputs to file instead of buffer */
     bool get_remote(string_t const& URL, std::ofstream& out_file);
 
+
     static path_t const& root_path();
     static path_t const& tmp_path();
     static path_t const& bin_path();
 
   private:
     static path_t root_path_, tmp_path_, bin_path_;
+    string_t host_;
   };
 
   struct download_t {

@@ -29,11 +29,16 @@ namespace kzh {
           resource_manager::tmp_path_, 
           resource_manager::bin_path_;
 
-  resource_manager::resource_manager()
-  : logger("resource_mgr") {
+  resource_manager::resource_manager(string_t const& host)
+  : logger("resource_mgr"),
+    host_(host) {
   }
 
   resource_manager::~resource_manager() {
+  }
+
+  string_t const& resource_manager::host_address() const {
+    return host_;
   }
 
   void resource_manager::resolve_paths(path_t root) {
