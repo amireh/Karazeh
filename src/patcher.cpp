@@ -217,6 +217,7 @@ namespace kzh {
     }
 
     typedef std::vector<operation*> operations_t;
+    std::map<path_t, bool> marked_for_deletion;
 
     struct patch_t {
       operations_t      operations;
@@ -273,29 +274,49 @@ namespace kzh {
         op->src_size = utility::tonumber(src_node->Attribute("size"));
         op->src_uri = src_node->GetText();
         op->dst_path = dst_node->GetText();
+        op->is_executable = op_node->Attribute("executable") != NULL;
+
+        if (marked_for_deletion.find(op->dst_path) != marked_for_deletion.end())
+          op->marked_for_deletion();
 
         debug() << op->tostring();
 
         patch.operations.push_back(op);
       } // <create>
 
-      else if (strcmp(op_node->Value(), "update")) {
+      else if (strcmp(op_node->Value(), "update") == 0) {
         notice() << "update operations are not yet implemented";
       } // <update>
-      else if (strcmp(op_node->Value(), "rename")) {
+      else if (strcmp(op_node->Value(), "rename") == 0) {
         notice() << "rename operations are not yet implemented";
       } // <rename>
-      else if (strcmp(op_node->Value(), "delete")) {
-        notice() << "delete operations are not yet implemented";
+      else if (strcmp(op_node->Value(), "delete") == 0) {
+        // <delete> operations have a single node: <target>
+
+        // <target>PATH</target>
+        XMLElement *tgt_node = op_node->FirstChildElement("target");
+        if (!tgt_node) {
+          throw missing_node(next_update, "delete", "target");
+        }
+
+        delete_operation* op = new delete_operation(rmgr_, *next_update);
+        op->dst_path = tgt_node->GetText();
+
+        debug() << op->tostring();
+
+        patch.operations.push_back(op);
+        marked_for_deletion.insert(std::make_pair(op->dst_path, true));
       } // <delete>
 
       op_node = op_node->NextSiblingElement();
     }
 
     // Perform the staging step for all operations
+    info() << "Staging...";
 
     // create the staging directory for this release
     rmgr_.create_temp_directory(next_update->checksum);
+    rmgr_.create_directory(rmgr_.cache_path() / next_update->checksum);
 
     bool staging_failure = false; 
     for (operations_t::iterator op_itr = patch.operations.begin();
@@ -325,10 +346,14 @@ namespace kzh {
       }
 
       boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
+      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
+      
       return false;
     }
     
     // Commit the patch
+    info() << "Comitting...";
+
     bool commit_failure = false; 
     for (operations_t::iterator op_itr = patch.operations.begin();
       op_itr != patch.operations.end();
@@ -355,6 +380,8 @@ namespace kzh {
       }
 
       boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
+      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
+      
       return false;
     }
  

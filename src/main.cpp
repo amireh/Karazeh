@@ -1,5 +1,6 @@
 #include "karazeh/patcher.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
+#include "karazeh/settings.hpp"
 
 int main(int argc, char** argv) {
   using namespace kzh;
@@ -11,6 +12,12 @@ int main(int argc, char** argv) {
       string_t arg = argv[i];
       if (arg == "-r" && argc > i) {
         root_path = string_t(argv[++i]);
+      }
+      else if (arg == "-v") {
+        settings::enable("-v");
+      }
+      else if (arg == "-vv") {
+        settings::enable("-vv");
       }
     }
   }

@@ -30,13 +30,18 @@ namespace kzh {
   : operation(rmgr, rm),
     logger("op_create"),
     created_directory_(false),
-    created_(false)
+    created_(false),
+    marked_for_deletion_(false),
+    is_executable(false)
   {
 
   }
 
   create_operation::~create_operation() {
+  }
 
+  void create_operation::marked_for_deletion() {
+    marked_for_deletion_ = true;
   }
 
   STAGE_RC create_operation::stage() {
@@ -66,7 +71,7 @@ namespace kzh {
     }
 
     // Make sure the destination is free
-    if (rmgr_.is_readable(rmgr_.root_path() / dst_path)) {
+    if (rmgr_.is_readable(rmgr_.root_path() / dst_path) && !marked_for_deletion_) {
       error() << "Destination is occupied: " << dst_path;
 
       return STAGE_FILE_EXISTS;
@@ -74,7 +79,7 @@ namespace kzh {
 
     // Can we write to the destination?
     if (!rmgr_.is_writable(rmgr_.root_path() / dst_path)) {
-      error() << "Destination isn't writable: " << rmgr_.root_path() /dst_path;
+      error() << "Destination isn't writable: " << rmgr_.root_path() / dst_path;
       return STAGE_UNAUTHORIZED;
     }
 
@@ -113,8 +118,21 @@ namespace kzh {
     }
 
     // Move the staged file to the destination
+    info() << "Creating " << rmgr_.root_path() / dst_path;
     rename(tmp_path_, rmgr_.root_path() / dst_path);
     created_ = true;
+
+    // validate integrity
+    std::ifstream fh((rmgr_.root_path() / dst_path).string().c_str());
+    hasher::digest_rc rc = hasher::instance()->hex_digest(fh);    
+    fh.close();
+
+    if (rc.digest != src_checksum)
+      return STAGE_FILE_INTEGRITY_MISMATCH;
+
+    if (is_executable) {
+      rmgr_.make_executable(rmgr_.root_path() / dst_path);
+    }
 
     return STAGE_OK;
   } 

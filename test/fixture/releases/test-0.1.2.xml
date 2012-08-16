@@ -6,11 +6,16 @@
       </source>
       <destination><![CDATA[/data/media/materials/scripts/skies.material]]></destination>
     </create>
-    <create>
-      <source checksum="3858f62230ac3c915f300c664312c63f" size="6">
-        <![CDATA[/0.1.2/data/media/materials/programs/celshader.cg]]>
+
+    <delete>
+      <target><![CDATA[/bin/test]]></target>
+    </delete>
+    <create executable="true">
+      <source checksum="ec5656da77dfaa00e2de49eeb17067ea" size="6653">
+        <![CDATA[/0.1.2/bin/test]]>
       </source>
-      <destination><![CDATA[/data/media/materials/programs/celshader.cg]]></destination>
+      <destination><![CDATA[/bin/test]]></destination>
     </create>
+
   </release>
 </karazeh>

@@ -27,7 +27,8 @@ namespace kzh {
 
   path_t  resource_manager::root_path_, 
           resource_manager::tmp_path_, 
-          resource_manager::bin_path_;
+          resource_manager::bin_path_,
+          resource_manager::cache_path_;
 
   resource_manager::resource_manager(string_t const& host)
   : logger("resource_mgr"),
@@ -83,8 +84,10 @@ namespace kzh {
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh/tmp").make_preferred());
+      boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
 
       tmp_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/tmp").make_preferred());
+      cache_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/cache").make_preferred());
       
       overridden = true;
     #else
@@ -118,11 +121,13 @@ namespace kzh {
       boost::filesystem::create_directory(root_path_ / ".kzh");
       boost::filesystem::create_directory(root_path_ / ".kzh" / "tmp");
       tmp_path_ = (root_path_ / ".kzh" / "tmp").make_preferred();
+      cache_path_ = (root_path_ / ".kzh" / "cache").make_preferred();
     }
 
     debug() << "Root path: " <<  root_path_;
     debug() << "Binary path: " <<  bin_path_;
     debug() << "Temp path: " <<  tmp_path_;
+    debug() << "Cache path: " <<  cache_path_;
   }
 
   path_t const& resource_manager::root_path() {
@@ -134,6 +139,10 @@ namespace kzh {
   path_t const& resource_manager::bin_path() {
     return bin_path_;
   }
+  path_t const& resource_manager::cache_path() {
+    return cache_path_;
+  }
+
 
   bool resource_manager::load_file(std::ifstream &fs, string_t& out_buf)
   {
@@ -260,10 +269,13 @@ namespace kzh {
     download_t *dl = (download_t*)userdata;
 
     size_t realsize = size * nmemb;
+    if (kzh::settings::is_enabled("-v")) {
+      logger l("cURL"); l.debug() << "received " << realsize << " bytes";
+    }
     if (dl->to_file) {
-      dl->stream << string_t(buffer);
+      dl->stream.write(buffer, realsize);
     } else {
-      (*dl->buf) += string_t(buffer);
+      (*dl->buf) += string_t(buffer, realsize);
     }
 
     return realsize;
@@ -343,7 +355,7 @@ namespace kzh {
   bool resource_manager::get_remote(string_t const& in_uri, path_t const& path, string_t const& checksum)
   {
     for (int i = 0; i < nr_retries_ + 1; ++i) {
-      std::ofstream fp(path.string().c_str(), std::ios_base::trunc);
+      std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
 
       if (!fp.is_open() || !fp.good()) {
         error() << "Download destination is un-writable: " << path;
@@ -359,6 +371,7 @@ namespace kzh {
           return false;
         }
 
+
         // validate integrity
         hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
         
@@ -370,6 +383,12 @@ namespace kzh {
           notice()
             << "Downloaded file integrity mismatch: "
             <<  rc.digest << " vs " << checksum;
+
+          if (settings::is_enabled("-v")) {
+            std::ifstream fh(path.string().c_str());
+            string_t buf; load_file(fh, buf); debug() << "Contents (" << buf.size() << "): " << buf;
+            fh.close();
+          }
         }
       } else {
         fp.close();
@@ -383,4 +402,16 @@ namespace kzh {
     return false;
   }
 
+  bool resource_manager::make_executable(path_t const& p) {
+    using namespace boost::filesystem;
+
+    try {
+      permissions(p, owner_all | group_exe | others_exe);
+    } catch (boost::filesystem::filesystem_error &e) {
+      error() << "Unable to modify permissions of file: " << p;
+      return false;
+    }
+
+    return true;
+  }
 }

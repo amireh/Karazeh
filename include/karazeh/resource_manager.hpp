@@ -27,6 +27,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/hasher.hpp"
+#include "karazeh/settings.hpp"
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include "binreloc/binreloc.h"
@@ -78,6 +79,7 @@ namespace kzh {
      * All the other paths are derived from the bin_path unless overridden.
      */
     static path_t const& bin_path();
+    static path_t const& cache_path();
 
     void resolve_paths(path_t root = "");
 
@@ -129,9 +131,17 @@ namespace kzh {
     bool 
     get_remote(string_t const& URI, path_t const& path_to_file, string_t const& checksum);
 
+    /** 
+     * Enables the executable permission flag for systems that support it.
+     *
+     * The file will have a permission mask equal to 0711
+     *
+     * Returns false if the permissions couldn't be modified.
+     */
+    bool make_executable(path_t const&);
 
   private:
-    static path_t root_path_, tmp_path_, bin_path_;
+    static path_t root_path_, tmp_path_, bin_path_, cache_path_;
     string_t host_;
 
     bool get_remote(string_t const& URI, download_t*);

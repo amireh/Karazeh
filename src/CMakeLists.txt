@@ -28,6 +28,8 @@ SET(Karazeh_SRCS
   release_manifest.cpp
   patcher.cpp
   operations/create.cpp
+  operations/delete.cpp
+  settings.cpp
 
 )
 
