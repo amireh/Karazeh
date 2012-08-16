@@ -269,6 +269,9 @@ namespace kzh {
     download_t *dl = (download_t*)userdata;
 
     size_t realsize = size * nmemb;
+
+    dl->size += realsize;
+
     if (kzh::settings::is_enabled("-v")) {
       logger l("cURL"); l.debug() << "received " << realsize << " bytes";
     }
@@ -281,7 +284,7 @@ namespace kzh {
     return realsize;
   }
 
-  bool resource_manager::get_remote(string_t const& in_uri, download_t* dl)
+  bool resource_manager::get_remote(string_t const& in_uri, download_t* dl, bool assume_ownership)
   {
     string_t uri(in_uri);
     if (in_uri.find("http://") == std::string::npos) {
@@ -309,7 +312,9 @@ namespace kzh {
     curlrc_ = curl_easy_perform(curl_);
     if (curlrc_ != 0) {
       error() << "a CURL error was encountered; " << curlrc_ << " => " << curlerr;
-      delete dl;
+      
+      if (assume_ownership)
+        delete dl;
 
       curl_easy_cleanup(curl_);
 
@@ -321,7 +326,9 @@ namespace kzh {
 
     if (http_rc != 200) {
       error() << "remote server error, HTTP code: " << http_rc << ", download failed";
-      delete dl;
+      
+      if (assume_ownership)
+        delete dl;
 
       curl_easy_cleanup(curl_);
 
@@ -330,7 +337,10 @@ namespace kzh {
 
     /* always cleanup */
     curl_easy_cleanup(curl_);
-    delete dl;
+    
+    if (assume_ownership)
+      delete dl;
+
     return true;
   }
   
@@ -352,7 +362,11 @@ namespace kzh {
     return get_remote(in_uri, dl);
   }
 
-  bool resource_manager::get_remote(string_t const& in_uri, path_t const& path, string_t const& checksum)
+  bool resource_manager::get_remote(
+    string_t const& in_uri, 
+    path_t const& path, 
+    string_t const& checksum,
+    uint64_t expected_size)
   {
     for (int i = 0; i < nr_retries_ + 1; ++i) {
       std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
@@ -362,7 +376,13 @@ namespace kzh {
         return false;
       }
 
-      if (get_remote(in_uri, fp)) {
+      // we'll build the download_t manually because we need to reference its size
+      // otherwise we could use the std::ostream& version of get_remote()
+      download_t dl(fp);
+      dl.to_file = true;
+      dl.uri = in_uri;
+
+      if (get_remote(in_uri, &dl, false)) {
         
         fp.close();
 
@@ -376,12 +396,16 @@ namespace kzh {
         
         fh.close();
 
-        if (rc == checksum) {
+        if (expected_size > 0 && expected_size == dl.size && rc == checksum) {
+          return true;
+        }
+        else if (expected_size == 0 && rc == checksum) {
           return true;
         } else {
           notice()
             << "Downloaded file integrity mismatch: "
-            <<  rc.digest << " vs " << checksum;
+            <<  rc.digest << " vs " << checksum
+            << " (got " << dl.size << " out of " << expected_size << " expected bytes)";
 
           if (settings::is_enabled("-v")) {
             std::ifstream fh(path.string().c_str());

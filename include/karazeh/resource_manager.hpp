@@ -129,7 +129,10 @@ namespace kzh {
      * Returns true if the file was downloaded and its integrity verified.
      */
     bool 
-    get_remote(string_t const& URI, path_t const& path_to_file, string_t const& checksum);
+    get_remote(string_t const& URI, 
+               path_t const& path_to_file, 
+               string_t const& checksum,
+               uint64_t expected_size_bytes = 0);
 
     /** 
      * Enables the executable permission flag for systems that support it.
@@ -144,7 +147,7 @@ namespace kzh {
     static path_t root_path_, tmp_path_, bin_path_, cache_path_;
     string_t host_;
 
-    bool get_remote(string_t const& URI, download_t*);
+    bool get_remote(string_t const& URI, download_t*, bool assume_ownership = true);
 
     int nr_retries_;
   };
@@ -153,13 +156,17 @@ namespace kzh {
   struct download_t {
     inline 
     download_t(std::ostream& s)
-    : to_file(false), status(false), stream(s) {}
+    : to_file(false), 
+      status(false), 
+      size(0),
+      stream(s) {}
 
     string_t      *buf;
     string_t      uri;
     bool          status;
     bool          to_file;
     std::ostream  &stream;
+    uint64_t      size;
   };
 
 } // end of namespace kzh

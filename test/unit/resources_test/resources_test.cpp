@@ -44,13 +44,13 @@ namespace kzh {
     stage("Loading a remote resource");
     {
       soft_assert("loading remote resource from http://localhost:9333/version.xml",
-                  rmgr.get_remote("http://localhost:9333/version.xml", buf));
+                  rmgr.get_remote("/version.xml", buf));
     }
 
     stage("Loading a non existent file");
     {
       soft_assert("loading a remote resource that doesn't exist",
-                  !rmgr.get_remote("http://localhost:9333/some_non_existent_file.xml", buf));
+                  !rmgr.get_remote("/some_non_existent_file.xml", buf));
     }
 
     stage("Querying an unreachable server");
@@ -62,7 +62,15 @@ namespace kzh {
     stage("Retry-able downloads");
     {
       soft_assert("Verifying integrity against an incorrect checksum",
-                  !rmgr.get_remote("/version.xml", "./downloads_test.tmp", "invalid_dummy_checksum"));
+                  !rmgr.get_remote("/current/data/hash_me.txt", "./downloads_test.tmp", "invalid_dummy_checksum"));
+      
+      soft_assert("Verifying integrity against an incorrect filesize",
+                  !rmgr.get_remote(
+                    "/current/data/hash_me.txt", 
+                    "./downloads_test.tmp", 
+                    "f1eb970aeb2e380593480ed76070acbe", 
+                    32 /* it is 24 */));
+
     }
 
     return passed;
