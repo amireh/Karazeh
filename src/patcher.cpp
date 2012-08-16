@@ -293,6 +293,7 @@ namespace kzh {
     }
 
     // Perform the staging step for all operations
+
     // create the staging directory for this release
     rmgr_.create_temp_directory(next_update->checksum);
 
@@ -327,8 +328,36 @@ namespace kzh {
       return false;
     }
     
-    // commit the patch
+    // Commit the patch
+    bool commit_failure = false; 
+    for (operations_t::iterator op_itr = patch.operations.begin();
+      op_itr != patch.operations.end();
+      ++op_itr) {
 
+      STAGE_RC rc = (*op_itr)->commit();
+      if (rc != STAGE_OK) {
+        error() << "An operation failed, patch will not be applied.";
+        debug() << "STAGE_RC: " << rc;
+        commit_failure = true;
+        break;
+      }
+    }
+
+    if (commit_failure) {
+      // rollback any changes if the commit failed
+      info() << "Rolling back all changes.";
+
+      for (operations_t::iterator op_itr = patch.operations.begin();
+        op_itr != patch.operations.end();
+        ++op_itr)
+      {
+        (*op_itr)->rollback();
+      }
+
+      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
+      return false;
+    }
+ 
     return true;
   }
 }

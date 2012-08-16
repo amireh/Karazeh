@@ -59,7 +59,7 @@ namespace kzh {
     inline virtual ~operation() {}
 
     virtual STAGE_RC stage() = 0;
-    virtual void commit() = 0;
+    virtual STAGE_RC commit() = 0;
     virtual void rollback() = 0;
 
     inline virtual string_t tostring() { return ""; }

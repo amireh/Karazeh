@@ -1,0 +1,16 @@
+<karazeh>
+  <release tag="0.1.2">
+    <create>
+      <source checksum="3ba3d3767c9c8768f449c3cbfe559796" size="221">
+        <![CDATA[/0.1.2/data/media/materials/scripts/skies.material]]>
+      </source>
+      <destination><![CDATA[/data/media/materials/scripts/skies.material]]></destination>
+    </create>
+    <create>
+      <source checksum="3858f62230ac3c915f300c664312c63f" size="6">
+        <![CDATA[/0.1.2/data/media/materials/programs/celshader.cg]]>
+      </source>
+      <destination><![CDATA[/data/media/materials/programs/celshader.cg]]></destination>
+    </create>
+  </release>
+</karazeh>

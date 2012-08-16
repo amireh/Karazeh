@@ -29,7 +29,8 @@ namespace kzh {
   create_operation::create_operation(resource_manager& rmgr, release_manifest& rm)
   : operation(rmgr, rm),
     logger("op_create"),
-    created_directory_(false)
+    created_directory_(false),
+    created_(false)
   {
 
   }
@@ -82,54 +83,49 @@ namespace kzh {
       error() << "Temp isn't writable: " << tmp_path_;
       return STAGE_UNAUTHORIZED;
     }
-
-    // Download the file
-    // std::ofstream staged_file(tmp_path_.string().c_str());
-    // if (!staged_file.is_open() || !staged_file.good()) {
-    //   return STAGE_UNAUTHORIZED;
-    // }
-
-    // bool downloaded = false;
-    // for (int i = 0; i < rmgr_.retry_amount() + 1; ++i) {
-    //   if (rmgr_.get_remote(src_uri, staged_file)) {
-    //     // validate integrity
-    //     staged_file.close();
-    //     std::ifstream staged_file_for_reading(tmp_path_.string().c_str());
-    //     if (hasher::instance()->hex_digest(staged_file_for_reading).digest == src_checksum) {
-    //       downloaded = true;
-    //       staged_file_for_reading.close();
-    //       info() << "downloaded properly!";
-    //       break;
-    //     } else {
-    //       notice()
-    //         << "Downloaded file integrity mismatch: "
-    //         <<  hasher::instance()->hex_digest(staged_file_for_reading).digest
-    //         << " vs " << src_checksum;
-    //     }
-
-    //     staged_file_for_reading.close();
-    //   }
-      
-    //   notice() << "retrying for the " << i+1 << " time";
-    //   staged_file.close();
-    //   staged_file.open(tmp_path_.string().c_str(), std::ios_base::trunc);
-    // }
     
     if (!rmgr_.get_remote(src_uri, tmp_path_, src_checksum)) {
-      // staged_file.close();
       throw invalid_resource(src_uri);
     }
 
     return STAGE_OK;
   }
 
-  void create_operation::commit() {
-    return;
-  }
+  STAGE_RC create_operation::commit() {
+    using boost::filesystem::rename;
+    
+    // Make sure the destination is free
+    if (rmgr_.is_readable(rmgr_.root_path() / dst_path)) {
+      error() << "Destination is occupied: " << dst_path;
+      return STAGE_FILE_EXISTS;
+    }
+
+    // Can we write to the destination?
+    if (!rmgr_.is_writable(rmgr_.root_path() / dst_path)) {
+      error() << "Destination isn't writable: " << rmgr_.root_path() /dst_path;
+      return STAGE_UNAUTHORIZED;
+    }
+
+    // Can we write to the staging destination?
+    if (!rmgr_.is_writable(tmp_path_)) {
+      error() << "Temp isn't writable: " << tmp_path_;
+      return STAGE_UNAUTHORIZED;
+    }
+
+    // Move the staged file to the destination
+    rename(tmp_path_, rmgr_.root_path() / dst_path);
+    created_ = true;
+
+    return STAGE_OK;
+  } 
 
   void create_operation::rollback() {
     using boost::filesystem::is_empty;
     using boost::filesystem::remove;
+
+    if (created_) {
+      remove(rmgr_.root_path() / dst_path);
+    }
 
     // If we were responsible for creating the directory of our dst_path
     // we need to remove it and all its ancestors if they're empty

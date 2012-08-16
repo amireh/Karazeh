@@ -51,7 +51,7 @@ namespace kzh {
      * see karazeh/operation.hpp for a complete listing.
      */
     virtual STAGE_RC stage();
-    virtual void commit();
+    virtual STAGE_RC commit();
     virtual void rollback();
 
     virtual string_t tostring();
@@ -65,7 +65,9 @@ namespace kzh {
     path_t dst_dir_;
     path_t tmp_dir_;
     path_t tmp_path_;
+    
     bool created_directory_;
+    bool created_;
   };
 
 } // end of namespace kzh
