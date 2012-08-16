@@ -93,7 +93,7 @@ namespace kzh {
       return STAGE_UNAUTHORIZED;
     }
     
-    if (!rmgr_.get_remote(src_uri, tmp_path_, src_checksum)) {
+    if (!rmgr_.get_remote(src_uri, tmp_path_, src_checksum, src_size)) {
       throw invalid_resource(src_uri);
     }
 
@@ -131,7 +131,7 @@ namespace kzh {
     hasher::digest_rc rc = hasher::instance()->hex_digest(fh);    
     fh.close();
 
-    if (rc.digest != src_checksum)
+    if (rc != src_checksum)
       return STAGE_FILE_INTEGRITY_MISMATCH;
 
     if (is_executable) {

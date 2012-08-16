@@ -52,6 +52,9 @@ namespace kzh {
       bool operator==(string_t const& checksum) {
         return valid && checksum == digest;
       }
+      bool operator!=(string_t const& checksum) {
+        return !valid || checksum != digest;
+      }
     };
 
     /** digests can be calculated directly off raw data */

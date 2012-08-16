@@ -17,3 +17,4 @@ ENDMACRO()
 
 ADD_TEST("md5_hasher_test")
 ADD_TEST("resources_test")
+ADD_TEST("file_operations_test")

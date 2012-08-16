@@ -437,4 +437,23 @@ namespace kzh {
 
     return true;
   }
+
+  uint64_t resource_manager::stat_filesize(std::ifstream& in) {
+    in.seekg(0,std::ifstream::end);
+    uint64_t size = in.tellg();
+    in.seekg(0);
+
+    return size;
+  }
+  uint64_t resource_manager::stat_filesize(path_t const& p) {
+    std::ifstream fp(p.string().c_str(), std::ios_base::binary);
+    if (!fp.is_open() || !fp.good())
+      return 0;
+
+    uint64_t size = stat_filesize(fp);
+
+    fp.close();
+
+    return size;
+  }
 }

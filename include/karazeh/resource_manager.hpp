@@ -143,6 +143,9 @@ namespace kzh {
      */
     bool make_executable(path_t const&);
 
+    uint64_t stat_filesize(path_t const&);
+    uint64_t stat_filesize(std::ifstream&);
+
   private:
     static path_t root_path_, tmp_path_, bin_path_, cache_path_;
     string_t host_;
