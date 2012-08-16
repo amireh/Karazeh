@@ -48,6 +48,10 @@ namespace kzh {
 
       digest_rc() : valid(false) {}
       ~digest_rc() { }
+
+      bool operator==(string_t const& checksum) {
+        return valid && checksum == digest;
+      }
     };
 
     /** digests can be calculated directly off raw data */

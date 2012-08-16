@@ -371,13 +371,12 @@ namespace kzh {
           return false;
         }
 
-
         // validate integrity
         hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
         
         fh.close();
 
-        if (rc.valid && rc.digest == checksum) {
+        if (rc == checksum) {
           return true;
         } else {
           notice()
