@@ -24,6 +24,7 @@
 
 #include "resources_test/resources_test.hpp"
 #include "karazeh/resource_manager.hpp"
+#include "karazeh/hashers/md5_hasher.hpp"
 
 namespace kzh {
 
@@ -34,7 +35,9 @@ namespace kzh {
   }
 
   int resources_test::run(int, char**) {
-    resource_manager rmgr;
+    resource_manager rmgr("http://localhost:9333");
+    md5_hasher h;
+    hasher::assign_hasher(&h);
 
     string_t buf;
 
@@ -54,6 +57,12 @@ namespace kzh {
     {
       soft_assert("loading a remote resource from an unreachable server",
                   !rmgr.get_remote("http://localhost:12345/some_non_existent_file.xml", buf));
+    }
+
+    stage("Retry-able downloads");
+    {
+      soft_assert("Verifying integrity against an incorrect checksum",
+                  !rmgr.get_remote("/version.xml", "./downloads_test.tmp", "invalid_dummy_checksum"));
     }
 
     return passed;

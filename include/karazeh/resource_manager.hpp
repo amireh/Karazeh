@@ -26,6 +26,7 @@
 
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
+#include "karazeh/hasher.hpp"
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include "binreloc/binreloc.h"
@@ -34,6 +35,7 @@ namespace kzh {
 
   typedef boost::filesystem::path path_t;
 
+  struct download_t;
   class resource_manager : protected logger {
   public:
     
@@ -43,42 +45,111 @@ namespace kzh {
 
     string_t const& host_address() const;
 
+    /** The amount of times to retry a download */
+    int retry_amount() const;
+    void set_retry_amount(int);
+    
+    /** 
+     * The root path can be overridden at runtime via the -r option,
+     * otherwise it is assumed to be KZH_DISTANCE_FROM_ROOT steps
+     * above the directory that contains the running process.
+     *
+     * For example, if the running process is at bin/something
+     * and KZH_DISTANCE_FROM_ROOT is set to 1, then the root will
+     * be correctly set to `bin/..`
+     *
+     * All changes are committed relative to the root path.
+     */
+    static path_t const& root_path();
+
+    /**
+     * The "staging" directory used internally by Karazeh which
+     * resides in `$ROOT/.kzh`.
+     */
+    static path_t const& tmp_path();
+
+    /** 
+     * The directory of the running process.
+     *
+     * On Linux, it is located using binreloc (see deps/binreloc/binreloc.h)
+     * On OS X, it is located using NSBundlePath() (see karazeh/utility.hpp)
+     * On Windows, it is located using GetModuleFileName() (see resolve_paths())
+     *
+     * All the other paths are derived from the bin_path unless overridden.
+     */
+    static path_t const& bin_path();
+
     void resolve_paths(path_t root = "");
 
-    /** Loads the content of a file into memory */
+    /** Loads the content of a file stream into memory */
     bool load_file(std::ifstream &fs, string_t& out_buf);
+
+    /** Loads the content of a file found at @path into memory */
     bool load_file(string_t const& path, string_t& out_buf);
 
-    /** Checks if the resource at the given path exists and is readable. */
+    /** Checks if the resource at the given path exists, is a file, and is readable. */
     bool is_readable(path_t const &path) const;
     bool is_readable(string_t const &path) const;
 
+    /** Checks if the resource at the given path exists, is a file, and is writable. */
+    bool is_writable(path_t const &path) const;
+    bool is_writable(string_t const &path) const;
+
     /**
-     * Downloads the file found at URL and stores it in out_buf. If
-     * @URL does not start with http:// then it will be prefixed by
+     * Creates a directory indicated by the given path,
+     * while creating all necessary ancestor directories (similar to mkdir -p)
+     *
+     * Returns false if the directories couldn't be created, and the cause
+     * will be logged.
+     */
+    bool create_directory(path_t const& path);
+
+    /** Creates a directory inside Karazeh's temporary repository. */
+    bool create_temp_directory(path_t const& path);
+
+    /**
+     * Downloads the file found at URI and stores it in out_buf. If
+     * @URI does not start with http:// then it will be prefixed by
      * the assigned server URI.
      *
      * @return true if the file was correctly DLed, false otherwise
      */
-    bool get_remote(string_t const& URL, string_t& out_buf);
+    bool get_remote(string_t const& URI, string_t& out_buf);
 
     /** same as above but outputs to file instead of buffer */
-    bool get_remote(string_t const& URL, std::ofstream& out_file);
+    bool get_remote(string_t const& URI, std::ostream& out_file);
 
+    /**
+     * Downloads the file found at the given URI and verifies
+     * its integrity against the given checksum. The download
+     * will be retried up to retry_amount() times.
+     *
+     * Returns true if the file was downloaded and its integrity verified.
+     */
+    bool 
+    get_remote(string_t const& URI, path_t const& path_to_file, string_t const& checksum);
 
-    static path_t const& root_path();
-    static path_t const& tmp_path();
-    static path_t const& bin_path();
 
   private:
     static path_t root_path_, tmp_path_, bin_path_;
     string_t host_;
+
+    bool get_remote(string_t const& URI, download_t*);
+
+    int nr_retries_;
   };
 
+  /** Used internally by the resource_manager to manage downloads */
   struct download_t {
-    string_t  *buf;
-    string_t  uri;
-    bool      status;
+    inline 
+    download_t(std::ostream& s)
+    : to_file(false), status(false), stream(s) {}
+
+    string_t      *buf;
+    string_t      uri;
+    bool          status;
+    bool          to_file;
+    std::ostream  &stream;
   };
 
 } // end of namespace kzh

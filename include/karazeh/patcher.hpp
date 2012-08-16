@@ -86,8 +86,10 @@ namespace kzh {
      *  => 1. the release manifest is empty
      *  => 2. the release manifest has no <release> node
      *  => 3. the release manifest's <release> node has no children (operations)
+     *
+     * Returns true if the patch was successfully applied, false otherwise.
      */
-    void apply_next_update();
+    bool apply_next_update();
 
   protected:
     struct identifier {

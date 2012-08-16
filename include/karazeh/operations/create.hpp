@@ -31,12 +31,28 @@ namespace kzh {
   
   class create_operation : public operation, protected logger {
   public:
-    create_operation();
+    create_operation(resource_manager&, release_manifest&);
     virtual ~create_operation();
 
-    virtual bool stage();
-    virtual bool commit();
-    virtual bool rollback();
+    /**
+     * Downloads the file from src_uri and stores it in the staging temporary
+     * repository. If an integrity mismatch occurs, the file will be re-downloaded
+     * up to resource_manager::download_retries times.
+     *
+     * The following conditions must be met for the staging to be successful:
+     *
+     * 1. No file must exist at dst_path
+     * 2. Running user must have write permissions for dst_path
+     * 3. Enough available space to hold src_size bytes
+     * 
+     * @throw kzh::invalid_resource if the file couldn't be DLed
+     *
+     * Returns STAGE_OK on success, otherwise an error indicated by the return code,
+     * see karazeh/operation.hpp for a complete listing.
+     */
+    virtual STAGE_RC stage();
+    virtual void commit();
+    virtual void rollback();
 
     virtual string_t tostring();
 
@@ -44,6 +60,12 @@ namespace kzh {
     uint64_t src_size;
     string_t src_uri;
     string_t dst_path;
+
+  private:
+    path_t dst_dir_;
+    path_t tmp_dir_;
+    path_t tmp_path_;
+    bool created_directory_;
   };
 
 } // end of namespace kzh

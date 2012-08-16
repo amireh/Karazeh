@@ -31,7 +31,9 @@ namespace kzh {
 
   resource_manager::resource_manager(string_t const& host)
   : logger("resource_mgr"),
-    host_(host) {
+    host_(host),
+    nr_retries_(2)
+  {
   }
 
   resource_manager::~resource_manager() {
@@ -39,6 +41,14 @@ namespace kzh {
 
   string_t const& resource_manager::host_address() const {
     return host_;
+  }
+
+  void resource_manager::set_retry_amount(int n) {
+    nr_retries_ = n;
+  }
+
+  int resource_manager::retry_amount() const {
+    return nr_retries_;
   }
 
   void resource_manager::resolve_paths(path_t root) {
@@ -194,23 +204,79 @@ namespace kzh {
     return false;
    }
 
+  bool resource_manager::is_writable(path_t const& resource) const {
+    return is_writable(path_t(resource).make_preferred().string());
+  }
+  bool resource_manager::is_writable(string_t const& resource) const {
+    using boost::filesystem::path;
+    using boost::filesystem::exists;
+    using boost::filesystem::is_regular_file;
+
+    path fp(resource);
+    if (exists(fp)) {
+      std::ofstream fs(resource.c_str(), std::ios_base::app);
+      bool writable = fs.is_open() && fs.good() && !fs.fail();
+      fs.close();
+      return is_regular_file(fp) && writable;
+    } else {
+      std::ofstream fs(resource.c_str(), std::ios_base::app);
+      bool writable = fs.is_open() && fs.good() && !fs.fail();
+      fs.close();
+      if (exists(fp)) {
+        boost::filesystem::remove(fp);
+      }
+
+      return writable;
+    }
+
+    return false;
+  }
+
+  bool resource_manager::create_directory(path_t const& in_path) {
+    try {
+      boost::filesystem::create_directories(in_path);
+    } catch (boost::filesystem::filesystem_error &e) {
+      error() 
+        << "Unable to create directory chain @ " << in_path
+        << ". Cause: " << e.what();
+      
+      return false;
+    } catch (std::exception &e) {
+      error() << "Unknown error while creating directory chain @ " << in_path;
+      error() << "Possible cause: " << e.what();
+
+      return false;
+    }
+
+    return true;
+  }
+
+  bool resource_manager::create_temp_directory(path_t const& in_path) {
+    return create_directory(tmp_path() / in_path);
+  }
+
   static size_t on_curl_data(char *buffer, size_t size, size_t nmemb, void *userdata)
   {
     download_t *dl = (download_t*)userdata;
 
     size_t realsize = size * nmemb;
-    (*dl->buf) += string_t(buffer);
+    if (dl->to_file) {
+      dl->stream << string_t(buffer);
+    } else {
+      (*dl->buf) += string_t(buffer);
+    }
 
     return realsize;
   }
 
-  bool resource_manager::get_remote(string_t const& in_uri, string_t& out_buf)
+  bool resource_manager::get_remote(string_t const& in_uri, download_t* dl)
   {
     string_t uri(in_uri);
-    if (uri.find("http://") == std::string::npos) {
+    if (in_uri.find("http://") == std::string::npos) {
       uri = string_t(host_ + in_uri);
+      dl->uri = uri;
     }
-    
+
     CURL* curl_ = curl_easy_init();
     CURLcode curlrc_;
 
@@ -219,15 +285,12 @@ namespace kzh {
       return false;
     }
 
-    download_t *dl = new download_t();
-    dl->buf = &out_buf;
-    dl->status = false;
-    dl->uri = uri;
-
     char curlerr[CURL_ERROR_SIZE];
 
+    info() << "Downloading " << dl->uri;
+
     curl_easy_setopt(curl_, CURLOPT_ERRORBUFFER, curlerr);
-    curl_easy_setopt(curl_, CURLOPT_URL, uri.c_str());
+    curl_easy_setopt(curl_, CURLOPT_URL, dl->uri.c_str());
     curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, &on_curl_data);
     curl_easy_setopt(curl_, CURLOPT_WRITEDATA, dl);
 
@@ -257,6 +320,67 @@ namespace kzh {
     curl_easy_cleanup(curl_);
     delete dl;
     return true;
+  }
+  
+  bool resource_manager::get_remote(string_t const& in_uri, string_t& out_buf)
+  {
+    download_t *dl = new download_t(std::cout);
+    dl->buf = &out_buf;
+    dl->uri = in_uri;
+
+    return get_remote(in_uri, dl);
+  }
+
+  bool resource_manager::get_remote(string_t const& in_uri, std::ostream& out_stream)
+  {
+    download_t *dl = new download_t(out_stream);
+    dl->to_file = true;
+    dl->uri = in_uri;
+
+    return get_remote(in_uri, dl);
+  }
+
+  bool resource_manager::get_remote(string_t const& in_uri, path_t const& path, string_t const& checksum)
+  {
+    for (int i = 0; i < nr_retries_ + 1; ++i) {
+      std::ofstream fp(path.string().c_str(), std::ios_base::trunc);
+
+      if (!fp.is_open() || !fp.good()) {
+        error() << "Download destination is un-writable: " << path;
+        return false;
+      }
+
+      if (get_remote(in_uri, fp)) {
+        
+        fp.close();
+
+        std::ifstream fh(path.string().c_str());
+        if (!fh.is_open() || !fh.good()) { // this really shouldn't happen, but oh well
+          return false;
+        }
+
+        // validate integrity
+        hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
+        
+        fh.close();
+
+        if (rc.valid && rc.digest == checksum) {
+          return true;
+        } else {
+          notice()
+            << "Downloaded file integrity mismatch: "
+            <<  rc.digest << " vs " << checksum;
+        }
+      } else {
+        fp.close();
+      }
+
+      fp.open(path.string().c_str(), std::ios_base::trunc);
+
+      notice() << "Retry #" << i+1;
+    }
+
+    return false;
   }
 
 }

@@ -183,7 +183,7 @@ namespace kzh {
     return !new_releases_.empty();
   }
 
-  void patcher::apply_next_update() {
+  bool patcher::apply_next_update() {
     if (new_releases_.empty()) {
       throw invalid_state("apply_next_update() requires at least one new release to apply!");
     }
@@ -216,8 +216,17 @@ namespace kzh {
       throw invalid_manifest("Release manifest could not be parsed. More info can be found in the log.");
     }
 
-    struct {
-      std::vector<operation*> operations;
+    typedef std::vector<operation*> operations_t;
+
+    struct patch_t {
+      operations_t      operations;
+
+      inline ~patch_t() {
+        while (!operations.empty()) {
+          delete operations.back();
+          operations.pop_back();
+        }        
+      }
     } patch;
 
     // Go through each operation node and build up the patch
@@ -259,7 +268,7 @@ namespace kzh {
           throw missing_node(next_update, "create", "destination");
         }
 
-        create_operation* op = new create_operation();
+        create_operation* op = new create_operation(rmgr_, *next_update);
         op->src_checksum = src_node->Attribute("checksum");
         op->src_size = utility::tonumber(src_node->Attribute("size"));
         op->src_uri = src_node->GetText();
@@ -283,10 +292,43 @@ namespace kzh {
       op_node = op_node->NextSiblingElement();
     }
 
-    while (!patch.operations.empty()) {
-      delete patch.operations.back();
-      patch.operations.pop_back();
+    // Perform the staging step for all operations
+    // create the staging directory for this release
+    rmgr_.create_temp_directory(next_update->checksum);
+
+    bool staging_failure = false; 
+    for (operations_t::iterator op_itr = patch.operations.begin();
+      op_itr != patch.operations.end();
+      ++op_itr) {
+
+      STAGE_RC rc = (*op_itr)->stage();
+      if (rc != STAGE_OK) {
+        error() << "An operation failed, patch will not be applied.";
+        debug() << "STAGE_RC: " << rc;
+        staging_failure = true;
+        break;
+      }
     }
 
+    // TODO: an option to keep the data that has been downloaded would be nice
+
+    if (staging_failure) {
+      // rollback any changes if the staging failed
+      info() << "Rolling back all changes.";
+
+      for (operations_t::iterator op_itr = patch.operations.begin();
+        op_itr != patch.operations.end();
+        ++op_itr)
+      {
+        (*op_itr)->rollback();
+      }
+
+      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
+      return false;
+    }
+    
+    // commit the patch
+
+    return true;
   }
 }

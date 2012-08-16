@@ -25,19 +25,48 @@
 #define H_KARAZEH_OPERATION_H
 
 #include "karazeh/karazeh.hpp"
+#include "karazeh/resource_manager.hpp"
+#include "karazeh/release_manifest.hpp"
  
 namespace kzh {
   
+  enum STAGE_RC {
+    STAGE_OK = 0,
+
+    /** Running user lacks the required permission to read/write */
+    STAGE_UNAUTHORIZED,
+
+    /** Not enough free space to hold a file to be downloaded */
+    STAGE_OUT_OF_SPACE,
+
+    /** Destination at which a file is to be created or moved is occupied */
+    STAGE_FILE_EXISTS,
+
+    /** A file to be updated, renamed, or deleted is missing */
+    STAGE_FILE_MISSING,
+
+    /** Checksum of a file to be updated does not match the expected checksum */
+    STAGE_FILE_INTEGRITY_MISMATCH
+  };
+
   class operation {
   public:
-    inline operation() {}
+    inline operation(resource_manager& rmgr, release_manifest& rm)
+    : rmgr_(rmgr),
+      rm_(rm)
+    {}
+
     inline virtual ~operation() {}
 
-    virtual bool stage() = 0;
-    virtual bool commit() = 0;
-    virtual bool rollback() = 0;
+    virtual STAGE_RC stage() = 0;
+    virtual void commit() = 0;
+    virtual void rollback() = 0;
 
     inline virtual string_t tostring() { return ""; }
+
+  protected:
+    resource_manager  &rmgr_;
+    release_manifest  &rm_;
   };
 
 } // end of namespace kzh
