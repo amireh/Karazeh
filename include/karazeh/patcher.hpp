@@ -79,6 +79,9 @@ namespace kzh {
      */
     bool is_update_available();
 
+    /** The number of available updates obtained in the last identify() call. */
+    uint32_t nr_available_updates() const;
+
     /**
      *
      * @throw kzh::invalid_state if no new releases are pending

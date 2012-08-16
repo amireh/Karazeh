@@ -42,8 +42,6 @@ namespace kzh {
       delete rmanifests_.back();
       rmanifests_.pop_back();
     }
-
-
   }
 
   bool patcher::identify(string_t const& in_manifest_uri) {
@@ -115,6 +113,10 @@ namespace kzh {
 
   identity_t const& patcher::version() const {
     return version_;
+  }
+
+  uint32_t patcher::nr_available_updates() const {
+    return new_releases_.size();
   }
 
   bool patcher::is_update_available() {

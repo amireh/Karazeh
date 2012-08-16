@@ -46,13 +46,17 @@ namespace kzh {
 
   STAGE_RC create_operation::stage() {
     tmp_path_ = path_t(rmgr_.tmp_path() / rm_.checksum / dst_path);
-    debug() << "Temp staging path: "<< tmp_path_;
-    
     tmp_dir_ = tmp_path_.parent_path();
-    debug() << "Temp staging dir: "<< tmp_dir_;
-
     dst_dir_ = (rmgr_.root_path() / dst_path).parent_path();
-    debug() << "Dest dir: "<< dst_dir_;
+
+    if (settings::is_enabled("-v")) {
+      indent();
+      debug() << "Temp staging path: "<< tmp_path_;
+      debug() << "Temp staging dir: "<< tmp_dir_;
+      debug() << "Dest dir: "<< dst_dir_;
+      deindent();
+    }
+    
 
     // Prepare our staging directory
     if (!rmgr_.create_directory(tmp_dir_)) {

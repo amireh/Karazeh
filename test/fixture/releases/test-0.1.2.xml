@@ -17,5 +17,13 @@
       <destination><![CDATA[/bin/test]]></destination>
     </create>
 
+    <delete>
+      <target><![CDATA[/data/scripts/foo]]></target>
+    </delete>
+
+    <delete>
+      <target><![CDATA[/data/scripts/bar]]></target>
+    </delete>
+
   </release>
 </karazeh>
