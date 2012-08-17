@@ -143,7 +143,6 @@ namespace kzh {
     return cache_path_;
   }
 
-
   bool resource_manager::load_file(std::ifstream &fs, string_t& out_buf)
   {
     if (!fs.is_open() || !fs.good()) return false;
@@ -161,42 +160,6 @@ namespace kzh {
     return load_file(fs, out_buf);
   }
 
-  // bool resource_manager::get_resource(string_t const& resource_path, string_t& out_buf)
-  // {
-  //   bool is_remote = (resource_path.substr(0,4) == "http");
-  //   if (is_remote)
-  //     return get_remote(resource_path, out_buf);
-
-  //   using boost::filesystem::exists;
-
-  //   path_t p(resource_path);
-
-  //   if (!exists(p))
-  //   {
-  //     p = root_path_ / p;
-  //     if (!exists(p)) {
-  //       error() << "local resource does not exist: " << resource_path;
-  //       return false;
-  //     }
-  //   }
-
-  //   std::ifstream fs(p.string());
-  //   // open the file and load it into the string
-  //   if (!fs.is_open() || !fs.good())
-  //   {
-  //     error() << "local resource is not readable; " << resource_path;
-  //     return false;
-  //   }
-
-  //   bool result = load_file(fs, out_buf);
-  //   fs.close();
-
-  //   return result;
-  // }
-
-  bool resource_manager::is_readable(path_t const& resource) const {
-    return is_readable(path_t(resource).make_preferred().string());
-  }
   bool resource_manager::is_readable(string_t const& resource) const {
     using boost::filesystem::path;
     using boost::filesystem::exists;
@@ -211,34 +174,50 @@ namespace kzh {
     }
 
     return false;
-   }
-
-  bool resource_manager::is_writable(path_t const& resource) const {
-    return is_writable(path_t(resource).make_preferred().string());
   }
+  bool resource_manager::is_readable(path_t const& resource) const {
+    return is_readable(path_t(resource).make_preferred().string());
+  }
+  
   bool resource_manager::is_writable(string_t const& resource) const {
     using boost::filesystem::path;
     using boost::filesystem::exists;
     using boost::filesystem::is_regular_file;
 
-    path fp(resource);
-    if (exists(fp)) {
-      std::ofstream fs(resource.c_str(), std::ios_base::app);
-      bool writable = fs.is_open() && fs.good() && !fs.fail();
-      fs.close();
-      return is_regular_file(fp) && writable;
-    } else {
-      std::ofstream fs(resource.c_str(), std::ios_base::app);
-      bool writable = fs.is_open() && fs.good() && !fs.fail();
-      fs.close();
+    try {
+      path fp(resource);
       if (exists(fp)) {
-        boost::filesystem::remove(fp);
-      }
 
-      return writable;
+        // it already exists, make sure we don't overwrite it
+        std::ofstream fs(resource.c_str(), std::ios_base::app);
+        bool writable = fs.is_open() && fs.good() && !fs.fail();
+        fs.close();
+
+        return is_regular_file(fp) && writable;
+      } else {
+        
+        // try creating a file and write to it
+        std::ofstream fs(resource.c_str(), std::ios_base::app);
+        bool writable = fs.is_open() && fs.good() && !fs.fail();
+        fs << "This was generated automatically by Karazeh and should have been deleted.";
+        fs.close();
+
+        if (exists(fp)) {
+          // delete the file
+          boost::filesystem::remove(fp);
+        }
+
+        return writable;
+      }
+    } catch (...) {
+      // something bad happened, it is most likely unwritable
+      return false;
     }
 
     return false;
+  }
+  bool resource_manager::is_writable(path_t const& resource) const {
+    return is_writable(path_t(resource).make_preferred().string());
   }
 
   bool resource_manager::create_directory(path_t const& in_path) {
