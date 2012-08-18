@@ -160,6 +160,11 @@ namespace kzh {
     return load_file(fs, out_buf);
   }
 
+  bool resource_manager::load_file(path_t const& path, string_t& out_buf) {
+    std::ifstream fs(path.string().c_str());
+    return load_file(fs, out_buf);
+  }
+
   bool resource_manager::is_readable(string_t const& resource) const {
     using boost::filesystem::path;
     using boost::filesystem::exists;
@@ -434,5 +439,13 @@ namespace kzh {
     fp.close();
 
     return size;
+  }
+
+  bool resource_manager::get_resource(string_t const& path, string_t& out) {
+    if (path.find("http") == 0) {
+      return get_remote(path, out);
+    } else {
+      return load_file(path, out);
+    }
   }
 }

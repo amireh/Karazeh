@@ -25,6 +25,7 @@
 #define H_KARAZEH_TEST_H
 
 #include "karazeh/logger.hpp"
+#include "karazeh/resource_manager.hpp"
 
 #include <string>
 #include <iostream>
@@ -59,6 +60,8 @@ namespace kzh {
     {
       enable_timestamps(false);
       info() << "starting";
+
+      fixture_path_ = path_t("../../fixture").make_preferred();
     }
 
     virtual ~test()
@@ -88,7 +91,17 @@ namespace kzh {
     /**
      * Override with the actual test implementation.
      */
-    virtual result_t run(int argc, char** argv)=0;
+    virtual result_t run(int argc, char** argv) {
+      if (argc > 1) {
+        for (int i = 0; i < argc; ++i) {
+          string_t arg(argv[i]);
+          if (arg.find("--fixture-path") != string_t::npos) {
+            fixture_path_ = path_t(arg.substr(arg.find("="))).make_preferred();
+            debug() << "Fixture path was overridden: " << fixture_path_;
+          }
+        }
+      }
+    }
     virtual void stop()
     {
       if (stage_) {
@@ -176,9 +189,6 @@ namespace kzh {
       return condition;
     }
 
-    std::string name_;
-    result_t result_;
-
     inline string_t status_to_string(result_t rc) {
       if (rc == passed) {
         return "\033[0;32mSUCCESS\033[0m";
@@ -186,6 +196,11 @@ namespace kzh {
         return "\033[0;31mFAILURE\033[0m";
       }      
     }
+    
+    string_t name_;
+    result_t result_;
+    path_t   fixture_path_;
+
   private:
     test(const test&);
     test& operator=(const test&);

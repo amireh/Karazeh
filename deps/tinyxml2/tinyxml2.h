@@ -29,6 +29,7 @@ distribution.
 #include <cstdio>
 #include <cstring>
 #include <cstdarg>
+#include <string>
 
 /* 
    TODO: intern strings instead of allocation.
@@ -890,6 +891,9 @@ public:
 	double 	 DoubleAttribute( const char* name ) const	{ double d=0;	QueryDoubleAttribute( name, &d );	return d; }
 	/// See IntAttribute()
 	float	 FloatAttribute( const char* name ) const	{ float f=0;	QueryFloatAttribute( name, &f );	return f; }
+
+  /// Warning: this isn't safe, if Attribute() returns NULL, this method will segfault
+  std::string StringAttribute(const char* name) const { return std::string(Attribute(name)); }
 
 	/** Given an attribute name, QueryIntAttribute() returns 
 		XML_NO_ERROR, XML_WRONG_ATTRIBUTE_TYPE if the conversion

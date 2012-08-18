@@ -26,6 +26,7 @@
 
 #include "karazeh/karazeh.hpp"
 #include "karazeh/exception.hpp"
+#include "tinyxml2/tinyxml2.h"
 
 namespace kzh {
 namespace utility {
@@ -80,6 +81,21 @@ namespace utility {
     return convert_to<uint64_t>(s);
   }
 
+  inline static string_t 
+  dump_node(const tinyxml2::XMLNode* const node, bool with_brackets = true) {
+    using namespace tinyxml2;
+
+    std::ostringstream s;
+    s << (with_brackets ? "<" : "") << node->Value();
+    const XMLAttribute *a = node->ToElement()->FirstAttribute();
+    while (a) {
+      s << ' ' << a->Name() << "=\"" << a->Value() << '"';
+      a = a->Next();
+    }
+    s << (with_brackets ? " />" : "");
+
+    return s.str();
+  }
 
 } // namespace utility
 } // namespace kzh

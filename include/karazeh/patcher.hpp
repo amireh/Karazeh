@@ -39,6 +39,7 @@
  
 namespace kzh {
   using tinyxml2::XMLDocument;
+  using tinyxml2::XMLNode;
 
   typedef string_t identity_t;
 
@@ -52,16 +53,18 @@ namespace kzh {
     virtual ~patcher();
 
     /**
-     * Retrieves the manifest from one of the assigned patch servers
+     * Retrieves the version manifest from one of the assigned patch servers
      * and attempts to identify the application's current version.
      *
-     * Returns true if the version has been identified and is valid,
-     * false otherwise.
+     * Returns true if the version has been identified, false otherwise.
      *
      * @throw kzh::invalid_resource if the manifest could not be retrieved
      * @throw kzh::invalid_manifest if the manifest could not be parsed
+     *
+     * @note Identity lists are built and populated in this method.
      */
     bool identify(string_t const& version_manifest_url);
+    bool identify(XMLDocument& version_manifest);
 
     /** The application current version, if identified */
     identity_t const& version() const;
@@ -120,15 +123,50 @@ namespace kzh {
     typedef std::vector<release_manifest*> rmanifests_t;
 
     resource_manager  &rmgr_;
+    
+    /** 
+     * Points to the identity checksum resolved in identify(),
+     * being empty indicates the version hasn't been identified.
+     */
     identity_t        version_;
+
+    /** The identity list constructs built from the version manifest. */
     identity_lists_t  identity_lists_;
-    // identifiers_t     identifiers_;
+
+    /** The version manifest document */
     XMLDocument       vmanifest_;
+
+    /** All the release manifests, and the ones marked for applying. */
     rmanifests_t      rmanifests_, new_releases_;
+
+    /** 
+     * Used by error reporting helpers. This is set everytime
+     * a method is parsing / handling a manifest.
+     */
+    string_t          current_manifest_uri_;
 
     /** Whether the version has been correctly identified and is a valid one */
     bool is_identified() const;
 
+    /**
+     * Checks whether the given node has the specified attribute @name, and 
+     * will compare its value if @value isn't empty (and the attribute exists).
+     *
+     * @throw kzh::missing_attribute when the attribute isn't set
+     * @throw kzh::invalid_attribute when the attribute is set but doesn't match the expected value
+     */
+    void ensure_has_attribute(const XMLNode* const node, string_t const& name, string_t const& value = "") const;
+    void ensure_has_child(const XMLNode* const parent, string_t const& child_name) const;
+    void ensure_has_children(const XMLNode* const) const;
+
+    /**
+     * Will attempt to log the cause of the XML parser error using
+     * tinyxml2::XMLDocument::GetErrorStr1() and
+     * tinyxml2::XMLDocument::GetErrorStr2() if they're available.
+     *
+     * @throw kzh::invalid_manifest unconditionally
+     */
+    void report_parser_error(int xml_rc, XMLDocument&) const;
   private:
   };
 

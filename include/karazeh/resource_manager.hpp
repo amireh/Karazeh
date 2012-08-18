@@ -41,7 +41,7 @@ namespace kzh {
   public:
     
     /** @param host a fully-qualified URI of the patch server */
-    resource_manager(string_t const& host);
+    resource_manager(string_t const& host = "http://127.0.0.1");
     virtual ~resource_manager();
 
     string_t const& host_address() const;
@@ -88,6 +88,7 @@ namespace kzh {
 
     /** Loads the content of a file found at @path into memory */
     bool load_file(string_t const& path, string_t& out_buf);
+    bool load_file(path_t const& path, string_t& out_buf);
 
     /** Checks if the resource at the given path exists, is a file, and is readable. */
     bool is_readable(path_t const &path) const;
@@ -133,6 +134,13 @@ namespace kzh {
                path_t const& path_to_file, 
                string_t const& checksum,
                uint64_t expected_size_bytes = 0);
+
+    /** 
+     * If @URI_or_path begins with http[s]:// then the resource
+     * is expected to be remotely downloaded, otherwise it is assumed to be
+     * a local one.
+     */
+    bool get_resource(string_t const& URI_or_path, string_t& out);
 
     /** 
      * Enables the executable permission flag for systems that support it.

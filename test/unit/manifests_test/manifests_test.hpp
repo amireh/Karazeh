@@ -21,23 +21,25 @@
  *
  */
 
-#ifndef H_KARAZEH_RELEASE_MANIFEST_H
-#define H_KARAZEH_RELEASE_MANIFEST_H
 
+#ifndef H_DAKAPI_manifests_test_H
+#define H_DAKAPI_manifests_test_H
+
+#include "test.hpp"
 #include "karazeh/karazeh.hpp"
- 
+
 namespace kzh {
-  typedef string_t identity_t;
 
-  struct release_manifest {
-    identity_t  checksum;
-    string_t    tag;
-    string_t    uri;
+	class manifests_test : public test {
+	public:
+		manifests_test();
+		virtual ~manifests_test();
 
-    string_t tostring() const;
-    friend std::ostream& operator<<(std::ostream&, release_manifest*);
-  };
+    int run(int argc, char** argv);
 
-} // end of namespace kzh
+	protected:
 
+	};
+
+}
 #endif

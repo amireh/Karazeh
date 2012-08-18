@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   hasher::assign_hasher(&my_hasher);
 
   patcher p(rmgr);
-  if (p.identify("/version.xml")) {
+  if (p.identify(rmgr.host_address() + "/version.xml")) {
     if (p.is_update_available()) {
       if (p.apply_next_update()) {
         l.info() << "Successfully updated";

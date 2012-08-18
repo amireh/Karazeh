@@ -75,6 +75,63 @@ namespace kzh {
     { }
   };
 
+
+  class manifest_error : public std::runtime_error {
+  public:
+    inline manifest_error(std::string const& s, std::string const& prefix = "")
+    : std::runtime_error("Manifest error: " + prefix + ": " + s)
+    { }
+  };
+
+  /** Thrown when an XML node in any manifest is missing a required attribute */
+  class missing_attribute : public manifest_error {
+  public:
+    inline 
+    missing_attribute(std::string const& node, 
+                      std::string const& attribute,
+                      std::string const& xml_file = "")
+    : manifest_error(
+      std::string("Missing required attribute '" + attribute + "' in <" + node + ">"), xml_file)
+    { }
+  };
+
+  class invalid_attribute : public manifest_error {
+  public:
+    inline 
+    invalid_attribute(std::string const& node, 
+                      std::string const& attribute,
+                      std::string const& actual,
+                      std::string const& expected,
+                      std::string const& xml_file = "")
+    : manifest_error(
+      std::string("Unexpected value '" + actual + "' of attribute '" 
+        + attribute + "', was expecting '" + expected + "'. Node: <" + node + ">"), xml_file)
+    { }
+  };
+
+  /** Thrown when an XML node in any manifest is missing a required child */
+  class missing_node : public manifest_error {
+  public:
+    inline 
+    missing_node(std::string const& parent, 
+                 std::string const& child,
+                 std::string const& xml_file = "")
+    : manifest_error(
+      std::string("Parent node <" + parent + "> is missing a required child <" + child + ">"), xml_file)
+    { }
+  };
+
+  /** Thrown when an XML node has no children when it should */
+  class missing_children : public manifest_error {
+  public:
+    inline 
+    missing_children(std::string const& node, 
+                     std::string const& xml_file = "")
+    : manifest_error(
+      std::string("Node <" + node + "> is empty!"), xml_file)
+    { }
+  };
+
 } // end of namespace kzh
 
 #endif // H_KARAZEH_EXCEPTION_H

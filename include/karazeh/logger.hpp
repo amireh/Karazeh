@@ -78,21 +78,21 @@ namespace kzh {
     static void deindent();
 
     /** Message will be prefixed with [D] */
-    logstream debug();
+    logstream debug() const;
     /** Message will be prefixed with [I] */
-    logstream info();
+    logstream info() const;
     /** Message will be prefixed with [N] */
-    logstream notice();
+    logstream notice() const;
     /** Message will be prefixed with [W] */
-    logstream warn();
+    logstream warn() const;
     /** Message will be prefixed with [E] */
-    logstream error();
+    logstream error() const;
     /** Message will be prefixed with [A] */
-    logstream alert();
+    logstream alert() const;
     /** Message will be prefixed with [C] */
-    logstream crit();
+    logstream crit() const;
 
-    logstream plain();
+    logstream plain() const;
 
     /** 
      * Subsequent messages will be prefixed with {IN_UUID}
@@ -107,7 +107,7 @@ namespace kzh {
     void rename_context(string_t const&);
 
   private:
-    ostream& log(char lvl);
+    ostream& log(char lvl) const;
     string_t context_;
 
     static ostringstream  sink;

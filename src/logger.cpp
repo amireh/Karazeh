@@ -68,7 +68,7 @@ namespace kzh {
   {
   }
 
-  ostream& logger::log(char lvl) {
+  ostream& logger::log(char lvl) const {
     bool enabled = false;
     for (int i = 0; i < 7; ++i)
       if (levels[i] == threshold) { enabled = true; break; }
@@ -113,14 +113,14 @@ namespace kzh {
     return uuid_prefix_;
   }
 
-  logstream logger::debug()  { return logstream(log('D')); }
-  logstream logger::info()   { return logstream(log('I')); }
-  logstream logger::notice() { return logstream(log('N')); }
-  logstream logger::warn()   { return logstream(log('W')); }
-  logstream logger::error()  { return logstream(log('E')); }
-  logstream logger::alert()  { return logstream(log('A')); }
-  logstream logger::crit()   { return logstream(log('C')); }
-  logstream logger::plain()  { return logstream(*out); }
+  logstream logger::debug()  const { return logstream(log('D')); }
+  logstream logger::info()   const { return logstream(log('I')); }
+  logstream logger::notice() const { return logstream(log('N')); }
+  logstream logger::warn()   const { return logstream(log('W')); }
+  logstream logger::error()  const { return logstream(log('E')); }
+  logstream logger::alert()  const { return logstream(log('A')); }
+  logstream logger::crit()   const { return logstream(log('C')); }
+  logstream logger::plain()  const { return logstream(*out); }
 
   logstream::logstream(std::ostream& in_s)
   : s(in_s) {}

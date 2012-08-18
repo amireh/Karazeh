@@ -59,11 +59,12 @@ namespace kzh {
     }
   }
 
-  bool patcher::identify(string_t const& in_manifest_uri) {
-    string_t manifest_uri(rmgr_.host_address() + in_manifest_uri);
+  bool patcher::identify(string_t const& manifest_uri) {
     string_t manifest_xml;
+
+    current_manifest_uri_ = "version[" + manifest_uri + "]";
     
-    if (!rmgr_.get_remote(manifest_uri, manifest_xml)) {
+    if (!rmgr_.get_resource(manifest_uri, manifest_xml)) {
       throw invalid_resource(manifest_uri);
     }
 
@@ -73,11 +74,19 @@ namespace kzh {
     int xml_rc = XML_NO_ERROR;
     xml_rc = vmanifest_.Parse(manifest_xml.c_str());
     if (xml_rc != XML_NO_ERROR) {
-      error() << "Unable to parse version manifest, xml error rc: " << xml_rc;
-      throw invalid_manifest("Version manifest could not be parsed.");
+      // abort
+      report_parser_error(xml_rc, vmanifest_);
     }
 
-    XMLElement* root = vmanifest_.RootElement();
+    return identify(vmanifest_);
+  }
+
+  bool patcher::identify(XMLDocument& doc) {
+    using namespace tinyxml2;
+
+    XMLElement* root = doc.RootElement();
+
+    ensure_has_children(root);
 
     /** Now we parse all defined identity lists; files to be checksummed
         to identify the application's version */
@@ -94,10 +103,8 @@ namespace kzh {
 
     while (ilist_node) {
 
-      if (!ilist_node->Attribute("name")) {
-        error() << "Identity list is missing a name!";
-        throw invalid_manifest("Identity list is missing 'name' attribute!");
-      }
+      ensure_has_attribute(ilist_node, "name");
+      ensure_has_child(ilist_node, "file");
 
       identity_list *ilist = new identity_list(ilist_node->Attribute("name"));
       identity_lists_.insert(std::make_pair(ilist->name, ilist));
@@ -112,14 +119,14 @@ namespace kzh {
 
         /** verify that the file exists and is readable */
         if (!rmgr_.is_readable(ifile->filepath)) {
-          throw integrity_violation("Identity file " + ifile->filepath.string() + " is not readable.");
+          throw manifest_error("Identity file " + ifile->filepath.string() + " is not readable.");
         }
 
         /** calculate the checksum */
         std::ifstream fh(ifile->filepath.string().c_str());
         hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
         if (!rc.valid) {
-          throw integrity_violation("Identity file " + ifile->filepath.string() + " could not be digested.");
+          throw manifest_error("Identity file " + ifile->filepath.string() + " could not be digested.");
         }
 
         ifile->checksum = rc.digest;
@@ -138,12 +145,14 @@ namespace kzh {
     // Now that the identity lists are built, we run through all the release entries
     // and attempt to find one whose checksum matches that of the identity list it 
     // points to
+    ensure_has_child(root, "release");
+
     XMLElement *release_node = root->FirstChildElement("release");
+    bool current_release_found = false;
+    bool initial_release_found = false;
     while (release_node) {
-      if (!release_node->Attribute("identity")) {
-        error() << "<release> node does not point to any identity list!";
-        throw invalid_manifest("<release> node is missing required attribute 'identity'");
-      }
+      ensure_has_attribute(release_node, "identity");
+      ensure_has_attribute(release_node, "checksum");
 
       string_t ilist_name = release_node->Attribute("identity");
       if (identity_lists_.find(ilist_name) == identity_lists_.end()) {
@@ -153,23 +162,29 @@ namespace kzh {
 
       identity_list* ilist = identity_lists_.find(ilist_name)->second;
       
-      if (!release_node->Attribute("checksum")) {
-        throw invalid_manifest("<release> node is missing required 'checksum' attribute!");
-      }
-
       string_t release_checksum = release_node->Attribute("checksum");
       debug() << "checking " << release_checksum  << " vs " << ilist->checksum;
-      if (release_checksum == ilist->checksum) {
-        // this is our version
+
+      // is this our version?
+      if (!current_release_found && release_checksum == ilist->checksum) {
         version_ = release_checksum;
-        debug() << "Release located: " << version_;
-        return true;
+        current_release_found = true;
+        debug() << "Current release located: " << utility::dump_node(release_node);
+      }
+
+      if (release_node->Attribute("initial")) {
+        debug() << "Intial release found: " << utility::dump_node(release_node);
+        initial_release_found = true;
       }
 
       release_node = release_node->NextSiblingElement("release");
     }
 
-    return false;
+    if (!initial_release_found) {
+      throw invalid_manifest("No initial release entry defined.");
+    }
+
+    return current_release_found;
   }
 
   bool patcher::is_identified() const {
@@ -196,6 +211,8 @@ namespace kzh {
 
     XMLElement *root = vmanifest_.RootElement();
 
+    // TODO: make sure there's an initial release entry
+
     /** Go through each release manifest entry and attempt
       * to locate our version.
       */
@@ -204,34 +221,27 @@ namespace kzh {
     while (rm_node) {
       rm_node = rm_node->ToElement();
 
-      /** checksum attribute is required */
-      if (!rm_node->Attribute("checksum"))
-        throw invalid_manifest("Version manifest <release> entry is missing required 'checksum' attribute!");
-      /** so is the uri attribute */
-      if (!rm_node->Attribute("uri") && !rm_node->Attribute("initial"))
-        throw invalid_manifest("Version manifest <release> entry is missing required 'uri' attribute!");
-        
-      release_manifest *rm = new release_manifest();
-      rm->checksum = string_t(rm_node->Attribute("checksum"));
-
-      /** the initial release has no manifest */
-      if (!rm_node->Attribute("initial"))
-        rm->uri = rm_node->Attribute("uri");
-
-      /** tag is optional */
-      if (rm_node->Attribute("tag")) {
-        rm->tag = rm_node->Attribute("tag");
-      } else { /** print a warning if it's not set */
-        warn() 
-          << "Version manifest <release uri='" << rm->uri << "'"
-          << "> entry does not have a 'tag' attribute!";
+      // checksum attribute is required
+      ensure_has_attribute(rm_node, "checksum");
+      // so is the tag attribute
+      ensure_has_attribute(rm_node, "tag");    
+      // so is the uri attribute, unless it's the initial release
+      if (!rm_node->Attribute("initial")) {
+        ensure_has_attribute(rm_node, "uri");
       }
 
+      release_manifest *rm = new release_manifest();
+      rm->checksum = rm_node->StringAttribute("checksum");
+      rm->tag = rm_node->Attribute("tag");
+      if (rm_node->Attribute("uri"))
+        rm->uri = rm_node->Attribute("uri");
+
       if (our_version_located) {
-        /** append to the list of new releases to be applied later */
+        // append to the list of new releases to be applied later
         new_releases_.push_back(rm);
       } else {
         debug() << "checking if " << rm->checksum << " is our version";
+
         if (rm->checksum == version_) {
           our_version_located = true;
         }
@@ -244,6 +254,7 @@ namespace kzh {
     if (!our_version_located) {
       throw integrity_violation("Unable to locate current application version " + version_);
     }
+
 
     info() << "There are " << new_releases_.size() << " new releases available.";
 
@@ -266,6 +277,8 @@ namespace kzh {
       throw invalid_resource(next_update->uri);
     }
 
+    current_manifest_uri_ = next_update->uri;
+
     using namespace tinyxml2;
 
     // Parse the manifest
@@ -273,14 +286,7 @@ namespace kzh {
     int xml_rc = XML_NO_ERROR;
     xml_rc = rm_doc.Parse(rm_xml.c_str());
     if (xml_rc != XML_NO_ERROR) {
-      error() << "Unable to parse release manifest, xml error: "
-              << utility::tinyxml2_ec_to_string(xml_rc);
-      if (rm_doc.GetErrorStr1())
-        error() << "tinyxml2 error string#1: " << rm_doc.GetErrorStr1();
-      if (rm_doc.GetErrorStr2())
-        error() << "tinyxml2 error string#2: " << rm_doc.GetErrorStr2();
-
-      throw invalid_manifest("Release manifest could not be parsed. More info can be found in the log.");
+      report_parser_error(xml_rc, rm_doc);
     }
 
     typedef std::vector<operation*> operations_t;
@@ -305,7 +311,7 @@ namespace kzh {
 
     XMLElement *release = root->FirstChildElement("release");
     if (!release) {
-      throw missing_node(next_update, "karazeh", "release");
+      throw missing_node("karazeh", "release", next_update->tostring());
     }
     else if (release->NoChildren()) {
       throw invalid_manifest("Release manifest seems to have no operations!");
@@ -320,20 +326,20 @@ namespace kzh {
         // <source checksum="a-z0-9" size="0-9">PATH</source>
         XMLElement *src_node = op_node->FirstChildElement("source");
         if (!src_node) {
-          throw missing_node(next_update, "create", "source");
+          throw missing_node("create", "source", next_update->tostring());
         } else {
           if (!src_node->Attribute("checksum")) {
-            throw missing_attribute(next_update, "source", "checksum");
+            throw missing_attribute("source", "checksum", next_update->tostring());
           }
           if (!src_node->Attribute("size")) {
-            throw missing_attribute(next_update, "source", "size");
+            throw missing_attribute("source", "size", next_update->tostring());
           }
         }
 
         // <destination>PATH</destination>
         XMLElement *dst_node = op_node->FirstChildElement("destination");
         if (!dst_node) {
-          throw missing_node(next_update, "create", "destination");
+          throw missing_node("create", "destination", next_update->tostring());
         }
 
         create_operation* op = new create_operation(rmgr_, *next_update);
@@ -363,7 +369,7 @@ namespace kzh {
         // <target>PATH</target>
         XMLElement *tgt_node = op_node->FirstChildElement("target");
         if (!tgt_node) {
-          throw missing_node(next_update, "delete", "target");
+          throw missing_node("delete", "target", next_update->tostring());
         }
 
         delete_operation* op = new delete_operation(rmgr_, *next_update);
@@ -453,5 +459,62 @@ namespace kzh {
     }
  
     return true;
+  }
+
+  void patcher::ensure_has_attribute(const tinyxml2::XMLNode* const node, string_t const& name, string_t const& value) const {
+    using utility::dump_node;
+    using namespace tinyxml2;
+
+    const XMLElement *el = node->ToElement();
+
+    if (!el->Attribute(name.c_str())) {
+      error() << dump_node(el) << " is missing a required attribute " << name;
+      throw missing_attribute(dump_node(el, false), name, current_manifest_uri_);
+    }
+
+    if (!value.empty()) {
+      if (!el->Attribute(name.c_str(), value.c_str())) {
+        error() 
+          << dump_node(el) 
+          << " attribute " << name << " has an unexpected value " 
+          << el->Attribute(name.c_str()) << ", expected: " << value;
+
+        throw invalid_attribute(dump_node(el, false), 
+          name, 
+          value, 
+          el->Attribute(name.c_str()), 
+          current_manifest_uri_);
+      }
+    }
+  }
+  void patcher::ensure_has_child(const XMLNode* const node, string_t const& child_name) const {
+    using utility::dump_node;
+    using namespace tinyxml2;
+
+    if (!node->FirstChildElement(child_name.c_str())) {
+      error() << dump_node(node) << " is missing a child node named '" << child_name << '\'';
+      throw missing_node(dump_node(node, false), child_name, current_manifest_uri_);
+    }
+  }
+
+ void patcher::ensure_has_children(const XMLNode* const node) const {
+    using utility::dump_node;
+    using namespace tinyxml2;
+
+    if (node->NoChildren()) {
+      error() << dump_node(node) << " is empty!";
+      throw missing_children(dump_node(node, false), current_manifest_uri_);
+    }
+  }
+
+  void patcher::report_parser_error(int xml_rc, XMLDocument& doc) const {
+    error() << "Unable to parse document, xml error: "
+            << utility::tinyxml2_ec_to_string(xml_rc);
+    if (doc.GetErrorStr1())
+      error() << "tinyxml2 error string#1: " << doc.GetErrorStr1();
+    if (doc.GetErrorStr2())
+      error() << "tinyxml2 error string#2: " << doc.GetErrorStr2();
+
+    throw invalid_manifest("Manifest[" + current_manifest_uri_ + "] could not be parsed. See log for more info.");
   }
 }
