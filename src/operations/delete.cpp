@@ -65,7 +65,7 @@ namespace kzh {
     return STAGE_OK;
   }
 
-  STAGE_RC delete_operation::commit() {
+  STAGE_RC delete_operation::deploy() {
     using boost::filesystem::rename;
     
     // Make sure the destination exists

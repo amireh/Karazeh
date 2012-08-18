@@ -59,7 +59,7 @@ namespace kzh {
      * and KZH_DISTANCE_FROM_ROOT is set to 1, then the root will
      * be correctly set to `bin/..`
      *
-     * All changes are committed relative to the root path.
+     * All changes are deployted relative to the root path.
      */
     static path_t const& root_path();
 

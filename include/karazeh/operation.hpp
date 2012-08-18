@@ -55,7 +55,7 @@ namespace kzh {
 
     /**
      * An operation gets "staged" in order to verify whether all
-     * its required conditions are fulfilled in order to be committed.
+     * its required conditions are fulfilled in order to be deployted.
      *
      * Usually, operations verify permissions, existence (or lack of)
      * required files, and the downloading of resources while staging.
@@ -66,28 +66,28 @@ namespace kzh {
     virtual STAGE_RC stage() = 0;
 
     /**
-     * When all operations are staged, they are called to commit
+     * When all operations are staged, they are called to deploy
      * their changes and do whatever is necessary now that they
      * have their resources.
      *
-     * Failure at the commit stage will incur a rollback() on all
-     * the patch operations that have been committed and/or staged.
+     * Failure at the deploy stage will incur a rollback() on all
+     * the patch operations that have been deployted and/or staged.
      */
-    virtual STAGE_RC commit() = 0;
+    virtual STAGE_RC deploy() = 0;
 
     /**
      * Rolling-back ALL the changes that have been made to the
-     * repository while stage()ing or commit()ing.
+     * repository while stage()ing or deploy()ing.
      *
      * Use internal flags or members to keep track of the changes
      * you make if necessary. rollback() might be invoked after
-     * operation::stage(), operation::commit(), or neither!
+     * operation::stage(), operation::deploy(), or neither!
      */
     virtual void rollback() = 0;
 
     /**
      * Purging is handy for operations that use the Karazeh cache
-     * while committing or staging. When an operation is called to
+     * while deploying or staging. When an operation is called to
      * purge, it is guaranteed that the patch has been rolled out
      * successfully and any transient data will _not_ be needed
      * (no rollback will be invoked).

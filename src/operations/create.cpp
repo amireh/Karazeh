@@ -100,7 +100,7 @@ namespace kzh {
     return STAGE_OK;
   }
 
-  STAGE_RC create_operation::commit() {
+  STAGE_RC create_operation::deploy() {
     using boost::filesystem::rename;
     
     // Make sure the destination is free

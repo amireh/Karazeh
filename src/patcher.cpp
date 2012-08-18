@@ -427,22 +427,22 @@ namespace kzh {
     // Commit the patch
     info() << "Comitting...";
 
-    bool commit_failure = false; 
+    bool deploy_failure = false; 
     for (operations_t::iterator op_itr = patch.operations.begin();
       op_itr != patch.operations.end();
       ++op_itr) {
 
-      STAGE_RC rc = (*op_itr)->commit();
+      STAGE_RC rc = (*op_itr)->deploy();
       if (rc != STAGE_OK) {
         error() << "An operation failed, patch will not be applied.";
         debug() << "STAGE_RC: " << rc;
-        commit_failure = true;
+        deploy_failure = true;
         break;
       }
     }
 
-    if (commit_failure) {
-      // rollback any changes if the commit failed
+    if (deploy_failure) {
+      // rollback any changes if the deploy failed
       info() << "Rolling back all changes.";
 
       for (operations_t::iterator op_itr = patch.operations.begin();

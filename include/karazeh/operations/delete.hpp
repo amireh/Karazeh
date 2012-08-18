@@ -47,7 +47,7 @@ namespace kzh {
      * The entry is purged from the cache if the patch was successful
      * (no rollback required).
      */
-    virtual STAGE_RC commit();
+    virtual STAGE_RC deploy();
 
     /**
      * Moves the item that was deleted from its place in the cache to its original

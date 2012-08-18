@@ -51,7 +51,7 @@ namespace kzh {
      * see karazeh/operation.hpp for a complete listing.
      */
     virtual STAGE_RC stage();
-    virtual STAGE_RC commit();
+    virtual STAGE_RC deploy();
     virtual void rollback();
 
     virtual string_t tostring();
