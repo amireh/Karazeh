@@ -96,17 +96,33 @@ namespace kzh {
     bool apply_next_update();
 
   protected:
-    struct identifier {
+
+    struct identity_file {
       path_t    filepath;
       string_t  checksum;
     };
+
+    struct identity_list {
+    public:
+
+      identity_list(string_t const& name);
+      ~identity_list();
+
+      typedef std::vector<identity_file*> identity_files_t;
+
+      string_t          name;
+      identity_files_t  files;
+      string_t          checksum;
+    };
+
     
-    typedef std::vector<identifier*> identifiers_t;
+    typedef std::map<string_t, identity_list*> identity_lists_t;
     typedef std::vector<release_manifest*> rmanifests_t;
 
     resource_manager  &rmgr_;
     identity_t        version_;
-    identifiers_t     identifiers_;
+    identity_lists_t  identity_lists_;
+    // identifiers_t     identifiers_;
     XMLDocument       vmanifest_;
     rmanifests_t      rmanifests_, new_releases_;
 

@@ -1,6 +1,6 @@
 <karazeh>
   <!-- the version tag isn't used, it's there for the developer only -->
-  <release version="0.1.0">
+  <release tag="0.1.0">
     
     <!-- a text file of change list to be optionally downloaded and displayed to the user -->
     <meta name="changelist" value="http://localhost:9333/patches/changelist/0.1.0.txt" />

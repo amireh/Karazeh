@@ -39,6 +39,9 @@ int main(int argc, char** argv) {
         l.error() << "Wasn't able to update.";
       }
     }
+  } // identify()
+  else {
+    l.error() << "unable to identify version";
   }
 
   return 0;

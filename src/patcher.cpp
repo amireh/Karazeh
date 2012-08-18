@@ -25,6 +25,18 @@
 
 namespace kzh {
 
+  patcher::identity_list::identity_list(string_t const& n)
+  : name(n) {
+
+  }
+  
+  patcher::identity_list::~identity_list() {
+    while (!files.empty()) {
+      delete files.back();
+      files.pop_back();
+    }
+  }
+
   patcher::patcher(resource_manager& rmgr)
   : logger("patcher"),
     rmgr_(rmgr)
@@ -33,10 +45,13 @@ namespace kzh {
   }
 
   patcher::~patcher() {
-    while (!identifiers_.empty()) {
-      delete identifiers_.back();
-      identifiers_.pop_back();
+    for (identity_lists_t::iterator ilist = identity_lists_.begin();
+      ilist != identity_lists_.end();
+      ++ilist) {
+      delete ilist->second;
     }
+
+    identity_lists_.clear();
 
     while (!rmanifests_.empty()) {
       delete rmanifests_.back();
@@ -64,47 +79,97 @@ namespace kzh {
 
     XMLElement* root = vmanifest_.RootElement();
 
-    /** Now we build the identity map, a list of files to be checksummed
+    /** Now we parse all defined identity lists; files to be checksummed
         to identify the application's version */
-    XMLElement *identity_node = root->FirstChildElement("identity");
-    if (!identity_node || identity_node->NoChildren()) {
-      error() << "Version manifest is missing the identity map, or it's an empty one!";
-      throw invalid_manifest("Identity map is either missing or has no entries.");
+
+    // ilist stands for identity_list
+    // ifile stands for identity_file
+
+    XMLElement *ilist_node = root->FirstChildElement("identity");
+
+    if (!ilist_node) {
+      error() << "Version manifest is missing identity lists";
+      throw invalid_manifest("No identity list defined.");
     }
-  
-    identity_node = identity_node->FirstChildElement();
-    string_t checksums = "";
-    while (identity_node) {
-      identifier *id = new identifier();
-      id->filepath = (rmgr_.root_path() / identity_node->FirstChild()->Value());
-      id->checksum = "";
 
-      identifiers_.push_back(id);
+    while (ilist_node) {
 
-      /** verify that the file exists and is readable */
-      if (!rmgr_.is_readable(id->filepath)) {
-        throw integrity_violation("Identity file " + id->filepath.string() + " is not readable.");
+      if (!ilist_node->Attribute("name")) {
+        error() << "Identity list is missing a name!";
+        throw invalid_manifest("Identity list is missing 'name' attribute!");
       }
 
-      /** calculate the checksum */
-      string_t buf;
-      rmgr_.load_file(id->filepath.string(), buf);
-      hasher::digest_rc rc = hasher::instance()->hex_digest(buf);
-      if (!rc.valid) {
-        throw integrity_violation("Identity file " + id->filepath.string() + " could not be digested.");
+      identity_list *ilist = new identity_list(ilist_node->Attribute("name"));
+      identity_lists_.insert(std::make_pair(ilist->name, ilist));
+    
+      XMLElement *ifile_node = ilist_node->FirstChildElement();
+      while (ifile_node) {
+        identity_file *ifile = new identity_file();
+        ifile->filepath = (rmgr_.root_path() / ifile_node->GetText());
+        ifile->checksum = "";
+
+        ilist->files.push_back(ifile);
+
+        /** verify that the file exists and is readable */
+        if (!rmgr_.is_readable(ifile->filepath)) {
+          throw integrity_violation("Identity file " + ifile->filepath.string() + " is not readable.");
+        }
+
+        /** calculate the checksum */
+        std::ifstream fh(ifile->filepath.string().c_str());
+        hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
+        if (!rc.valid) {
+          throw integrity_violation("Identity file " + ifile->filepath.string() + " could not be digested.");
+        }
+
+        ifile->checksum = rc.digest;
+        debug() << "ifile[" << ifile->filepath.string() << "] => " << ifile->checksum;
+        ilist->checksum += ifile->checksum;
+
+        ifile_node = ifile_node->NextSiblingElement();
       }
 
-      id->checksum = rc.digest;
-      debug() << "Identity file: " << id->filepath.string() << "#" << id->checksum;
-      checksums += id->checksum;
-
-      identity_node = identity_node->NextSiblingElement();
+      ilist->checksum = hasher::instance()->hex_digest(ilist->checksum).digest;
+      debug() << "ilist[" << ilist->name << "] => " << ilist->checksum;
+      
+      ilist_node = ilist_node->NextSiblingElement("identity");
     }
-    debug() << checksums;
-    version_ = hasher::instance()->hex_digest(checksums).digest;
-    info() << "Version: " << version_;
 
-    return true;
+    // Now that the identity lists are built, we run through all the release entries
+    // and attempt to find one whose checksum matches that of the identity list it 
+    // points to
+    XMLElement *release_node = root->FirstChildElement("release");
+    while (release_node) {
+      if (!release_node->Attribute("identity")) {
+        error() << "<release> node does not point to any identity list!";
+        throw invalid_manifest("<release> node is missing required attribute 'identity'");
+      }
+
+      string_t ilist_name = release_node->Attribute("identity");
+      if (identity_lists_.find(ilist_name) == identity_lists_.end()) {
+        error() << "<release> node points to an undefined identity list '" << ilist_name << "'!";
+        throw invalid_manifest("<release> node points to an undefined identity list " + ilist_name);
+      }
+
+      identity_list* ilist = identity_lists_.find(ilist_name)->second;
+      
+      if (!release_node->Attribute("checksum")) {
+        throw invalid_manifest("<release> node is missing required 'checksum' attribute!");
+      }
+
+      string_t release_checksum = release_node->Attribute("checksum");
+      debug() << "checking " << release_checksum  << " vs " << ilist->checksum;
+      if (release_checksum == ilist->checksum) {
+        // this is our version
+        version_ = release_checksum;
+        debug() << "Release located: " << version_;
+        return true;
+      }
+
+      release_node = release_node->NextSiblingElement("release");
+    }
+
+    return false;
   }
 
   bool patcher::is_identified() const {
@@ -134,28 +199,28 @@ namespace kzh {
     /** Go through each release manifest entry and attempt
       * to locate our version.
       */
-    XMLElement *rm_el = root->FirstChildElement("release");
+    XMLElement *rm_node = root->FirstChildElement("release");
     bool our_version_located = false;
-    while (rm_el) {
-      rm_el = rm_el->ToElement();
+    while (rm_node) {
+      rm_node = rm_node->ToElement();
 
       /** checksum attribute is required */
-      if (!rm_el->Attribute("checksum"))
+      if (!rm_node->Attribute("checksum"))
         throw invalid_manifest("Version manifest <release> entry is missing required 'checksum' attribute!");
       /** so is the uri attribute */
-      if (!rm_el->Attribute("uri") && !rm_el->Attribute("initial"))
+      if (!rm_node->Attribute("uri") && !rm_node->Attribute("initial"))
         throw invalid_manifest("Version manifest <release> entry is missing required 'uri' attribute!");
         
       release_manifest *rm = new release_manifest();
-      rm->checksum = string_t(rm_el->Attribute("checksum"));
+      rm->checksum = string_t(rm_node->Attribute("checksum"));
 
       /** the initial release has no manifest */
-      if (!rm_el->Attribute("initial"))
-        rm->uri = rm_el->Attribute("uri");
+      if (!rm_node->Attribute("initial"))
+        rm->uri = rm_node->Attribute("uri");
 
       /** tag is optional */
-      if (rm_el->Attribute("tag")) {
-        rm->tag = rm_el->Attribute("tag");
+      if (rm_node->Attribute("tag")) {
+        rm->tag = rm_node->Attribute("tag");
       } else { /** print a warning if it's not set */
         warn() 
           << "Version manifest <release uri='" << rm->uri << "'"
@@ -173,7 +238,7 @@ namespace kzh {
       }
 
       rmanifests_.push_back(rm);
-      rm_el = rm_el->NextSiblingElement("release");
+      rm_node = rm_node->NextSiblingElement("release");
     }
 
     if (!our_version_located) {
