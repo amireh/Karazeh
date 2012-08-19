@@ -58,8 +58,23 @@ namespace kzh {
      *
      * Returns true if the version has been identified, false otherwise.
      *
-     * @throw kzh::invalid_resource if the manifest could not be retrieved
-     * @throw kzh::invalid_manifest if the manifest could not be parsed
+     * @throw invalid_resource if the manifest could not be retrieved
+     * @throw invalid_manifest if:
+     *        1. the manifest could not be parsed
+     *        2. no <release initial="true"> was found
+     *        3. <release> "identity" attribute points to an undefined identity list
+     * @throw missing_children if:
+     *        1. the manifest is empty
+     *        2. <identity> node is empty
+     * @throw missing_attribute if:
+     *        1. <identity> tag missing the "name" attribute
+     *        2. <release> is missing "checksum" attribute
+     *        3. <release> is missing "identity" attribute
+     * @throw manifest_error if:
+     *        1. an identity file is unreadable
+     *        2. an identity file couldn't be checksummed
+     * @throw missing_child if:
+     *        1. manifest has no <release> children
      *
      * @note Identity lists are built and populated in this method.
      */
@@ -73,12 +88,10 @@ namespace kzh {
      * Determines whether an update is available. True if a patch(es) is/are pending,
      * and false if the application is up to date.
      *
-     * @throw kzh::invalid_state:
-     *  => identify() has not been called or wasn't successful
-     * @throw kzh::invalid_manifest:
-     *  => one of the release manifest entries lacked a required attribute
-     * @throw kzh::integrity_violation:
-     *  => the application version could not be located in the version manifest
+     * @throw invalid_state       identify() has not been called or wasn't successful
+     * @throw invalid_manifest    one of the release manifest entries lacked a required attribute
+     * @throw integrity_violation the application version could not be located in the version manifest
+     * @throw missing_attribute   if a <release> is missing any of "checksum", "tag", or "uri" attributes
      */
     bool is_update_available();
 
@@ -87,12 +100,19 @@ namespace kzh {
 
     /**
      *
-     * @throw kzh::invalid_state if no new releases are pending
-     * @throw kzh::invalid_resource if the release manifest couldn't be DLed
-     * @throw kzh::invalid_manifest if:
-     *  => 1. the release manifest is empty
-     *  => 2. the release manifest has no <release> node
-     *  => 3. the release manifest's <release> node has no children (operations)
+     * @throw invalid_state     if no new releases are pending
+     * @throw invalid_resource  if the release manifest couldn't be DLed
+     * @throw missing_node      if <release> isn't defined
+     * @throw missing_children  if <release> has no operations/empty
+     * @throw invalid_manifest  if:
+     *        1. the release manifest is empty
+     *        2. the release manifest has no <release> node
+     *        3. the release manifest's <release> node has no children (operations)
+     * @throw missing_child if:
+     *        1. <create> has no <source> or <target> children
+     *        2. <delete> has no <target> child
+     * @throw missing_attribute if:
+     *        1. <create>/<source> has no "checksum" or "size" attributes
      *
      * Returns true if the patch was successfully applied, false otherwise.
      */

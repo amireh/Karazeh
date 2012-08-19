@@ -104,7 +104,7 @@ namespace kzh {
     while (ilist_node) {
 
       ensure_has_attribute(ilist_node, "name");
-      ensure_has_child(ilist_node, "file");
+      ensure_has_children(ilist_node);
 
       identity_list *ilist = new identity_list(ilist_node->Attribute("name"));
       identity_lists_.insert(std::make_pair(ilist->name, ilist));
@@ -313,9 +313,8 @@ namespace kzh {
     if (!release) {
       throw missing_node("karazeh", "release", next_update->tostring());
     }
-    else if (release->NoChildren()) {
-      throw invalid_manifest("Release manifest seems to have no operations!");
-    }
+
+    ensure_has_children(release);
 
     XMLElement* op_node = release->FirstChildElement();
     while (op_node) {
@@ -324,23 +323,16 @@ namespace kzh {
         // <create> operations have two nodes: <source> and <destination>
 
         // <source checksum="a-z0-9" size="0-9">PATH</source>
+        ensure_has_child(op_node, "source");
+        ensure_has_child(op_node, "destination");
+
         XMLElement *src_node = op_node->FirstChildElement("source");
-        if (!src_node) {
-          throw missing_node("create", "source", next_update->tostring());
-        } else {
-          if (!src_node->Attribute("checksum")) {
-            throw missing_attribute("source", "checksum", next_update->tostring());
-          }
-          if (!src_node->Attribute("size")) {
-            throw missing_attribute("source", "size", next_update->tostring());
-          }
-        }
+
+        ensure_has_attribute(src_node, "checksum");
+        ensure_has_attribute(src_node, "size");
 
         // <destination>PATH</destination>
         XMLElement *dst_node = op_node->FirstChildElement("destination");
-        if (!dst_node) {
-          throw missing_node("create", "destination", next_update->tostring());
-        }
 
         create_operation* op = new create_operation(rmgr_, *next_update);
         op->src_checksum = src_node->Attribute("checksum");
@@ -366,11 +358,10 @@ namespace kzh {
       else if (strcmp(op_node->Value(), "delete") == 0) {
         // <delete> operations have a single node: <target>
 
+        ensure_has_child(op_node, "target");
+
         // <target>PATH</target>
         XMLElement *tgt_node = op_node->FirstChildElement("target");
-        if (!tgt_node) {
-          throw missing_node("delete", "target", next_update->tostring());
-        }
 
         delete_operation* op = new delete_operation(rmgr_, *next_update);
         op->dst_path = tgt_node->GetText();
