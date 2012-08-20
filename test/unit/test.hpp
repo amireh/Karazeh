@@ -48,8 +48,8 @@ namespace kzh {
   public:
 
     enum {
-      passed,
-      failed
+      passed = 1,
+      failed = 0
     };
 
     explicit test(std::string in_name)
@@ -168,8 +168,9 @@ namespace kzh {
         notice() << explanation << " \033[0;32m[ PASSED ]\033[0m";
       }
 
-      if (stage_)
+      if (stage_) {
         stage_->result = stage_->result && condition;
+      }
 
       return condition;
     }

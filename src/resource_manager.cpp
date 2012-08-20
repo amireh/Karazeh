@@ -166,16 +166,31 @@ namespace kzh {
   }
 
   bool resource_manager::is_readable(string_t const& resource) const {
-    using boost::filesystem::path;
-    using boost::filesystem::exists;
-    using boost::filesystem::is_regular_file;
+    namespace fs = boost::filesystem;
+    using fs::path;
+    using fs::exists;
+    using fs::is_regular_file;
+    using fs::is_directory;
 
     path fp(resource);
     if (exists(fp)) {
-      std::ifstream fs(resource.c_str());
-      bool readable = fs.is_open() && fs.good();
-      fs.close();
-      return is_regular_file(fp) && readable;
+      if (is_directory(fp)) {
+        try {
+          for(fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
+            break;
+          }
+
+          return true;
+        } catch (fs::filesystem_error& e) {
+          error() << e.what();
+          return false;
+        }
+      } else {
+        std::ifstream fs(resource.c_str());
+        bool readable = fs.is_open() && fs.good();
+        fs.close();
+        return is_regular_file(fp) && readable;
+      }
     }
 
     return false;
@@ -193,6 +208,10 @@ namespace kzh {
       path fp(resource);
       if (exists(fp)) {
 
+        if (is_directory(fp)) {
+          return is_writable(fp / "__karazeh_internal_directory_check__");
+        }
+        
         // it already exists, make sure we don't overwrite it
         std::ofstream fs(resource.c_str(), std::ios_base::app);
         bool writable = fs.is_open() && fs.good() && !fs.fail();
