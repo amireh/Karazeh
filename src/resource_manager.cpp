@@ -26,7 +26,6 @@
 namespace kzh {
 
   path_t  resource_manager::root_path_, 
-          resource_manager::tmp_path_, 
           resource_manager::bin_path_,
           resource_manager::cache_path_;
 
@@ -83,10 +82,8 @@ namespace kzh {
       // create the folders if they doesn't exist
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
-      boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh/tmp").make_preferred());
       boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
 
-      tmp_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/tmp").make_preferred());
       cache_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/cache").make_preferred());
       
       overridden = true;
@@ -119,22 +116,16 @@ namespace kzh {
 
     if (!overridden) {
       boost::filesystem::create_directory(root_path_ / ".kzh");
-      boost::filesystem::create_directory(root_path_ / ".kzh" / "tmp");
-      tmp_path_ = (root_path_ / ".kzh" / "tmp").make_preferred();
       cache_path_ = (root_path_ / ".kzh" / "cache").make_preferred();
     }
 
     debug() << "Root path: " <<  root_path_;
     debug() << "Binary path: " <<  bin_path_;
-    debug() << "Temp path: " <<  tmp_path_;
     debug() << "Cache path: " <<  cache_path_;
   }
 
   path_t const& resource_manager::root_path() {
     return root_path_;
-  }
-  path_t const& resource_manager::tmp_path() {
-    return tmp_path_;
   }
   path_t const& resource_manager::bin_path() {
     return bin_path_;
@@ -261,10 +252,6 @@ namespace kzh {
     }
 
     return true;
-  }
-
-  bool resource_manager::create_temp_directory(path_t const& in_path) {
-    return create_directory(tmp_path() / in_path);
   }
 
   static size_t on_curl_data(char *buffer, size_t size, size_t nmemb, void *userdata)

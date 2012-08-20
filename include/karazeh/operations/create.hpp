@@ -66,8 +66,8 @@ namespace kzh {
 
   private:
     path_t dst_dir_;
-    path_t tmp_dir_;
-    path_t tmp_path_;
+    path_t cache_dir_;
+    path_t cache_path_;
 
     bool created_directory_;
     bool created_;

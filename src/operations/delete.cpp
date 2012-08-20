@@ -40,7 +40,7 @@ namespace kzh {
 
   STAGE_RC delete_operation::stage() {
     dst_dir_ = (rmgr_.root_path() / dst_path).parent_path();
-    cache_path_ = rmgr_.cache_path() / rm_.checksum / dst_path;
+    cache_path_ = rmgr_.cache_path() / rm_.checksum / "deleted" / dst_path;
     cache_dir_ = cache_path_.parent_path();
 
     indent();
@@ -76,8 +76,12 @@ namespace kzh {
     }
 
     // Move the staged file to the destination
-    info() << "Fakely deleting " << rmgr_.root_path() / dst_path;
-    rename(rmgr_.root_path() / dst_path, rmgr_.cache_path() / rm_.checksum / dst_path);
+    info()
+      << "Moving " << rmgr_.root_path() / dst_path << " to "
+      << cache_path_;
+
+    rename(rmgr_.root_path() / dst_path, cache_path_);
+    
     deleted_ = true;
 
     return STAGE_OK;
@@ -89,9 +93,9 @@ namespace kzh {
 
     if (deleted_) {
       try {
-        rename(rmgr_.cache_path() / rm_.checksum / dst_path, rmgr_.root_path() / dst_path);
+        rename(cache_path_, rmgr_.root_path() / dst_path);
       } catch (boost::filesystem::filesystem_error &e) {
-        error() << "Cached file could not be found! Can not rollback!!";
+        error() << "Cached file could not be found! Can not rollback!! Cause: " << e.what();
         // TODO: handle rollback failures
       }
     }
@@ -100,9 +104,9 @@ namespace kzh {
   }
 
   void delete_operation::commit() {
-    debug() << "Deleting " << rmgr_.cache_path() / rm_.checksum / dst_path << "...";
-    boost::filesystem::remove_all(rmgr_.cache_path() / rm_.checksum / dst_path);
-    debug() << "Truly deleted " << rmgr_.cache_path() / rm_.checksum / dst_path;
+    debug() << "Deleting " << cache_path_ << "...";
+    boost::filesystem::remove_all(cache_path_);
+    debug() << "Truly deleted " << cache_path_;
   }
 
   string_t delete_operation::tostring() {

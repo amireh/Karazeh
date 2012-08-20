@@ -67,7 +67,7 @@ namespace kzh {
      * The "staging" directory used internally by Karazeh which
      * resides in `$ROOT/.kzh`.
      */
-    static path_t const& tmp_path();
+    static path_t const& cache_path();
 
     /** 
      * The directory of the running process.
@@ -79,7 +79,6 @@ namespace kzh {
      * All the other paths are derived from the bin_path unless overridden.
      */
     static path_t const& bin_path();
-    static path_t const& cache_path();
 
     void resolve_paths(path_t root = "");
 
@@ -106,9 +105,6 @@ namespace kzh {
      * will be logged.
      */
     bool create_directory(path_t const& path);
-
-    /** Creates a directory inside Karazeh's temporary repository. */
-    bool create_temp_directory(path_t const& path);
 
     /**
      * Downloads the file found at URI and stores it in out_buf. If
@@ -155,7 +151,7 @@ namespace kzh {
     uint64_t stat_filesize(std::ifstream&);
 
   private:
-    static path_t root_path_, tmp_path_, bin_path_, cache_path_;
+    static path_t root_path_, bin_path_, cache_path_;
     string_t host_;
 
     bool get_remote(string_t const& URI, download_t*, bool assume_ownership = true);

@@ -379,8 +379,7 @@ namespace kzh {
     // Perform the staging step for all operations
     info() << "Staging...";
 
-    // create the staging directory for this release
-    rmgr_.create_temp_directory(next_update->checksum);
+    // create the cache directory for this release
     rmgr_.create_directory(rmgr_.cache_path() / next_update->checksum);
 
     bool staging_failure = false; 
@@ -390,7 +389,7 @@ namespace kzh {
 
       STAGE_RC rc = (*op_itr)->stage();
       if (rc != STAGE_OK) {
-        error() << "An operation failed, patch will not be applied.";
+        error() << "An operation failed to stage, patch will not be applied.";
         debug() << "STAGE_RC: " << rc;
         staging_failure = true;
         break;
@@ -410,7 +409,6 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
       boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
       
       return false;
@@ -426,7 +424,7 @@ namespace kzh {
 
       STAGE_RC rc = (*op_itr)->deploy();
       if (rc != STAGE_OK) {
-        error() << "An operation failed, patch will not be applied.";
+        error() << "An operation failed to deploy, patch will not be applied.";
         debug() << "STAGE_RC: " << rc;
         deploy_failure = true;
         break;
@@ -444,7 +442,6 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
       boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
       
       return false;
@@ -460,7 +457,6 @@ namespace kzh {
         (*op_itr)->commit();
       }
 
-      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
       boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
     }
  

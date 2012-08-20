@@ -45,22 +45,21 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::stage() {
-    tmp_path_ = path_t(rmgr_.tmp_path() / rm_.checksum / dst_path);
-    tmp_dir_ = tmp_path_.parent_path();
+    cache_path_ = path_t(rmgr_.cache_path() / rm_.checksum / dst_path);
+    cache_dir_ = cache_path_.parent_path();
     dst_dir_ = (rmgr_.root_path() / dst_path).parent_path();
 
     if (settings::is_enabled("-v")) {
       indent();
-      debug() << "Temp staging path: "<< tmp_path_;
-      debug() << "Temp staging dir: "<< tmp_dir_;
+      debug() << "Caching path: "<< cache_path_;
+      debug() << "Caching dir: "<< cache_dir_;
       debug() << "Dest dir: "<< dst_dir_;
       deindent();
     }
-    
 
     // Prepare our staging directory
-    if (!rmgr_.create_directory(tmp_dir_)) {
-      error() << "Unable to create temp directory: " << tmp_dir_;
+    if (!rmgr_.create_directory(cache_dir_)) {
+      error() << "Unable to create caching directory: " << cache_dir_;
       return STAGE_UNAUTHORIZED;
     }
 
@@ -88,12 +87,12 @@ namespace kzh {
     }
 
     // Can we write to the staging destination?
-    if (!rmgr_.is_writable(tmp_path_)) {
-      error() << "Temp isn't writable: " << tmp_path_;
+    if (!rmgr_.is_writable(cache_path_)) {
+      error() << "The cache isn't writable: " << cache_path_;
       return STAGE_UNAUTHORIZED;
     }
     
-    if (!rmgr_.get_remote(src_uri, tmp_path_, src_checksum, src_size)) {
+    if (!rmgr_.get_remote(src_uri, cache_path_, src_checksum, src_size)) {
       throw invalid_resource(src_uri);
     }
 
@@ -116,14 +115,14 @@ namespace kzh {
     }
 
     // Can we write to the staging destination?
-    if (!rmgr_.is_writable(tmp_path_)) {
-      error() << "Temp isn't writable: " << tmp_path_;
+    if (!rmgr_.is_writable(cache_path_)) {
+      error() << "Temp isn't writable: " << cache_path_;
       return STAGE_UNAUTHORIZED;
     }
 
     // Move the staged file to the destination
     info() << "Creating " << rmgr_.root_path() / dst_path;
-    rename(tmp_path_, rmgr_.root_path() / dst_path);
+    rename(cache_path_, rmgr_.root_path() / dst_path);
     created_ = true;
 
     // validate integrity
@@ -131,8 +130,10 @@ namespace kzh {
     hasher::digest_rc rc = hasher::instance()->hex_digest(fh);    
     fh.close();
 
-    if (rc != src_checksum)
+    if (rc != src_checksum) {
+      error() << "Created file integrity mismatch: " << rc.digest << " vs " << src_checksum;
       return STAGE_FILE_INTEGRITY_MISMATCH;
+    }
 
     if (is_executable) {
       rmgr_.make_executable(rmgr_.root_path() / dst_path);
