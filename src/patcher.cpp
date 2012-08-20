@@ -409,7 +409,7 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
       
       return false;
     }
@@ -442,7 +442,7 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
       
       return false;
     } else {
@@ -457,7 +457,7 @@ namespace kzh {
         (*op_itr)->commit();
       }
 
-      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
     }
  
     return true;

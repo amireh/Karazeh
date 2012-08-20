@@ -50,10 +50,17 @@ namespace kzh {
     deindent();
 
     // Make sure the destination exists
-    if (!boost::filesystem::exists(rmgr_.root_path() / dst_path)) {
+    if (!fs::exists(rmgr_.root_path() / dst_path)) {
       error() << "Destination does not exist: " << dst_path;
 
       return STAGE_FILE_MISSING;
+    }
+
+    // Make sure the cache destination is _free_
+    if (fs::exists(cache_path_)) {
+      error() << "Caching destination exists!" << cache_path_;
+
+      return STAGE_FILE_EXISTS;
     }
 
     if (!rmgr_.create_directory(cache_dir_)) {
@@ -66,13 +73,20 @@ namespace kzh {
   }
 
   STAGE_RC delete_operation::deploy() {
-    using boost::filesystem::rename;
+    using fs::rename;
     
     // Make sure the destination exists
-    if (!boost::filesystem::exists(rmgr_.root_path() / dst_path)) {
+    if (!fs::exists(rmgr_.root_path() / dst_path)) {
       error() << "Destination does not exist: " << rmgr_.root_path() / dst_path;
 
       return STAGE_FILE_MISSING;
+    }
+
+    // Make sure the cache destination is _free_
+    if (fs::exists(cache_path_)) {
+      error() << "Caching destination exists!" << cache_path_;
+
+      return STAGE_FILE_EXISTS;
     }
 
     // Move the staged file to the destination
@@ -81,20 +95,20 @@ namespace kzh {
       << cache_path_;
 
     rename(rmgr_.root_path() / dst_path, cache_path_);
-    
+
     deleted_ = true;
 
     return STAGE_OK;
   } 
 
   void delete_operation::rollback() {
-    using boost::filesystem::is_empty;
-    using boost::filesystem::remove;
+    using fs::is_empty;
+    using fs::remove;
 
     if (deleted_) {
       try {
         rename(cache_path_, rmgr_.root_path() / dst_path);
-      } catch (boost::filesystem::filesystem_error &e) {
+      } catch (fs::filesystem_error &e) {
         error() << "Cached file could not be found! Can not rollback!! Cause: " << e.what();
         // TODO: handle rollback failures
       }
@@ -105,7 +119,7 @@ namespace kzh {
 
   void delete_operation::commit() {
     debug() << "Deleting " << cache_path_ << "...";
-    boost::filesystem::remove_all(cache_path_);
+    fs::remove_all(cache_path_);
     debug() << "Truly deleted " << cache_path_;
   }
 

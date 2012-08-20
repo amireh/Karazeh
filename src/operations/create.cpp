@@ -64,7 +64,7 @@ namespace kzh {
     }
 
     // Prepare our destination directory, if necessary
-    if (!boost::filesystem::is_directory(dst_dir_)) {
+    if (!fs::is_directory(dst_dir_)) {
       if (!rmgr_.create_directory(dst_dir_)) {
         error() << "Unable to create destination dir: " << dst_dir_;
         return STAGE_UNAUTHORIZED;
@@ -100,7 +100,7 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::deploy() {
-    using boost::filesystem::rename;
+    using fs::rename;
     
     // Make sure the destination is free
     if (rmgr_.is_readable(rmgr_.root_path() / dst_path)) {
@@ -143,8 +143,8 @@ namespace kzh {
   } 
 
   void create_operation::rollback() {
-    using boost::filesystem::is_empty;
-    using boost::filesystem::remove;
+    using fs::is_empty;
+    using fs::remove;
 
     if (created_) {
       remove(rmgr_.root_path() / dst_path);

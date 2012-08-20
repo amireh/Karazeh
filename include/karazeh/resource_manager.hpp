@@ -34,6 +34,7 @@
 
 namespace kzh {
 
+  namespace fs = boost::filesystem;
   typedef boost::filesystem::path path_t;
 
   struct download_t;

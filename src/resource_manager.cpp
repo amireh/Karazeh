@@ -62,7 +62,7 @@ namespace kzh {
       // Linux:
       debug() << "Platform: Linux";
 
-      /** use binreloc and boost::filesystem to build up our paths */
+      /** use binreloc and fs to build up our paths */
       int brres = br_init(0);
       if (brres == 0) {
         error() << "binreloc could not be initialised";
@@ -80,9 +80,9 @@ namespace kzh {
       bin_path_ = path_t(Utility::macBundlePath() + "/Contents/MacOS").make_preferred();
 
       // create the folders if they doesn't exist
-      boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
-      boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
-      boost::filesystem::create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
+      fs::create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
+      fs::create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
+      fs::create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
 
       cache_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/cache").make_preferred());
       
@@ -90,7 +90,7 @@ namespace kzh {
     #else
       // Windows:
       debug() << "Platform: Windows";
-      // use GetModuleFileName() and boost::filesystem to build up our paths on Windows
+      // use GetModuleFileName() and fs to build up our paths on Windows
       TCHAR szPath[MAX_PATH];
 
       if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
@@ -115,7 +115,7 @@ namespace kzh {
     }
 
     if (!overridden) {
-      boost::filesystem::create_directory(root_path_ / ".kzh");
+      fs::create_directory(root_path_ / ".kzh");
       cache_path_ = (root_path_ / ".kzh" / "cache").make_preferred();
     }
 
@@ -157,7 +157,7 @@ namespace kzh {
   }
 
   bool resource_manager::is_readable(string_t const& resource) const {
-    namespace fs = boost::filesystem;
+    namespace fs = fs;
     using fs::path;
     using fs::exists;
     using fs::is_regular_file;
@@ -191,9 +191,9 @@ namespace kzh {
   }
   
   bool resource_manager::is_writable(string_t const& resource) const {
-    using boost::filesystem::path;
-    using boost::filesystem::exists;
-    using boost::filesystem::is_regular_file;
+    using fs::path;
+    using fs::exists;
+    using fs::is_regular_file;
 
     try {
       path fp(resource);
@@ -219,7 +219,7 @@ namespace kzh {
 
         if (exists(fp)) {
           // delete the file
-          boost::filesystem::remove(fp);
+          fs::remove(fp);
         }
 
         return writable;
@@ -237,8 +237,8 @@ namespace kzh {
 
   bool resource_manager::create_directory(path_t const& in_path) {
     try {
-      boost::filesystem::create_directories(in_path);
-    } catch (boost::filesystem::filesystem_error &e) {
+      fs::create_directories(in_path);
+    } catch (fs::filesystem_error &e) {
       error() 
         << "Unable to create directory chain @ " << in_path
         << ". Cause: " << e.what();
@@ -416,11 +416,11 @@ namespace kzh {
   }
 
   bool resource_manager::make_executable(path_t const& p) {
-    using namespace boost::filesystem;
+    using namespace fs;
 
     try {
       permissions(p, owner_all | group_exe | others_exe);
-    } catch (boost::filesystem::filesystem_error &e) {
+    } catch (fs::filesystem_error &e) {
       error() << "Unable to modify permissions of file: " << p;
       return false;
     }
