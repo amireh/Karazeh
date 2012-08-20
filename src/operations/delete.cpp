@@ -76,7 +76,7 @@ namespace kzh {
     }
 
     // Move the staged file to the destination
-    info() << "Deleting " << rmgr_.root_path() / dst_path;
+    info() << "Fakely deleting " << rmgr_.root_path() / dst_path;
     rename(rmgr_.root_path() / dst_path, rmgr_.cache_path() / rm_.checksum / dst_path);
     deleted_ = true;
 
@@ -97,6 +97,12 @@ namespace kzh {
     }
 
     return;
+  }
+
+  void delete_operation::commit() {
+    debug() << "Deleting " << rmgr_.cache_path() / rm_.checksum / dst_path << "...";
+    boost::filesystem::remove_all(rmgr_.cache_path() / rm_.checksum / dst_path);
+    debug() << "Truly deleted " << rmgr_.cache_path() / rm_.checksum / dst_path;
   }
 
   string_t delete_operation::tostring() {

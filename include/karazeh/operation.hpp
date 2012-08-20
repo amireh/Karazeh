@@ -88,7 +88,7 @@ namespace kzh {
     /**
      * Purging is handy for operations that use the Karazeh cache
      * while deploying or staging. When an operation is called to
-     * purge, it is guaranteed that the patch has been rolled out
+     * commit, it is guaranteed that the patch has been rolled out
      * successfully and any transient data will _not_ be needed
      * (no rollback will be invoked).
      *
@@ -96,7 +96,7 @@ namespace kzh {
      * data in a safe place only for the use of rollbacks if required,
      * but should otherwise be discarded.
      */
-    inline virtual void purge() {};
+    inline virtual void commit() {};
 
     /** Used internally for exceptions and logging */
     inline virtual string_t tostring() { return ""; }

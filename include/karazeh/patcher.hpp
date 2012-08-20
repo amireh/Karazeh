@@ -36,6 +36,7 @@
 #include "tinyxml2/tinyxml2.h"
 #include <map>
 #include <vector>
+#include <boost/foreach.hpp>
  
 namespace kzh {
   using tinyxml2::XMLDocument;

@@ -55,6 +55,8 @@ namespace kzh {
      */
     virtual void rollback();
 
+    virtual void commit();
+
     virtual string_t tostring();
 
     string_t dst_path;

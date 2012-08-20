@@ -163,7 +163,7 @@ namespace kzh {
       identity_list* ilist = identity_lists_.find(ilist_name)->second;
       
       string_t release_checksum = release_node->Attribute("checksum");
-      debug() << "checking " << release_checksum  << " vs " << ilist->checksum;
+      // debug() << "checking " << release_checksum  << " vs " << ilist->checksum;
 
       // is this our version?
       if (!current_release_found && release_checksum == ilist->checksum) {
@@ -244,6 +244,7 @@ namespace kzh {
 
         if (rm->checksum == version_) {
           our_version_located = true;
+          indent(); debug() << "yep, it is"; deindent();
         }
       }
 
@@ -447,6 +448,20 @@ namespace kzh {
       boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
       
       return false;
+    } else {
+      info() << "patch applied successfully, committing and purging the cache...";
+      // BOOST_FOREACH(operation* op, patch.operations) {
+      //   op->commit();
+      // }
+      for (operations_t::iterator op_itr = patch.operations.begin();
+        op_itr != patch.operations.end();
+        ++op_itr)
+      {
+        (*op_itr)->commit();
+      }
+
+      boost::filesystem::remove_all(rmgr_.tmp_path() / next_update->checksum);
+      boost::filesystem::remove_all(rmgr_.cache_path() / next_update->checksum);
     }
  
     return true;
