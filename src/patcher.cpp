@@ -423,6 +423,7 @@ namespace kzh {
       STAGE_RC rc = (*op_itr)->stage();
       if (rc != STAGE_OK) {
         error() << "An operation failed to stage, patch will not be applied.";
+        error() << (*op_itr)->tostring();
         debug() << "STAGE_RC: " << rc;
         staging_failure = true;
         break;
@@ -458,6 +459,7 @@ namespace kzh {
       STAGE_RC rc = (*op_itr)->deploy();
       if (rc != STAGE_OK) {
         error() << "An operation failed to deploy, patch will not be applied.";
+        error() << (*op_itr)->tostring();
         debug() << "STAGE_RC: " << rc;
         deploy_failure = true;
         break;

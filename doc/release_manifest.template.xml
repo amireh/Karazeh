@@ -13,20 +13,24 @@
       <create> entries:
         1. source: the file to be downloaded and "created"
         2. destination: where it will be moved if the patch succeeds
+
+      Optional attributes:
+        1. is_executable: if specified, the execute permission bit of the file will be set
+                          on operating systems that support it
     -->
-    <create>
+    <create is_executable="true|false">
       <source checksum="1234" size="500"><![CDATA[/path/to/source]]></source>
       <destination><![CDATA[/path/to/destination]]></destination>
     </create>
 
     <!-- 
       <update> entries:
-        1. target: the file to be patched and its pre-patch and post-patch checksums
-        2. patch: the actual patch file, its checksum and its size
+        1. basis: the file to be patched and its pre-patch and post-patch checksums and sizes
+        2. delta: the actual patch file, its checksum and its size
     -->
     <update>
-      <target pre-checksum="1234" post-checksum="5678"><![CDATA[/path/to/file]]></target>
-      <patch  checksum="5678" size="100"><![CDATA[/path/to/patch]]></patch>
+      <basis pre-checksum="1234" pre-size="0" post-checksum="5678" post-size="0"><![CDATA[/path/to/file]]></basis>
+      <delta checksum="5678" size="100"><![CDATA[/path/to/patch]]></delta>
     </update>
 
     <!-- 

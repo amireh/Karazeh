@@ -28,12 +28,20 @@ namespace kzh {
 
     // basis must exist
     if (!rmgr_.is_readable(basis_path_)) {
+      error()
+        << "basis file does not exist at: " << basis_path_;
+        
       return STAGE_FILE_MISSING;
     }
 
     // basis checksum check
     hasher::digest_rc digest = hasher::instance()->hex_digest(basis_path_);
     if (digest != basis_checksum) {
+      error()
+        << "Basis file checksum mismatch: "
+        << digest.digest << " vs " << basis_checksum
+        << " in file " << basis_path_;
+
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
@@ -70,6 +78,8 @@ namespace kzh {
       error() << "Generating of signature for file " << basis_path_ << " has failed. librsync rc: " << rc;
       return STAGE_INTERNAL_ERROR;
     }
+
+    return STAGE_OK;
   }
 
   STAGE_RC update_operation::deploy() {
@@ -111,6 +121,8 @@ namespace kzh {
     fs::rename(path_t(patched_path_.string() + ".tmp"), basis_path_);
 
     patched_ = true;
+
+    return STAGE_OK;
   }
 
   void update_operation::rollback() {
