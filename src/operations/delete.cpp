@@ -31,11 +31,9 @@ namespace kzh {
     logger("op_delete"),
     deleted_(false)
   {
-
   }
 
   delete_operation::~delete_operation() {
-
   }
 
   STAGE_RC delete_operation::stage() {

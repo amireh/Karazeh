@@ -2,7 +2,6 @@
 SET(DEPS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../deps)
 INCLUDE_DIRECTORIES(${DEPS_PATH})
 INCLUDE_DIRECTORIES(${DEPS_PATH}/tinyxml2)
-# INCLUDE_DIRECTORIES(${DEPS_PATH}/MurmurHash3)
 INCLUDE_DIRECTORIES(${DEPS_PATH}/md5)
 
 SET(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/karazeh)
@@ -16,7 +15,6 @@ SET(Karazeh_SRCS
   ${HEADERS_PATH}/logger.hpp
   
   ${DEPS_PATH}/tinyxml2/tinyxml2.cpp
-  # ${DEPS_PATH}/MurmurHash3/MurmurHash3.cpp
   ${DEPS_PATH}/md5/md5.cpp  
   ${DEPS_PATH}/binreloc/binreloc.c  
 
@@ -31,6 +29,7 @@ SET(Karazeh_SRCS
   operations/delete.cpp
   settings.cpp
 
+  delta_encoder.cpp
 )
 
 # ---
@@ -47,4 +46,5 @@ ELSE()
   ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)
   ADD_LIBRARY(kzh SHARED ${Karazeh_SRCS})
 ENDIF()
+TARGET_LINK_LIBRARIES(kzh ${Karazeh_LIBRARIES} rsync)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES} kzh)
