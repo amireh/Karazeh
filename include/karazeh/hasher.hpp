@@ -24,9 +24,12 @@
 #ifndef H_KARAZEH_HASHER_H
 #define H_KARAZEH_HASHER_H
 
-#include "karazeh.hpp"
-
+#include "karazeh/karazeh.hpp"
+#include <boost/filesystem.hpp> // for boost::filesystem::path
+ 
 namespace kzh {
+
+  typedef boost::filesystem::path path_t;
 
   class hasher
   {
@@ -62,6 +65,7 @@ namespace kzh {
 
     /** digests can be calculated off data in a _valid_ file stream */
     virtual digest_rc hex_digest(std::ifstream& src) const = 0;
+    virtual digest_rc hex_digest(path_t const& path) const = 0;
 
     /** A hasher must be assigned so the other components can transparently
       * use it to calculate digests.

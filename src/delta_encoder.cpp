@@ -15,9 +15,6 @@ namespace kzh {
 
   }
 
-  /**
-   * Generate signature from remaining command line arguments.
-   */
   rs_result delta_encoder::signature(path_t const& basis_path, path_t const& sig_path)
   {
     FILE            *basis_file, *sig_file;

@@ -319,6 +319,8 @@ namespace kzh {
 
     XMLElement* op_node = release->FirstChildElement();
     while (op_node) {
+      using utility::tonumber;
+
       debug() << op_node->Value();
       if (strcmp(op_node->Value(), "create") == 0) {
         // <create> operations have two nodes: <source> and <destination>
@@ -351,7 +353,38 @@ namespace kzh {
       } // <create>
 
       else if (strcmp(op_node->Value(), "update") == 0) {
-        notice() << "update operations are not yet implemented";
+        
+        ensure_has_child(op_node, "basis");
+        ensure_has_child(op_node, "delta");
+
+        XMLElement *basis_node = op_node->FirstChildElement("basis");
+
+        ensure_has_attribute(basis_node, "pre-checksum");
+        ensure_has_attribute(basis_node, "post-checksum");
+        ensure_has_attribute(basis_node, "pre-size");
+        ensure_has_attribute(basis_node, "post-size");
+
+        XMLElement *delta_node = op_node->FirstChildElement("delta");
+
+        ensure_has_attribute(delta_node, "checksum");
+        ensure_has_attribute(delta_node, "size");
+
+        // TODO: verify that nodes aren't empty
+
+        update_operation *op = new update_operation(rmgr_, *next_update);
+        op->basis = basis_node->GetText();
+        op->basis_checksum = basis_node->Attribute("pre-checksum");
+        op->basis_length = tonumber(basis_node->Attribute("pre-size"));
+        op->patched_checksum = basis_node->Attribute("post-checksum");
+        op->patched_length = tonumber(basis_node->Attribute("post-size"));
+        op->delta = delta_node->GetText();
+        op->delta_checksum = delta_node->Attribute("checksum");
+        op->delta_length = tonumber(delta_node->Attribute("size"));
+
+        debug() << op->tostring();
+
+        patch.operations.push_back(op);
+
       } // <update>
       else if (strcmp(op_node->Value(), "rename") == 0) {
         notice() << "rename operations are not yet implemented";

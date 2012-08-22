@@ -41,7 +41,10 @@ namespace kzh {
     /** A file to be updated, renamed, or deleted is missing */
     STAGE_FILE_MISSING,
     /** Checksum of a file to be updated does not match the expected checksum */
-    STAGE_FILE_INTEGRITY_MISMATCH
+    STAGE_FILE_INTEGRITY_MISMATCH,
+
+    /** Probably a Karazeh bug */
+    STAGE_INTERNAL_ERROR
   };
 
   class operation {

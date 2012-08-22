@@ -17,12 +17,5 @@
       <destination><![CDATA[/bin/test]]></destination>
     </create>
 
-    <create>
-      <source checksum="87610a2ca1502b363c88e36ee7c61aa6" size="1126635520">
-        <![CDATA[/0.1.1/data/archive.tar]]>
-      </source>
-      <destination><![CDATA[/data/archive.tar]]></destination>
-    </create>
-
   </release>
 </karazeh>

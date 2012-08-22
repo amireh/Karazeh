@@ -50,4 +50,13 @@ namespace kzh {
     return rc;
   }
 
+  hasher::digest_rc md5_hasher::hex_digest(path_t const& fp) const {
+    logger l("md5_hasher"); l.debug() << "Calculating digest from file[" << fp << "]";
+    std::ifstream fh(fp.c_str());
+    digest_rc rc(hex_digest(fh));
+    fh.close();
+
+    return rc;
+  }
+
 }

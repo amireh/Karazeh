@@ -38,6 +38,7 @@ namespace kzh {
 
     virtual digest_rc hex_digest(string_t const& data) const;
     virtual digest_rc hex_digest(std::ifstream& src) const;
+    virtual digest_rc hex_digest(path_t const& path) const;
   };
 
 } // end of namespace kzh

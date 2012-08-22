@@ -32,6 +32,7 @@
 #include "karazeh/operation.hpp"
 #include "karazeh/operations/create.hpp"
 #include "karazeh/operations/delete.hpp"
+#include "karazeh/operations/update.hpp"
 #include "karazeh/utility.hpp"
 #include "tinyxml2/tinyxml2.h"
 #include <map>

@@ -27,6 +27,7 @@ SET(Karazeh_SRCS
   patcher.cpp
   operations/create.cpp
   operations/delete.cpp
+  operations/update.cpp
   settings.cpp
 
   delta_encoder.cpp

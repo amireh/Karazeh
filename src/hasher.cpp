@@ -21,8 +21,8 @@
  *
  */
 
-#include "hasher.hpp"
-#include "logger.hpp"
+#include "karazeh/hasher.hpp"
+#include "karazeh/logger.hpp"
  
 namespace kzh {
 
