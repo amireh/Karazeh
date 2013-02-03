@@ -55,17 +55,25 @@ namespace kzh {
     return nr_retries_;
   }
 
+  void resource_manager::override_paths(path_t root) {
+    root_path_  = root;
+    bin_path_   = root_path_ / settings::get("bin_path");
+    cache_path_ = root_path_ / settings::get("cache_path");
+    
+    create_directory(root_path_);
+    create_directory(bin_path_);
+    create_directory(cache_path_);
+  }
+  
   void resource_manager::resolve_paths(path_t root) {
     if (!root_path_.empty())
       return;
-
-    bool overridden = false;
 
     // locate the binary and build its path
     #if KZH_PLATFORM == KZH_PLATFORM_LINUX
       // Linux:
       debug() << "Platform: Linux";
-
+      
       /** use binreloc and fs to build up our paths */
       int brres = br_init(0);
       if (brres == 0) {
@@ -75,7 +83,7 @@ namespace kzh {
 
       char *p = br_find_exe_dir(".");
       bin_path_ = path_t(p).make_preferred();
-      free(p);
+      free(p);        
 
     #elif KZH_PLATFORM == KZH_PLATFORM_APPLE
       // OS X:
@@ -84,13 +92,11 @@ namespace kzh {
       bin_path_ = path_t(Utility::macBundlePath() + "/Contents/MacOS").make_preferred();
 
       // create the folders if they doesn't exist
-      fs::create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
-      fs::create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
-      fs::create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
+      create_directory(path_t(bin_path_ + "/../Resources").make_preferred());
+      create_directory(path_t(bin_path_ + "/../Resources/.kzh").make_preferred());
+      create_directory(path_t(bin_path_ + "/../Resources/.kzh/cache").make_preferred());
 
       cache_path_ = (bin_path_.remove_leaf() / path_t("/Resources/.kzh/cache").make_preferred());
-      
-      overridden = true;
     #else
       // Windows:
       debug() << "Platform: Windows";
@@ -118,11 +124,11 @@ namespace kzh {
       root_path_ = root;
     }
 
-    if (!overridden) {
-      fs::create_directory(root_path_ / ".kzh");
-      cache_path_ = (root_path_ / ".kzh" / "cache").make_preferred();
-    }
-
+#if KZH_PLATFORM != KZH_PLATFORM_APPLE
+    create_directory(root_path_ / ".kzh");
+    cache_path_ = (root_path_ / ".kzh" / "cache").make_preferred();
+#endif
+    
     debug() << "Root path: " <<  root_path_;
     debug() << "Binary path: " <<  bin_path_;
     debug() << "Cache path: " <<  cache_path_;

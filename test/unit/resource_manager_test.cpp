@@ -3,7 +3,6 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/utility.hpp"
 #include "karazeh/resource_manager.hpp"
-#include "karazeh/hashers/md5_hasher.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -11,15 +10,12 @@ namespace kzh {
   class resource_manager_test : public ::testing::Test {
     protected:
       virtual void SetUp() {
-        rmgr_ = new resource_manager(host_);
-        
-        hasher_ = new md5_hasher();
-        hasher::assign_hasher(hasher_);        
+        rmgr_ = new resource_manager(KZH_SERVER_ADDRESS.string());
+        rmgr_->override_paths(KZH_FIXTURE_PATH / "ktest/current");
       }
       
       virtual void TearDown() {
         delete rmgr_;
-        delete hasher_;
         
         if (fs::exists("./downloads_test.tmp")) {
           fs::remove("./downloads_test.tmp");
@@ -27,26 +23,40 @@ namespace kzh {
       }
       
       static void SetUpTestCase() {
-        host_ = "http://localhost:9393";
       }
       
       resource_manager *rmgr_;
-      md5_hasher       *hasher_;
       
-      static string_t host_;
   };
   
-  string_t resource_manager_test::host_;
-
   TEST_F(resource_manager_test, resolving_paths) {
     using utility::split;
     
     ASSERT_NO_THROW(rmgr_->resolve_paths());
-    EXPECT_EQ( "unit", split(rmgr_->root_path().string(), '/').back() );
-    EXPECT_EQ( "bin", split(rmgr_->bin_path().string(), '/').back() );
+    EXPECT_EQ( "current", split(rmgr_->root_path().string(), '/').back() );
+    EXPECT_EQ( "bin",     split(rmgr_->bin_path().string(), '/').back() );
     
     string_t cache_path = rmgr_->root_path().string() + "/.kzh/cache";
     EXPECT_EQ( cache_path, rmgr_->cache_path().string() );
+  }
+  
+  TEST_F(resource_manager_test, overriding_paths) {
+    using utility::split;
+    
+    ASSERT_NO_THROW(rmgr_->override_paths("./tmp_path"));
+    EXPECT_EQ( "tmp_path",                        rmgr_->root_path().filename() );
+    EXPECT_EQ( rmgr_->root_path() / "bin",        rmgr_->bin_path() );
+    EXPECT_EQ( rmgr_->root_path() / ".kzh/cache", rmgr_->cache_path() );
+    
+    settings::set("bin_path",     "moo");
+    settings::set("cache_path",   ".kzh/krack");
+    
+    ASSERT_NO_THROW(rmgr_->override_paths("./tmp_path"));
+    EXPECT_EQ( "tmp_path",                                  rmgr_->root_path().filename() );
+    EXPECT_EQ((rmgr_->root_path() / "moo").string(),        rmgr_->bin_path().string() );
+    EXPECT_EQ((rmgr_->root_path() / ".kzh/krack").string(), rmgr_->cache_path().string() );
+    
+    
   }
   
   TEST_F(resource_manager_test, loading_remote_resources) {    

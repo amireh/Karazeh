@@ -40,6 +40,11 @@ namespace kzh {
   }
   
   void settings::set(string_t const& k, string_t const& v) {
+    if (literal_settings_.find(k) != literal_settings_.end()) {
+      literal_settings_[k] = v;
+      return;
+    }
+    
     literal_settings_.insert(std::make_pair(k,v));
   }
   
@@ -56,4 +61,5 @@ namespace kzh {
     set("bin_path",   "bin");
     set("cache_path", ".kzh/cache");
   }
+  
 }

@@ -104,7 +104,7 @@ namespace kzh {
     while (ilist_node) {
 
       ensure_has_attribute(ilist_node, "name");
-      ensure_has_children(ilist_node);
+      ensure_has_children(ilist_node, "must have <file> nodes to define identity files");
 
       identity_list *ilist = new identity_list(ilist_node->Attribute("name"));
       identity_lists_.insert(std::make_pair(ilist->name, ilist));
@@ -181,7 +181,7 @@ namespace kzh {
     }
 
     if (!initial_release_found) {
-      throw invalid_manifest("No initial release entry defined.");
+      throw invalid_manifest("Missing initial release node definition.");
     }
 
     return current_release_found;
@@ -534,13 +534,13 @@ namespace kzh {
     }
   }
 
- void patcher::ensure_has_children(const XMLNode* const node) const {
+ void patcher::ensure_has_children(const XMLNode* const node, string_t msg) const {
     using utility::dump_node;
     using namespace tinyxml2;
 
     if (node->NoChildren()) {
-      error() << dump_node(node) << " is empty!";
-      throw missing_children(dump_node(node, false), current_manifest_uri_);
+      error() << dump_node(node) << (msg.empty() ? " is empty!" : msg);
+      throw missing_children(dump_node(node, false), current_manifest_uri_, msg);
     }
   }
 

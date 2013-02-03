@@ -18,6 +18,8 @@ SET(Karazeh_SRCS
   ${DEPS_PATH}/md5/md5.cpp  
   ${DEPS_PATH}/binreloc/binreloc.c  
 
+  karazeh.cpp
+  
   hashers/md5_hasher.cpp
   hasher.cpp
 

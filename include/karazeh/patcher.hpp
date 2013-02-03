@@ -179,7 +179,7 @@ namespace kzh {
      */
     void ensure_has_attribute(const XMLNode* const node, string_t const& name, string_t const& value = "") const;
     void ensure_has_child(const XMLNode* const parent, string_t const& child_name) const;
-    void ensure_has_children(const XMLNode* const) const;
+    void ensure_has_children(const XMLNode* const, string_t msg = "") const;
 
     /**
      * Will attempt to log the cause of the XML parser error using

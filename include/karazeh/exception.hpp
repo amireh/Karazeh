@@ -126,9 +126,10 @@ namespace kzh {
   public:
     inline 
     missing_children(std::string const& node, 
-                     std::string const& xml_file = "")
+                     std::string const& xml_file = "",
+                     std::string const& msg = "")
     : manifest_error(
-      std::string("Node <" + node + "> is empty!"), xml_file)
+      std::string("Node <" + node + "> " + (msg.empty() ? "is empty!" : msg)), xml_file)
     { }
   };
 

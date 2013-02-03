@@ -1,6 +1,6 @@
 <karazeh>
   <identity name="general">
-    <file><![CDATA[/bin/manifests_test]]></file>
+    <file><![CDATA[/bin/test]]></file>
   </identity>
 
   <release tag="0.1.0" identity="general" initial="true" checksum="bae3d8f9b767a12336768dacf72cb0de" />

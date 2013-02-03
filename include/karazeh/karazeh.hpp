@@ -33,6 +33,9 @@
 namespace kzh {
   typedef std::string string_t;
   typedef unsigned long uint64_t;
+  
+  int karazeh_init(int argc, char** argv);
+  int karazeh_cleanup();
 }
 
 

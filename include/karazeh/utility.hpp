@@ -27,7 +27,8 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/exception.hpp"
 #include "tinyxml2/tinyxml2.h"
-
+#include <algorithm>
+ 
 namespace kzh {
 namespace utility {
   static const string_t tinyxml2_errors[] = {
@@ -52,6 +53,7 @@ namespace utility {
     "XML_NO_TEXT_NODE"
   };
 
+  inline static
   string_t tinyxml2_ec_to_string(int ec) {
     std::ostringstream s;
     s << tinyxml2_errors[ec-1] << " (" << ec << ')';
@@ -98,9 +100,10 @@ namespace utility {
   }
 
   /* splits a string s using the delimiter delim */
+  typedef std::vector<string_t> partitioned_string_t;
   inline static
-  std::vector<string_t> split(const string_t &s, char delim = '\n') {
-    std::vector<string_t> elems;
+  partitioned_string_t split(const string_t &s, char delim = '\n') {
+    partitioned_string_t elems;
     std::stringstream ss(s);
     string_t item;
     while(std::getline(ss, item, delim)) {
@@ -109,6 +112,13 @@ namespace utility {
     return elems;
   }
 
+  inline static
+  string_t sanitize(string_t const& s) {
+    string_t out(s);
+    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
+    std::replace(out.begin(),   out.end(), ' ', '_');    
+    return out;
+  }
 } // namespace utility
 } // namespace kzh
 

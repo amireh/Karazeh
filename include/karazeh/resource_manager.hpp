@@ -83,7 +83,8 @@ namespace kzh {
     static path_t const& bin_path();
 
     void resolve_paths(path_t root = "");
-
+    void override_paths(path_t root);
+    
     /** Loads the content of a file stream into memory */
     bool load_file(std::ifstream &fs, string_t& out_buf);
 
