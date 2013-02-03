@@ -26,14 +26,22 @@
  
 namespace kzh {
 
-  hasher* hasher::hasher_instance_ = NULL;
+  const hasher* hasher::hasher_instance_ = NULL;
 
-  void hasher::assign_hasher(hasher* h) {
+  hasher::~hasher() {
+    if (hasher::instance() == this) {
+      hasher::assign_hasher(NULL);
+    }
+  }
+  
+  void hasher::assign_hasher(hasher const* h) {
     assert(h);
 
     hasher_instance_ = h;
 
-    logger l("hasher"); l.info() << "will be using " << h->name() << " for hashing";
+    if (h) {
+      logger l("hasher"); l.info() << "will be using " << h->name() << " for hashing";
+    }
   }
 
   hasher const* const hasher::instance() {

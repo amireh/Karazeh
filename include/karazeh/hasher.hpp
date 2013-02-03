@@ -36,7 +36,7 @@ namespace kzh {
     public:
     
     inline hasher(string_t const& name) : name_(name) { }
-    inline virtual ~hasher() { }
+    virtual ~hasher();
 
     /** 
      * all hashers must return this struct as a result of their
@@ -70,7 +70,7 @@ namespace kzh {
     /** A hasher must be assigned so the other components can transparently
       * use it to calculate digests.
       */
-    static void assign_hasher(hasher*);
+    static void assign_hasher(hasher const*);
 
     /** Returns a usable hasher instance. */
     static hasher const* const instance();
@@ -78,7 +78,7 @@ namespace kzh {
     string_t const& name() const;
 
   protected:
-    static hasher* hasher_instance_;
+    static hasher const* hasher_instance_;
     string_t name_;
   };
 
