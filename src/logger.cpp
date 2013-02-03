@@ -34,7 +34,15 @@ namespace kzh {
   bool          logger::with_timestamps = true;
   string_t      logger::app_name = "";
   int           logger::indent_level = 0;
+  bool          logger::silenced = false;
 
+  void logger::mute() {
+    silenced = true;
+  }
+  void logger::unmute() {
+    silenced = false;
+  }
+  
   void logger::set_threshold(char level) {
     threshold = level;
   }
@@ -69,6 +77,9 @@ namespace kzh {
   }
 
   ostream& logger::log(char lvl) const {
+    if (silenced)
+      return sink;
+    
     bool enabled = false;
     for (int i = 0; i < 7; ++i)
       if (levels[i] == threshold) { enabled = true; break; }

@@ -22,8 +22,8 @@
  */
 
 
-#ifndef H_DAKAPI_template_test_H
-#define H_DAKAPI_template_test_H
+#ifndef H_KARAZEH_template_test_H
+#define H_KARAZEH_template_test_H
 
 #include "test.hpp"
 #include "karazeh/karazeh.hpp"

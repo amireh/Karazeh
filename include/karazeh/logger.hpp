@@ -76,6 +76,9 @@ namespace kzh {
 
     static void indent();
     static void deindent();
+    
+    static void mute();
+    static void unmute();
 
     /** Message will be prefixed with [D] */
     logstream debug() const;
@@ -114,6 +117,7 @@ namespace kzh {
     static ostream*       out;
     static bool           with_timestamps;
     static bool           with_app_name;
+    static bool           silenced;
     static string_t       app_name;
     static int            indent_level;
 

@@ -97,6 +97,18 @@ namespace utility {
     return s.str();
   }
 
+  /* splits a string s using the delimiter delim */
+  inline static
+  std::vector<string_t> split(const string_t &s, char delim = '\n') {
+    std::vector<string_t> elems;
+    std::stringstream ss(s);
+    string_t item;
+    while(std::getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+    return elems;
+  }
+
 } // namespace utility
 } // namespace kzh
 

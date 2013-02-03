@@ -46,10 +46,11 @@ namespace kzh {
     virtual ~resource_manager();
 
     string_t const& host_address() const;
-
-    /** The amount of times to retry a download */
-    int retry_amount() const;
-    void set_retry_amount(int);
+    void rebase(const string_t& new_host);
+    
+    /** The number of times to retry a download */
+    int retry_count() const;
+    void set_retry_count(int);
     
     /** 
      * The root path can be overridden at runtime via the -r option,
@@ -122,7 +123,7 @@ namespace kzh {
     /**
      * Downloads the file found at the given URI and verifies
      * its integrity against the given checksum. The download
-     * will be retried up to retry_amount() times.
+     * will be retried up to retry_count() times.
      *
      * Returns true if the file was downloaded and its integrity verified.
      */
@@ -130,7 +131,8 @@ namespace kzh {
     get_remote(string_t const& URI, 
                path_t const& path_to_file, 
                string_t const& checksum,
-               uint64_t expected_size_bytes = 0);
+               uint64_t expected_size_bytes = 0,
+               int* const nr_retries = NULL);
 
     /** 
      * If @URI_or_path begins with http[s]:// then the resource
@@ -167,7 +169,9 @@ namespace kzh {
     : to_file(false), 
       status(false), 
       size(0),
-      stream(s) {}
+      retry_no(0),
+      stream(s) {
+    }
 
     string_t      *buf;
     string_t      uri;
@@ -175,6 +179,7 @@ namespace kzh {
     bool          to_file;
     std::ostream  &stream;
     uint64_t      size;
+    int           retry_no;
   };
 
 } // end of namespace kzh

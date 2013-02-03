@@ -42,12 +42,16 @@ namespace kzh {
   string_t const& resource_manager::host_address() const {
     return host_;
   }
+  
+  void resource_manager::rebase(const string_t& host) {
+    host_ = host;
+  }
 
-  void resource_manager::set_retry_amount(int n) {
+  void resource_manager::set_retry_count(int n) {
     nr_retries_ = n;
   }
 
-  int resource_manager::retry_amount() const {
+  int resource_manager::retry_count() const {
     return nr_retries_;
   }
 
@@ -356,8 +360,11 @@ namespace kzh {
     string_t const& in_uri, 
     path_t const& path, 
     string_t const& checksum,
-    uint64_t expected_size)
+    uint64_t expected_size,
+    int* const nr_retries)
   {
+    // TODO: verify a hasher instance is registered
+    
     for (int i = 0; i < nr_retries_ + 1; ++i) {
       std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
 
@@ -371,6 +378,8 @@ namespace kzh {
       download_t dl(fp);
       dl.to_file = true;
       dl.uri = in_uri;
+      dl.retry_no = i;
+      (*nr_retries) = i;
 
       if (get_remote(in_uri, &dl, false)) {
         
@@ -399,7 +408,9 @@ namespace kzh {
 
           if (settings::is_enabled("-v")) {
             std::ifstream fh(path.string().c_str());
-            string_t buf; load_file(fh, buf); debug() << "Contents (" << buf.size() << "): " << buf;
+            string_t buf;
+            load_file(fh, buf);
+            debug() << "Contents (" << buf.size() << "): " << buf;
             fh.close();
           }
         }
