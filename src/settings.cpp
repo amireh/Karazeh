@@ -24,13 +24,36 @@
 #include "karazeh/settings.hpp"
 
 namespace kzh {
-  settings::settings_t settings::settings_;
+  settings::flag_settings_t     settings::flag_settings_;
+  settings::literal_settings_t  settings::literal_settings_;
 
   void settings::enable(string_t const& id) {
-    settings_.insert(std::make_pair(id, true));
+    flag_settings_.insert(std::make_pair(id, true));
+  }
+
+  void settings::disable(string_t const& id) {
+    flag_settings_.erase(id);
   }
 
   bool settings::is_enabled(string_t const& id) {
-    return settings_.find(id) != settings_.end();
+    return flag_settings_.find(id) != flag_settings_.end();
+  }
+  
+  void settings::set(string_t const& k, string_t const& v) {
+    literal_settings_.insert(std::make_pair(k,v));
+  }
+  
+  const static string_t nil_setting("");
+  
+  string_t const& settings::get(string_t const& k) {
+    if (literal_settings_.find(k) == literal_settings_.end())
+      return nil_setting;
+    
+    return literal_settings_.find(k)->second;
+  }
+  
+  void settings::set_defaults() {
+    set("bin_path",   "bin");
+    set("cache_path", ".kzh/cache");
   }
 }

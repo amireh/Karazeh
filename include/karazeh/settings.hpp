@@ -35,13 +35,20 @@ namespace kzh {
     inline settings() {}
     inline ~settings() {}
 
+    static void set_defaults();
+    
     static void enable(string_t const& id);
+    static void disable(string_t const& id);
+    static void set(string_t const& id, string_t const& value);
     static bool is_enabled(string_t const& id);
+    static string_t const& get(string_t const& id);
 
   protected:
-    typedef std::map<string_t, bool> settings_t;
-    static settings_t settings_;
-
+    typedef std::map<string_t, bool>      flag_settings_t;
+    typedef std::map<string_t, string_t>  literal_settings_t;
+    
+    static flag_settings_t flag_settings_;
+    static literal_settings_t literal_settings_;
   }; 
 }
 
