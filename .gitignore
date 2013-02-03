@@ -18,6 +18,7 @@ test/fixture/ktest/
 [transients]
 build/
 tmp/
+.kzh
 ._*
 *~
 *.o
