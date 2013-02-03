@@ -54,18 +54,50 @@ namespace kzh {
 
     /** 
      * Generates the signature from the basis file.
+     *
+     * @param basis path to the file you want to generate the signature for
+     * @param signature path to where the signature file should be stored
+     *
+     * @return the status of rs_sig_file() (@see man rdiff)
+     *
+     * @throw kzh::invalid_resource if basis does not exist or is unreadable
+     * @throw kzh::invalid_state if signature is not writable
      */
     rs_result signature(path_t const& basis, path_t const& signature);
 
     /**
-     * Generates a patch based on the given signature and the new file.
+     * Generates a delta patch based on the given signature and the new file.
+     *
+     * @param signature the signature of the basis file, generatable using signature()
+     * @param new_file  the new version of basis
+     * @param delta     path to where the delta file will be stored
+     *
+     * @return the status of rs_delta_file() (@see man rdiff)
+     *
+     * @throw kzh::invalid_resource if basis does not exist or is unreadable
+     * @throw kzh::invalid_resource if delta does not exist or is unreadable
+     * @throw kzh::invalid_state if target destination is unwritable
      */
     rs_result delta(path_t const& signature, path_t const& new_file, path_t const& delta);
     
     /**
      * Applies a patch on the basis file and stores it somewhere else.
+     *
+     * @param basis the base file to patch
+     * @param delta the delta to patch the basis with, generatable using delta()
+     * @param target the destination where the patched file will be stored
+     *
+     * @return the status of rs_patch_file() (@see man rdiff)
+     *
+     * @throw kzh::invalid_resource if basis does not exist or is unreadable
+     * @throw kzh::invalid_resource if delta does not exist or is unreadable
+     * @throw kzh::invalid_state if target destination is unwritable
      */
-    rs_result patch(path_t const& basis, path_t const& delta, path_t const& patched_file);
+    rs_result patch(path_t const& basis, path_t const& delta, path_t const& target);
+    
+  protected:
+    /// used for validating paths and file permissions
+    resource_manager rmgr_;
   };
 
 } // end of namespace kzh
