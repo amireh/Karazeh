@@ -21,7 +21,7 @@ ENDMACRO()
 # ADD_TEST("manifests_test")
 # ADD_TEST("permissions_test")
 # ADD_TEST("rdiff_patch_test")
-FILE(GLOB SPECS "*_test.cpp")
+FILE(GLOB_RECURSE SPECS "./*_test.cpp")
 
 ADD_EXECUTABLE(${PROJECT_NAME}_unit_tests ${SPECS} main.cpp)
 # TARGET_LINK_LIBRARIES(${PROJECT_NAME}_unit_tests ${GTEST_BOTH_LIBRARIES} kzh)

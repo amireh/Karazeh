@@ -56,7 +56,7 @@ namespace kzh {
     EXPECT_EQ((rmgr_->root_path() / "moo").string(),        rmgr_->bin_path().string() );
     EXPECT_EQ((rmgr_->root_path() / ".kzh/krack").string(), rmgr_->cache_path().string() );
     
-    
+    fs::remove_all(rmgr_->root_path());
   }
   
   TEST_F(resource_manager_test, loading_remote_resources) {    
