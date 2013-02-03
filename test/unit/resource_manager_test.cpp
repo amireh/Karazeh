@@ -20,6 +20,10 @@ namespace kzh {
       virtual void TearDown() {
         delete rmgr_;
         delete hasher_;
+        
+        if (fs::exists("./downloads_test.tmp")) {
+          fs::remove("./downloads_test.tmp");
+        }
       }
       
       static void SetUpTestCase() {
@@ -188,5 +192,8 @@ namespace kzh {
     ASSERT_TRUE(rmgr_->get_resource(p.string(), rbuf));
     ASSERT_EQ(lbuf, rbuf);
   }
-  
+ 
+  TEST_F(resource_manager_test, statting_filesize) {
+    ASSERT_EQ(24, rmgr_->stat_filesize(fixture_path / "hash_me.txt"));
+  } 
 }
