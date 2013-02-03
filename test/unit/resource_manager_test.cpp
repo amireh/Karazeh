@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
+#include "test_helper.hpp"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/utility.hpp"
 #include "karazeh/resource_manager.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
 
 namespace kzh {
+  namespace fs = boost::filesystem;
+  
   class resource_manager_test : public ::testing::Test {
     protected:
       virtual void SetUp() {
@@ -116,42 +119,74 @@ namespace kzh {
     EXPECT_EQ(nr_retries, 0);    
   }
   
+  TEST_F(resource_manager_test, checking_file_read_permissions) {
+    ASSERT_TRUE(rmgr_->is_readable(fixture_path / "permissions/readable_file.txt"));
+  }
+  
+  TEST_F(resource_manager_test, checking_file_write_permissions) {
+    ASSERT_FALSE(rmgr_->is_writable(fixture_path / "permissions/unwritable_file.txt"));
+  }
+  
+  TEST_F(resource_manager_test, checking_directory_read_permissions) {
+    fs::path p(fixture_path / "permissions/readable_dir");
+    
+    ASSERT_TRUE(fs::is_directory(p));
+    ASSERT_TRUE(rmgr_->is_readable(p));
+  }
+  
+  TEST_F(resource_manager_test, checking_directory_write_permissions) {
+    ASSERT_FALSE(rmgr_->is_writable(fixture_path / "permissions/unwritable_dir"));
+  }
+  
+  TEST_F(resource_manager_test, removing_unwritable_file) {
+    fs::path p(fixture_path / "permissions/unwritable_dir/unwritable_file.txt");
+    ASSERT_THROW(fs::remove(p), fs::filesystem_error);
+  }
+
+  TEST_F(resource_manager_test, removing_unwritable_directory) {
+    fs::path p(fixture_path / "permissions/unwritable_dir/unwritable_empty_dir");
+    ASSERT_FALSE(fs::exists(p));
+    ASSERT_FALSE(fs::remove_all(p));
+  }
+
+  TEST_F(resource_manager_test, creating_directories) {
+    fs::path p(fixture_path / "permissions/readable_dir");
+    ASSERT_TRUE(fs::exists(p));
+    ASSERT_TRUE(fs::is_directory(p));
+    
+    ASSERT_TRUE(rmgr_->create_directory(p / "created_by_kzh_test"));
+    ASSERT_TRUE(fs::remove_all(p / "created_by_kzh_test"));
+    
+    p = fs::path(fixture_path / "permissions/unwritable_dir");
+    ASSERT_FALSE(rmgr_->create_directory(p / "created_by_kzh_test"));
+    ASSERT_FALSE(fs::exists(p / "created_by_kzh_test"));
+  }
+  
+  TEST_F(resource_manager_test, loading_a_local_file_from_stream) {
+    path_t p(fixture_path / "hash_me.txt");
+    string_t buf;
+    
+    std::ifstream fh(p.string().c_str());
+    ASSERT_TRUE(fh.is_open() && fh.good());
+    
+    rmgr_->load_file(fh, buf);
+    EXPECT_EQ("CALCULATE MY HEX DIGEST\n", buf);
+  }
+  
+  TEST_F(resource_manager_test, loading_a_resource_agnostically) {
+    string_t lbuf, rbuf;
+    
+    ASSERT_TRUE(rmgr_->get_remote("/version.xml", lbuf));
+    ASSERT_TRUE(rmgr_->get_resource(rmgr_->host_address() + "/version.xml", rbuf));
+    ASSERT_EQ(lbuf, rbuf);
+    
+    lbuf.clear();
+    rbuf.clear();
+    
+    fs::path p(fixture_path / "hash_me.txt");
+    ASSERT_TRUE(rmgr_->load_file(p, lbuf));
+    ASSERT_TRUE(rmgr_->get_resource(p.string(), rbuf));
+    ASSERT_EQ(lbuf, rbuf);
+  }
+  
 }
-
-// resource_manager rmgr("http://localhost:9333");
-//     md5_hasher h;
-//     hasher::assign_hasher(&h);
-
-//     string_t buf;
-
-//     stage("Loading a remote resource");
-//     {
-//       soft_assert("loading remote resource from http://localhost:9333/version.xml",
-//                   rmgr.get_remote("/version.xml", buf));
-//     }
-
-//     stage("Loading a non existent file");
-//     {
-//       soft_assert("loading a remote resource that doesn't exist",
-//                   !rmgr.get_remote("/some_non_existent_file.xml", buf));
-//     }
-
-//     stage("Querying an unreachable server");
-//     {
-//       soft_assert("loading a remote resource from an unreachable server",
-//                   !rmgr.get_remote("http://localhost:12345/some_non_existent_file.xml", buf));
-//     }
-
-//     stage("Retry-able downloads");
-//     {
-//       soft_assert("Verifying integrity against an incorrect checksum",
-//                   !rmgr.get_remote("/current/data/hash_me.txt", "./downloads_test.tmp", "invalid_dummy_checksum"));
-      
-//       soft_assert("Verifying integrity against an incorrect filesize",
-//                   !rmgr.get_remote(
-//                     "/current/data/hash_me.txt", 
-//                     "./downloads_test.tmp", 
-//                     "f1eb970aeb2e380593480ed76070acbe", 
-//                     32 /* it is 24 */));
-
-//     }

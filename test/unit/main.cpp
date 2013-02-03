@@ -1,9 +1,10 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
+#include "test_helper.hpp"
 #include <gtest/gtest.h>
 
 class kzh_unit_test_env : public ::testing::Environment {
- public:
+public:
   virtual ~kzh_unit_test_env() {}
   // Override this to define how to set up the environment.
   virtual void SetUp() {
@@ -13,6 +14,7 @@ class kzh_unit_test_env : public ::testing::Environment {
   virtual void TearDown() {
     
   }
+  
 };
 
 int main(int argc, char **argv) {
