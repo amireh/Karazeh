@@ -1,29 +1,32 @@
-[auto]
-bin/
-log/
-lib/
-include/KarazehConfig.h
-doc/api/
+# build artifacts
+/bin
+/build
+/deps/*/build
+/deps/*/lib
+/log
+/include/KarazehConfig.h
+/include/karazeh/librsync-config.h
+/doc/api
+/doc/compiled
 
-[manual]
+# manually excluded sources
 exclude/
 
-[fixtures]
+# test fixtures
 dumps
-test/fixture/archives/
-test/fixture/tmp/
-test/fixture/ktest/
+/test/unit/bin
+/test/fixture/archives
+/test/fixture/tmp
+/test/fixture/ktest
 *.tar*
 
-[transients]
-build/
-tmp/
+# transients
+/tmp
 .kzh
 ._*
 *~
 *.o
 *.lo
-
-[rubbish]
 .DS_Store
 *.swp
+/doc/diagrams/workspace
