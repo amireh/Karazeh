@@ -1,52 +1,48 @@
-/*
- *  Copyright (c) 2011 Ahmad Amireh <ahmad@amireh.net>
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"),
- *  to deal in the Software without restriction, including without limitation
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
- *  and/or sell copies of the Software, and to permit persons to whom the
- *  Software is furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- *
- */
+#include "karazeh/patcher.hpp"
+#include "karazeh/hashers/md5_hasher.hpp"
+#include "karazeh/settings.hpp"
 
-#include "Launcher.h"
+int main(int argc, char** argv) {
+  using namespace kzh;
 
-#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
-INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT ) {
-  int argc = __argc;
-  char** argv = __argv;
-#else
-	int main( int argc, char **argv ) {
-#endif
+  string_t root_path;
+  logger::enable_timestamps(false);
+  if (argc > 1) {
+    for (int i = 0; i < argc; ++i) {
+      string_t arg = argv[i];
+      if (arg == "-r" && argc > i) {
+        root_path = string_t(argv[++i]);
+      }
+      else if (arg == "-v") {
+        settings::enable("-v");
+      }
+      else if (arg == "-vv") {
+        settings::enable("-vv");
+      }
+    }
+  }
 
-		try {
-			Pixy::Launcher::getSingleton().go(argc, argv);
-		}
-		catch ( std::exception& e ) {
-#if PIXY_PLATFORM == PIXY_PLATFORM_WIN32
-			MessageBox( NULL, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL );
-#else
-			std::cerr << "an exception has occured: " << e.what();
-#endif
-		}
+  logger l("test");
 
-    Pixy::Launcher::getSingleton().shutdown();
-		delete Pixy::Launcher::getSingletonPtr();
+  resource_manager rmgr("http://localhost:9333");
+  rmgr.resolve_paths(root_path);
 
-		return 0;
-	}
+  md5_hasher my_hasher;
+  hasher::assign_hasher(&my_hasher);
 
+  patcher p(rmgr);
+  if (p.identify(rmgr.host_address() + "/version.xml")) {
+    if (p.is_update_available()) {
+      if (p.apply_next_update()) {
+        l.info() << "Successfully updated";
+      } else {
+        l.error() << "Wasn't able to update.";
+      }
+    }
+  } // identify()
+  else {
+    l.error() << "unable to identify version";
+  }
+
+  return 0;
+}

@@ -1,0 +1,42 @@
+<karazeh>
+  <release tag="0.1.2">
+    <create>
+      <source checksum="3ba3d3767c9c8768f449c3cbfe559796" size="221">
+        <![CDATA[/0.1.2/data/media/materials/scripts/skies.material]]>
+      </source>
+      <destination><![CDATA[/data/media/materials/scripts/skies.material]]></destination>
+    </create>
+
+    <delete>
+      <target><![CDATA[/bin/test]]></target>
+    </delete>
+    <create executable="true">
+      <source checksum="ec5656da77dfaa00e2de49eeb17067ea" size="6653">
+        <![CDATA[/0.1.2/bin/test]]>
+      </source>
+      <destination><![CDATA[/bin/test]]></destination>
+    </create>
+
+    <delete>
+      <target><![CDATA[/data/scripts/foo]]></target>
+    </delete>
+
+    <delete>
+      <target><![CDATA[/data/scripts/bar]]></target>
+    </delete>
+
+    <update>
+      <basis 
+        pre-checksum="87610a2ca1502b363c88e36ee7c61aa6" 
+        post-checksum="e48ead8578ab2459989cd4de4fcba992" 
+        pre-size="1126635520" 
+        post-size="1126748160">
+        <![CDATA[/data/archive.tar]]>
+      </basis>
+      <delta checksum="12e73f0e4c38d1051bdf5452dea2ac10" size="60058">
+        <![CDATA[/0.1.2/data/archive.0.1.1-0.1.2.delta]]>
+      </delta>
+    </update>
+
+  </release>
+</karazeh>

@@ -1,0 +1,32 @@
+# build artifacts
+/bin
+/build
+/deps/*/build
+/deps/*/lib
+/log
+/include/KarazehConfig.h
+/include/karazeh/librsync-config.h
+/doc/api
+/doc/compiled
+
+# manually excluded sources
+exclude/
+
+# test fixtures
+dumps
+/test/unit/bin
+/test/fixture/archives
+/test/fixture/tmp
+/test/fixture/ktest
+*.tar*
+
+# transients
+/tmp
+.kzh
+._*
+*~
+*.o
+*.lo
+.DS_Store
+*.swp
+/doc/diagrams/workspace
