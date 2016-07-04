@@ -21,7 +21,7 @@
  *
  */
 
-#include "logger.hpp"
+#include "karazeh/logger.hpp"
 #include <iomanip>
 
 namespace kzh {
@@ -42,20 +42,20 @@ namespace kzh {
   void logger::unmute() {
     silenced = false;
   }
-  
+
   void logger::set_threshold(char level) {
     threshold = level;
   }
-  
+
   void logger::set_stream(std::ostream* s) {
     out = s;
   }
-  
-  void logger::enable_timestamps(bool f) { 
+
+  void logger::enable_timestamps(bool f) {
     with_timestamps = f;
   }
 
-  void logger::set_app_name(string_t const& in_app_name) { 
+  void logger::set_app_name(string_t const& in_app_name) {
     app_name = in_app_name;
   }
 
@@ -79,7 +79,7 @@ namespace kzh {
   ostream& logger::log(char lvl) const {
     if (silenced)
       return sink;
-    
+
     bool enabled = false;
     for (int i = 0; i < 7; ++i)
       if (levels[i] == threshold) { enabled = true; break; }
@@ -135,7 +135,7 @@ namespace kzh {
 
   logstream::logstream(std::ostream& in_s)
   : s(in_s) {}
-  
+
   logstream::~logstream() {
     s << std::endl;
   }

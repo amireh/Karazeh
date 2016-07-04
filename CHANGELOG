@@ -1,4 +1,5 @@
--= Version 0.2 =-
+## v0.2
+
 * Created a Vanilla CLI renderer
 * Created a Qt renderer
 * Threading is no longer a requirement, but an optional feature
@@ -13,13 +14,14 @@
 * Multiple patch server resolving
 * Karazeh can patch itself! (tested on Linux only)
 
--= Version 0.1 =-
+## v0.1
+
 * Implemented the Patcher using boost::filesystem and bspatch, supporting 3 operations:
-  # CREATE
-  # DELETE
-  # MODIFY
-  # RENAME
-* Implemented the Downloader using libcurl to fetch the patchlist and the entries  
+  - `CREATE`
+  - `DELETE`
+  - `MODIFY`
+  - `RENAME`
+* Implemented the Downloader using libcurl to fetch the patchlist and the entries
 * CREATE operations now stage files in a temp directory just like MODIFY
 * SIGINT and SIGKILL are now intercepted to cleanup before exit
 * Patcher validates the repository's entries before committing the changes

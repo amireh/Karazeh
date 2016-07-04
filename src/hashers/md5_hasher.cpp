@@ -21,9 +21,9 @@
  *
  */
 
-#include "hashers/md5_hasher.hpp"
-#include "logger.hpp"
- 
+#include "karazeh/hashers/md5_hasher.hpp"
+#include "karazeh/logger.hpp"
+
 namespace kzh {
 
   hasher::digest_rc md5_hasher::hex_digest(string_t const& data) const {

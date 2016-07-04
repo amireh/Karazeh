@@ -1,0 +1,5 @@
+IF(WIN32)
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/deps/librsync-0.9.7/windows)
+ELSE(UNIX)
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/deps/librsync-0.9.7/linux)
+ENDIF()

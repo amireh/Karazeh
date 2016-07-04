@@ -24,7 +24,7 @@
 #ifndef H_KARAZEH_HASHER_MD5_H
 #define H_KARAZEH_HASHER_MD5_H
 
-#include "hasher.hpp"
+#include "karazeh/hasher.hpp"
 #include "md5/md5.hpp"
 
 namespace kzh {
@@ -32,7 +32,7 @@ namespace kzh {
   class md5_hasher : public hasher
   {
     public:
-    
+
     inline md5_hasher() : hasher("MD5") { }
     inline virtual ~md5_hasher() { }
 

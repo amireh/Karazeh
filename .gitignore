@@ -3,6 +3,7 @@
 /build
 /deps/*/build
 /deps/*/lib
+/lib
 /log
 /include/KarazehConfig.h
 /include/karazeh/librsync-config.h
@@ -21,7 +22,6 @@ dumps
 *.tar*
 
 # transients
-/tmp
 .kzh
 ._*
 *~
