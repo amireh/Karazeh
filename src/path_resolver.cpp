@@ -57,7 +57,7 @@ namespace kzh {
       // Windows:
       debug() << "Platform: Windows";
 
-      cache_path_ = path_t(root_path_ / ".kzh" / "cache").make_preferred();
+      cache_path_ = path_t(root_path_ / ".kzh/cache").make_preferred();
     #endif
 
     debug() << "Root path: " <<  root_path_;
@@ -97,7 +97,7 @@ namespace kzh {
       TCHAR szPath[MAX_PATH];
 
       if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
-        error() << "Unable to resolve path: " << GetLastError();;
+        log->error() << "Unable to resolve path: " << GetLastError();;
         throw internal_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
       }
 
