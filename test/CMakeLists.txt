@@ -1,3 +1,5 @@
+INCLUDE(cmake/macros/ConfigureRSync)
+
 FIND_PACKAGE(GTest REQUIRED)
 
 INCLUDE_DIRECTORIES(.) # for test.hpp

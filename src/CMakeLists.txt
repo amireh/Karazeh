@@ -1,3 +1,4 @@
+INCLUDE(cmake/macros/ConfigureRSync)
 INCLUDE(GenerateExportHeader)
 
 INCLUDE_DIRECTORIES(../include)

@@ -1,3 +1,5 @@
+INCLUDE(cmake/macros/ConfigureRSync)
+
 INCLUDE_DIRECTORIES(.) # for test.hpp
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/deps)
