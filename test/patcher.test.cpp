@@ -33,14 +33,12 @@ namespace kzh {
     }
 
     virtual bool load_manifest(string_t const& p, XMLDocument& doc) {
-      using namespace tinyxml2;
-
       string_t manifest_xml;
       downloader_->fetch(config_.host + "/manifests/" + p, manifest_xml);
 
-      int xml_rc = XML_SUCCESS;
+      int xml_rc = tinyxml2::XML_SUCCESS;
       xml_rc = doc.Parse(manifest_xml.c_str());
-      if (xml_rc != XML_SUCCESS) {
+      if (xml_rc != tinyxml2::XML_SUCCESS) {
         return false;
       }
 
@@ -69,7 +67,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_missing_identity_list) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_missing_ilist.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -78,7 +77,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_name) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_missing_ilist_name.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -87,7 +87,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_files) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_missing_ilist_files.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -96,7 +97,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_releases) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_missing_releases.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -105,7 +107,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_initial_release) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_missing_initial_release.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -114,7 +117,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_identity_list_undefined) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_undefined_ilist.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),
@@ -123,7 +127,8 @@ namespace kzh {
   }
 
   TEST_F(patcher_test, manifest_unmapped_release) {
-    XMLDocument m;
+    tinyxml2::XMLDocument m;
+
     ASSERT_TRUE(load_manifest("invalid_vm_unmapped_release.xml", m));
     ASSERT_THROW_WITH(
       subject->identify(m),

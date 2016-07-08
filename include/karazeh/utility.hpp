@@ -86,11 +86,9 @@ namespace utility {
 
   inline static string_t
   dump_node(const tinyxml2::XMLNode* const node, bool with_brackets = true) {
-    using namespace tinyxml2;
-
     std::ostringstream s;
     s << (with_brackets ? "<" : "") << node->Value();
-    const XMLAttribute *a = node->ToElement()->FirstAttribute();
+    const tinyxml2::XMLAttribute *a = node->ToElement()->FirstAttribute();
     while (a) {
       s << ' ' << a->Name() << "=\"" << a->Value() << '"';
       a = a->Next();
