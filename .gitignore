@@ -22,7 +22,6 @@ exclude/
 
 # test fixtures
 dumps
-*.tar*
 
 # transients
 .kzh
