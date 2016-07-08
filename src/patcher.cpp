@@ -29,7 +29,7 @@ namespace kzh {
   : name(n) {
 
   }
-  
+
   patcher::identity_list::~identity_list() {
     while (!files.empty()) {
       delete files.back();
@@ -63,7 +63,7 @@ namespace kzh {
     string_t manifest_xml;
 
     current_manifest_uri_ = "version[" + manifest_uri + "]";
-    
+
     if (!rmgr_.get_resource(manifest_uri, manifest_xml)) {
       throw invalid_resource(manifest_uri);
     }
@@ -71,9 +71,9 @@ namespace kzh {
     using namespace tinyxml2;
 
     /** Parse the manifest */
-    int xml_rc = XML_NO_ERROR;
+    int xml_rc = XML_SUCCESS;
     xml_rc = vmanifest_.Parse(manifest_xml.c_str());
-    if (xml_rc != XML_NO_ERROR) {
+    if (xml_rc != XML_SUCCESS) {
       // abort
       report_parser_error(xml_rc, vmanifest_);
     }
@@ -108,7 +108,7 @@ namespace kzh {
 
       identity_list *ilist = new identity_list(ilist_node->Attribute("name"));
       identity_lists_.insert(std::make_pair(ilist->name, ilist));
-    
+
       XMLElement *ifile_node = ilist_node->FirstChildElement();
       while (ifile_node) {
         identity_file *ifile = new identity_file();
@@ -138,12 +138,12 @@ namespace kzh {
 
       ilist->checksum = hasher::instance()->hex_digest(ilist->checksum).digest;
       debug() << "ilist[" << ilist->name << "] => " << ilist->checksum;
-      
+
       ilist_node = ilist_node->NextSiblingElement("identity");
     }
 
     // Now that the identity lists are built, we run through all the release entries
-    // and attempt to find one whose checksum matches that of the identity list it 
+    // and attempt to find one whose checksum matches that of the identity list it
     // points to
     ensure_has_child(root, "release");
 
@@ -161,7 +161,7 @@ namespace kzh {
       }
 
       identity_list* ilist = identity_lists_.find(ilist_name)->second;
-      
+
       string_t release_checksum = release_node->Attribute("checksum");
       // debug() << "checking " << release_checksum  << " vs " << ilist->checksum;
 
@@ -224,14 +224,14 @@ namespace kzh {
       // checksum attribute is required
       ensure_has_attribute(rm_node, "checksum");
       // so is the tag attribute
-      ensure_has_attribute(rm_node, "tag");    
+      ensure_has_attribute(rm_node, "tag");
       // so is the uri attribute, unless it's the initial release
       if (!rm_node->Attribute("initial")) {
         ensure_has_attribute(rm_node, "uri");
       }
 
       release_manifest *rm = new release_manifest();
-      rm->checksum = rm_node->StringAttribute("checksum");
+      rm->checksum = rm_node->Attribute("checksum");
       rm->tag = rm_node->Attribute("tag");
       if (rm_node->Attribute("uri"))
         rm->uri = rm_node->Attribute("uri");
@@ -273,7 +273,7 @@ namespace kzh {
 
     // Download the manifest and parse it
     string_t rm_xml;
-    
+
     if (!rmgr_.get_remote(next_update->uri, rm_xml)) {
       throw invalid_resource(next_update->uri);
     }
@@ -284,9 +284,9 @@ namespace kzh {
 
     // Parse the manifest
     XMLDocument rm_doc;
-    int xml_rc = XML_NO_ERROR;
+    int xml_rc = XML_SUCCESS;
     xml_rc = rm_doc.Parse(rm_xml.c_str());
-    if (xml_rc != XML_NO_ERROR) {
+    if (xml_rc != XML_SUCCESS) {
       report_parser_error(xml_rc, rm_doc);
     }
 
@@ -300,7 +300,7 @@ namespace kzh {
         while (!operations.empty()) {
           delete operations.back();
           operations.pop_back();
-        }        
+        }
       }
     } patch;
 
@@ -353,7 +353,7 @@ namespace kzh {
       } // <create>
 
       else if (strcmp(op_node->Value(), "update") == 0) {
-        
+
         ensure_has_child(op_node, "basis");
         ensure_has_child(op_node, "delta");
 
@@ -415,7 +415,7 @@ namespace kzh {
     // create the cache directory for this release
     rmgr_.create_directory(rmgr_.cache_path() / next_update->checksum);
 
-    bool staging_failure = false; 
+    bool staging_failure = false;
     for (operations_t::iterator op_itr = patch.operations.begin();
       op_itr != patch.operations.end();
       ++op_itr) {
@@ -444,14 +444,14 @@ namespace kzh {
       }
 
       fs::remove_all(rmgr_.cache_path() / next_update->checksum);
-      
+
       return false;
     }
-    
+
     // Commit the patch
     info() << "Comitting...";
 
-    bool deploy_failure = false; 
+    bool deploy_failure = false;
     for (operations_t::iterator op_itr = patch.operations.begin();
       op_itr != patch.operations.end();
       ++op_itr) {
@@ -478,7 +478,7 @@ namespace kzh {
       }
 
       fs::remove_all(rmgr_.cache_path() / next_update->checksum);
-      
+
       return false;
     } else {
       info() << "patch applied successfully, committing and purging the cache...";
@@ -494,7 +494,7 @@ namespace kzh {
 
       fs::remove_all(rmgr_.cache_path() / next_update->checksum);
     }
- 
+
     return true;
   }
 
@@ -511,15 +511,15 @@ namespace kzh {
 
     if (!value.empty()) {
       if (!el->Attribute(name.c_str(), value.c_str())) {
-        error() 
-          << dump_node(el) 
-          << " attribute " << name << " has an unexpected value " 
+        error()
+          << dump_node(el)
+          << " attribute " << name << " has an unexpected value "
           << el->Attribute(name.c_str()) << ", expected: " << value;
 
-        throw invalid_attribute(dump_node(el, false), 
-          name, 
-          value, 
-          el->Attribute(name.c_str()), 
+        throw invalid_attribute(dump_node(el, false),
+          name,
+          value,
+          el->Attribute(name.c_str()),
           current_manifest_uri_);
       }
     }

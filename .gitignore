@@ -15,6 +15,7 @@
 /Karazeh.vcxproj
 /Karazeh.vcxproj.filters
 /Karazeh.vcxproj.user
+/karazeh.sublime-workspace
 
 # manually excluded sources
 exclude/
