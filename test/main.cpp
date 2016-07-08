@@ -12,7 +12,6 @@ namespace kzh {
   class unit_test_env : public ::testing::Environment {
   public:
     unit_test_env(int argc, char** argv) {
-      kzh::karazeh_init(argc, argv);
     }
 
     virtual ~unit_test_env() {}
@@ -26,8 +25,6 @@ namespace kzh {
 
     virtual void TearDown() {
       delete hasher_;
-
-      kzh::karazeh_cleanup();
     }
 
   protected:

@@ -28,7 +28,6 @@ SET(Karazeh_SRCS
   ../include/karazeh/patcher.hpp
   ../include/karazeh/path_resolver.hpp
   ../include/karazeh/release_manifest.hpp
-  ../include/karazeh/settings.hpp
   ../include/karazeh/utility.hpp
 
   ../deps/tinyxml2/tinyxml2.cpp
@@ -44,12 +43,10 @@ SET(Karazeh_SRCS
   downloader.cpp
   file_manager.cpp
   hasher.cpp
-  karazeh.cpp
   logger.cpp
   patcher.cpp
   path_resolver.cpp
   release_manifest.cpp
-  settings.cpp
 )
 
 # generate library
@@ -63,6 +60,3 @@ GENERATE_EXPORT_HEADER(kzh
 
 TARGET_LINK_LIBRARIES(kzh ${Karazeh_LIBRARIES} rsync)
 
-# generate CLI front-end:
-ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Karazeh_LIBRARIES} kzh)

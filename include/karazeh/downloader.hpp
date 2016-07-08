@@ -25,7 +25,6 @@
 #include "karazeh/logger.hpp"
 #include "karazeh/hasher.hpp"
 #include "karazeh/file_manager.hpp"
-#include "karazeh/settings.hpp"
 #include "karazeh/config.hpp"
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
@@ -37,11 +36,8 @@ namespace kzh {
 
   class KARAZEH_EXPORT downloader : protected logger {
   public:
-    /** @param host a fully-qualified URI of the patch server */
     downloader(file_manager const&, config_t const&);
     virtual ~downloader();
-
-    string_t const& host_address() const;
 
     /** The number of times to retry a download */
     int retry_count() const;
@@ -76,8 +72,7 @@ namespace kzh {
 
   private:
     const file_manager& file_manager_;
-
-    string_t host_;
+    const config_t &config_;
 
     bool fetch(string_t const& URI, download_t*, bool assume_ownership = true);
 

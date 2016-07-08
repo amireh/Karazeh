@@ -24,7 +24,6 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/hasher.hpp"
-#include "karazeh/settings.hpp"
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include "binreloc/binreloc.h"

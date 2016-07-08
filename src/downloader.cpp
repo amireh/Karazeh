@@ -23,17 +23,13 @@
 namespace kzh {
   downloader::downloader(file_manager const& fmgr, config_t const& config)
   : logger("downloader"),
-    host_(config.host),
+    config_(config),
     nr_retries_(2),
     file_manager_(fmgr)
   {
   }
 
   downloader::~downloader() {
-  }
-
-  string_t const& downloader::host_address() const {
-    return host_;
   }
 
   void downloader::set_retry_count(int n) {
@@ -52,9 +48,6 @@ namespace kzh {
 
     dl->size += realsize;
 
-    if (kzh::settings::is_enabled("-v")) {
-      logger l("cURL"); l.debug() << "received " << realsize << " bytes";
-    }
     if (dl->to_file) {
       dl->stream.write(buffer, realsize);
     } else {
@@ -68,7 +61,7 @@ namespace kzh {
   {
     string_t uri(in_uri);
     if (in_uri.find("http://") == std::string::npos) {
-      uri = string_t(host_ + in_uri);
+      uri = string_t(config_.host + in_uri);
       dl->uri = uri;
     }
 
@@ -192,7 +185,7 @@ namespace kzh {
             <<  rc.digest << " vs " << checksum
             << " (got " << dl.size << " out of " << expected_size << " expected bytes)";
 
-          if (settings::is_enabled("-v")) {
+          if (config_.verbose) {
             std::ifstream fh(path.string().c_str());
             string_t buf;
             file_manager_.load_file(fh, buf);

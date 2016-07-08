@@ -55,7 +55,7 @@ namespace kzh {
     cache_dir_ = cache_path_.parent_path();
     dst_dir_ = (config_.root_path / dst_path).parent_path();
 
-    if (settings::is_enabled("-v")) {
+    if (config_.verbose) {
       indent();
       debug() << "Caching path: "<< cache_path_;
       debug() << "Caching dir: "<< cache_dir_;

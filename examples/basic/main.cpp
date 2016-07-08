@@ -1,7 +1,6 @@
 #include "karazeh/patcher.hpp"
 #include "karazeh/path_resolver.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
-#include "karazeh/settings.hpp"
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
@@ -33,8 +32,8 @@ int main(int argc, char** argv) {
 
   path_resolver.resolve(root_path);
 
-  // create the folders if they doesn't exist
-  fs::create_directory(path_resolver.get_cache_path());
+  // create the cache folders if they doesn't exist
+  fs::create_directories(path_resolver.get_cache_path());
 
   config.root_path = path_resolver.get_root_path();
   config.cache_path = path_resolver.get_cache_path();
