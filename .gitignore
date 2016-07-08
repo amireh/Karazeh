@@ -9,6 +9,12 @@
 /include/karazeh/librsync-config.h
 /doc/api
 /doc/compiled
+/Karazeh.sdf
+/Karazeh.sln
+/Karazeh.suo
+/Karazeh.vcxproj
+/Karazeh.vcxproj.filters
+/Karazeh.vcxproj.user
 
 # manually excluded sources
 exclude/

@@ -26,8 +26,8 @@ namespace kzh {
       throw invalid_state("signature destination is not writable: " + sig_path.string());
     }
 
-    basis_file  = rs_file_open(basis_path.c_str(), "rb");
-    sig_file    = rs_file_open(sig_path.c_str(), "wb");
+    basis_file  = rs_file_open(basis_path.string().c_str(), "rb");
+    sig_file    = rs_file_open(sig_path.string().c_str(), "wb");
 
     result = rs_sig_file(basis_file, sig_file, block_len, strong_len, &stats);
 
@@ -58,9 +58,9 @@ namespace kzh {
       throw invalid_state("delta destination is not writable: " + delta_path.string());
     }
     
-    sig_file = rs_file_open(sig_path.c_str(), "rb");
-    new_file = rs_file_open(file_path.c_str(), "rb");
-    delta_file = rs_file_open(delta_path.c_str(), "wb");
+    sig_file = rs_file_open(sig_path.string().c_str(), "rb");
+    new_file = rs_file_open(file_path.string().c_str(), "rb");
+    delta_file = rs_file_open(delta_path.string().c_str(), "wb");
 
     result = rs_loadsig_file(sig_file, &sumset, &stats);
     if (result != RS_DONE)
@@ -97,9 +97,9 @@ namespace kzh {
       throw invalid_state("target destination is not writable: " + out_path.string());
     }
     
-    basis_file = rs_file_open(basis_path.c_str(), "rb");
-    delta_file = rs_file_open(delta_path.c_str(), "rb");
-    new_file =   rs_file_open(out_path.c_str(), "wb");
+    basis_file = rs_file_open(basis_path.string().c_str(), "rb");
+    delta_file = rs_file_open(delta_path.string().c_str(), "rb");
+    new_file =   rs_file_open(out_path.string().c_str(), "wb");
 
     result = rs_patch_file(basis_file, delta_file, new_file, &stats);
 

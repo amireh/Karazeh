@@ -26,10 +26,11 @@
 
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
+#include "karazeh_export.h"
  
 namespace kzh {
   
-  class delete_operation : public operation, protected logger {
+  class KARAZEH_EXPORT delete_operation : public operation, protected logger {
   public:
     delete_operation(resource_manager&, release_manifest&);
     virtual ~delete_operation();

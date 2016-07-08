@@ -25,12 +25,13 @@
 #define H_KARAZEH_SETTINGS_H
 
 #include "karazeh/karazeh.hpp"
+#include "karazeh_export.h"
 #include <map>
 
 namespace kzh {
 
   /** this class is a temporary hack to store some library-wide settings */
-  class settings {
+  class KARAZEH_EXPORT settings {
   public:
     inline settings() {}
     inline ~settings() {}

@@ -32,6 +32,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/resource_manager.hpp"
+#include "karazeh_export.h"
 
 extern "C" {
   #include "librsync-0.9.7/librsync.h"
@@ -45,7 +46,7 @@ namespace kzh {
    * @brief
    * librsync implementation of delta encoding, used in rdiff.
    */
-  class delta_encoder : public logger
+  class KARAZEH_EXPORT delta_encoder : public logger
   {
   public:
     

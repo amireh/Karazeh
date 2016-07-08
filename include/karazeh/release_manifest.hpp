@@ -25,11 +25,12 @@
 #define H_KARAZEH_RELEASE_MANIFEST_H
 
 #include "karazeh/karazeh.hpp"
+#include "karazeh_export.h"
  
 namespace kzh {
   typedef string_t identity_t;
 
-  struct release_manifest {
+  struct KARAZEH_EXPORT release_manifest {
     identity_t  checksum;
     string_t    tag;
     string_t    uri;

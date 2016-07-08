@@ -27,6 +27,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/resource_manager.hpp"
 #include "karazeh/release_manifest.hpp"
+#include "karazeh_export.h"
  
 namespace kzh {
   
@@ -47,7 +48,7 @@ namespace kzh {
     STAGE_INTERNAL_ERROR
   };
 
-  class operation {
+  class KARAZEH_EXPORT operation {
   public:
     inline operation(resource_manager& rmgr, release_manifest& rm)
     : rmgr_(rmgr),

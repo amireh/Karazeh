@@ -48,7 +48,11 @@ documentation and/or software.
 #include "md5.hpp"
 
 #include <assert.h>
+#ifdef _WIN32
+#include <string.h> 
+#else
 #include <strings.h>
+#endif
 #include <iostream>
 
 

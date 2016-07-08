@@ -38,16 +38,17 @@
 #include <map>
 #include <vector>
 #include <boost/foreach.hpp>
- 
+#include "karazeh_export.h"
+
 namespace kzh {
   using tinyxml2::XMLDocument;
   using tinyxml2::XMLNode;
 
   typedef string_t identity_t;
 
-  class patcher : protected logger {
+  class KARAZEH_EXPORT patcher : protected logger {
   public:
-    
+
     /** Given resource manager must have the paths resolved, 
       * see resource_manager::resolve_paths()
       */

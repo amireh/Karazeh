@@ -26,10 +26,11 @@
 
 #include "karazeh/hasher.hpp"
 #include "md5/md5.hpp"
+#include "karazeh_export.h"
 
 namespace kzh {
 
-  class md5_hasher : public hasher
+  class KARAZEH_EXPORT md5_hasher : public hasher
   {
     public:
 

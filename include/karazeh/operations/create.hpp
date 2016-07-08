@@ -26,10 +26,11 @@
 
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
+#include "karazeh_export.h"
  
 namespace kzh {
   
-  class create_operation : public operation, protected logger {
+  class KARAZEH_EXPORT create_operation : public operation, protected logger {
   public:
     create_operation(resource_manager&, release_manifest&);
     virtual ~create_operation();

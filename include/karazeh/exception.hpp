@@ -4,6 +4,7 @@
 #include <exception>
 #include <string>
 #include <stdexcept>
+#include "karazeh_export.h"
 
 namespace kzh {
 

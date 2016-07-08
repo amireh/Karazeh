@@ -25,6 +25,7 @@
 #define H_KARAZEH_LOGGER_H
 
 #include "karazeh.hpp"
+#include "karazeh_export.h"
 #include <sstream>
 #include <fstream>
 #include <iostream>
@@ -35,7 +36,7 @@ namespace kzh {
   using std::ostringstream;
 
   struct logstream;
-  class logger {
+  class KARAZEH_EXPORT logger {
   public:
     
     /**
@@ -124,7 +125,7 @@ namespace kzh {
     string_t uuid_prefix_;
   }; // end of logger class
   
-  struct logstream {
+  struct KARAZEH_EXPORT logstream {
     logstream(std::ostream&);
     ~logstream();
 

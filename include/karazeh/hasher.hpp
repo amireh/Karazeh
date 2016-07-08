@@ -25,13 +25,14 @@
 #define H_KARAZEH_HASHER_H
 
 #include "karazeh/karazeh.hpp"
+#include "karazeh_export.h"
 #include <boost/filesystem.hpp> // for boost::filesystem::path
  
 namespace kzh {
 
   typedef boost::filesystem::path path_t;
 
-  class hasher
+  class KARAZEH_EXPORT hasher
   {
     public:
     

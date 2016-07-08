@@ -31,6 +31,7 @@
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include "binreloc/binreloc.h"
+#include "karazeh_export.h"
 
 namespace kzh {
 
@@ -38,7 +39,7 @@ namespace kzh {
   typedef boost::filesystem::path path_t;
 
   struct download_t;
-  class resource_manager : protected logger {
+  class KARAZEH_EXPORT resource_manager : protected logger {
   public:
     
     /** @param host a fully-qualified URI of the patch server */
@@ -155,7 +156,9 @@ namespace kzh {
     uint64_t stat_filesize(std::ifstream&);
 
   private:
-    static path_t root_path_, bin_path_, cache_path_;
+    static path_t root_path_;
+	static path_t bin_path_;
+	static path_t cache_path_;
     string_t host_;
 
     bool get_remote(string_t const& URI, download_t*, bool assume_ownership = true);
@@ -164,7 +167,7 @@ namespace kzh {
   };
 
   /** Used internally by the resource_manager to manage downloads */
-  struct download_t {
+  struct KARAZEH_EXPORT download_t {
     inline 
     download_t(std::ostream& s)
     : to_file(false), 

@@ -45,6 +45,8 @@ INCLUDE_DIRECTORIES(
 
 LINK_DIRECTORIES(
   ${BOOST_LIBRARY_DIRS}
+  # on windows it's like this...
+  ${Boost_LIBRARY_DIRS}
   ${CURL_LIBRARY_DIRS}
 )
 

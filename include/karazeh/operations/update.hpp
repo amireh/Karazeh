@@ -27,10 +27,11 @@
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/delta_encoder.hpp"
+#include "karazeh_export.h"
  
 namespace kzh {
   
-  class update_operation : public operation, protected logger {
+  class KARAZEH_EXPORT update_operation : public operation, protected logger {
   public:
     update_operation(resource_manager&, release_manifest&);
     virtual ~update_operation();
