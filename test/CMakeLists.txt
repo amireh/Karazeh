@@ -24,15 +24,14 @@ INCLUDE(cmake/macros/ConfigureRSync)
 # ADD_TEST("permissions_test")
 # ADD_TEST("rdiff_patch_test")
 
-FILE(GLOB_RECURSE SPECS "./*_test.cpp")
-
 ADD_EXECUTABLE(${PROJECT_NAME}_unit_tests
-  hashers/md5_hasher.test.cpp
+  test_utils.cpp
+  # hashers/md5_hasher.test.cpp
   delta_encoder.test.cpp
-  hasher.test.cpp
-  patcher.test.cpp
-  resource_manager.test.cpp
-
+  # hasher.test.cpp
+  # patcher.test.cpp
+  # resource_manager.test.cpp
   main.cpp
 )
+
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}_unit_tests ${GTEST_LIBRARIES} kzh)

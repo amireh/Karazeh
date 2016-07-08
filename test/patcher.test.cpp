@@ -2,7 +2,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/utility.hpp"
 #include "karazeh/patcher.hpp"
-#include "test_helper.hpp"
+#include "test_utils.hpp"
 #include "tinyxml2/tinyxml2.h"
 
 #ifdef ASSERT_THROW

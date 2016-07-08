@@ -5,22 +5,16 @@
 #include <gtest/internal/gtest-internal.h>
 
 namespace kzh {
-  static const path_t   fixture_path("../../fixture");
-  static const path_t   KZH_FIXTURE_PATH("../../fixture");
-  static const path_t   KZH_SERVER_ADDRESS("http://localhost:9393");
-  
-  namespace utility {
-    inline static
-    std::string keywords(std::string const& s) {
-      string_t out;
-      partitioned_string_t parts = split(s, ' ');
-      for (partitioned_string_t::const_iterator i = parts.begin(); i != parts.end(); ++i) {
-        out += (*i) + ".*";
-      }
-      
-      return out.substr(0, out.length() - 2);
-    }
-  }  
+  typedef struct {
+    string_t server_host;
+    path_t   fixture_path;
+  } test_config_t;
+
+  extern test_config_t test_config;
+
+  namespace test_utils {
+    std::string keywords(std::string const& s);
+  }
 }
 
 // TODO: use internal RE instead of gtest's
@@ -34,7 +28,7 @@ namespace kzh {
     } \
     catch (expected_exception const& e) { \
       using namespace ::testing::internal; \
-      using kzh::utility::keywords; \
+      using kzh::test_utils::keywords; \
       std::string errmsg = e.what(); \
       std::transform(errmsg.begin(), errmsg.end(), errmsg.begin(), ::tolower); \
       std::string expmsg(expected_msg); \
