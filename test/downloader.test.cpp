@@ -34,21 +34,22 @@ namespace kzh {
     string_t buf;
     std::ostringstream s;
 
-    EXPECT_TRUE(subject->fetch("/version.xml", buf));
-    EXPECT_TRUE(subject->fetch("/version.xml", s));
+    EXPECT_TRUE(subject->fetch("/sample_application/manifests/version.xml", buf));
+    EXPECT_TRUE(subject->fetch("/sample_application/manifests/version.xml", s));
     EXPECT_EQ(buf, s.str());
 
     EXPECT_FALSE(subject->fetch("/version_woohoohaha.xml", buf));
   }
 
-  // TEST_F(downloader_test, querying_unreachable_host) {
-  //   string_t buf;
-  //   subject->rebase("http://localhost.3456:9123");
-  //   EXPECT_FALSE(subject->fetch("/version.xml", buf));
+  TEST_F(downloader_test, querying_unreachable_host) {
+    string_t buf;
 
-  //   subject->rebase("http://localhost.3456:91234123"); // OOB port
-  //   EXPECT_FALSE(subject->fetch("/version.xml", buf));
-  // }
+    config_.host = "http://localhost.3456:9123";
+    EXPECT_FALSE(subject->fetch("/sample_application/manifests/version.xml", buf));
+
+    config_.host = "http://localhost.3456:91234123"; // OOB port
+    EXPECT_FALSE(subject->fetch("/sample_application/manifests/version.xml", buf));
+  }
 
   TEST_F(downloader_test, should_respect_expected_checksum) {
     int nr_retries = -1;

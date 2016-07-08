@@ -17,7 +17,7 @@ namespace kzh {
   class patcher_test : public ::testing::Test {
   protected:
     virtual void SetUp() {
-      path_resolver_.resolve(test_config.fixture_path / "ktest/current");
+      path_resolver_.resolve(test_config.fixture_path / "sample_application/0.1.2");
 
       config_.host = test_config.server_host;
       config_.root_path = path_resolver_.get_root_path();

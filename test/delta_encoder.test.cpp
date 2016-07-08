@@ -17,29 +17,32 @@ namespace kzh {
       config_.root_path = path_resolver_.get_root_path();
       config_.cache_path = path_resolver_.get_cache_path();
 
-      archive_010 = path_t(config_.root_path / "archives/q3_archive.0.1.0.tar");
-      archive_012 = path_t(config_.root_path / "archives/q3_archive.0.1.2.tar");
+      fs::create_directories(config_.cache_path);
 
-      sig_path    = config_.cache_path / "q3_archive.0.1.0.signature";
-      sig_checksum = string_t("5e4e9bfefd881d6a46572d30f1f93345");
+      archive_011 = path_t(config_.root_path / "sample_application/0.1.1/data/common.tar");
+      archive_012 = path_t(config_.root_path / "sample_application/0.1.2/data/common.tar");
 
-      delta_path  = config_.cache_path / "q3_archive.0.1.0-0.1.2.patch";
-      delta_checksum = string_t("12e73f0e4c38d1051bdf5452dea2ac10");
+      sig_path    = config_.cache_path / "archive_v0.1.1.signature";
+      sig_checksum = string_t("e7f2c9bea103241c398b885f768d0b8b");
 
-      target_path = config_.cache_path / "q3_archive.0.1.2.patched.tar";
-      target_checksum = string_t("e48ead8578ab2459989cd4de4fcba992");
+      delta_path  = config_.cache_path / "archive_v0.1.1-0.1.2.delta";
+      delta_checksum = string_t("b02c5026a9e24d0cdefa19641077ca91");
+
+      target_path = config_.cache_path / "archive_v0.1.2.tar";
+      target_checksum = string_t("72eda360361e155ad8eabd07f07fa017");
     }
 
     virtual void TearDown() {
       fs::remove(sig_path);
       fs::remove(delta_path);
       fs::remove(target_path);
+      fs::remove(config_.cache_path);
     }
 
     static void TearDownTestCase() {
     }
 
-    path_t            archive_010;
+    path_t            archive_011;
     path_t            archive_012;
     path_t            sig_path;
     path_t            delta_path;
@@ -54,11 +57,13 @@ namespace kzh {
   };
 
   TEST_F(delta_encoder_test, signature_generation) {
-    // generate sig
-    ASSERT_TRUE(file_manager_.is_readable(archive_010))
-      << "basis for signature is missing! path: " << archive_010;
     rs_result rc;
-    ASSERT_NO_THROW(rc = encoder_.signature(archive_010.c_str(), sig_path.c_str()));
+
+    ASSERT_TRUE(file_manager_.is_readable(archive_011))
+      << "basis for signature is missing! path: " << archive_011;
+
+    // generate sig
+    rc = encoder_.signature(archive_011.c_str(), sig_path.c_str());
     ASSERT_EQ(RS_DONE, rc);
 
     // verify the checksum
@@ -70,7 +75,7 @@ namespace kzh {
   TEST_F(delta_encoder_test, delta_generation) {
     rs_result rc;
 
-    ASSERT_NO_THROW(rc = encoder_.signature(archive_010.c_str(), sig_path.c_str()));
+    ASSERT_NO_THROW(rc = encoder_.signature(archive_011.c_str(), sig_path.c_str()));
     ASSERT_EQ(RS_DONE, rc);
 
     ASSERT_TRUE(file_manager_.is_readable(sig_path));
@@ -90,7 +95,7 @@ namespace kzh {
     rs_result rc;
 
     // create signature
-    ASSERT_NO_THROW(rc = encoder_.signature(archive_010.c_str(), sig_path.c_str()));
+    ASSERT_NO_THROW(rc = encoder_.signature(archive_011.c_str(), sig_path.c_str()));
     ASSERT_EQ(RS_DONE, rc);
 
     // create delta patch
@@ -98,11 +103,11 @@ namespace kzh {
     ASSERT_EQ(RS_DONE, rc);
 
     ASSERT_TRUE(file_manager_.is_readable(delta_path));
-    ASSERT_TRUE(file_manager_.is_readable(archive_010));
+    ASSERT_TRUE(file_manager_.is_readable(archive_011));
     ASSERT_TRUE(file_manager_.is_writable(target_path));
 
     // apply patch
-    ASSERT_NO_THROW(rc = encoder_.patch(archive_010.c_str(), delta_path.c_str(), target_path.c_str()));
+    ASSERT_NO_THROW(rc = encoder_.patch(archive_011.c_str(), delta_path.c_str(), target_path.c_str()));
     ASSERT_EQ(RS_DONE, rc);
 
     std::ifstream target(target_path.c_str());

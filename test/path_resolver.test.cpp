@@ -10,7 +10,7 @@ namespace kzh {
   class path_resolver_test : public ::testing::Test {
   protected:
     virtual void SetUp() {
-      ASSERT_NO_THROW(subject.resolve(test_config.fixture_path / "ktest/current"));
+      ASSERT_NO_THROW(subject.resolve(test_config.fixture_path / "sample_application/0.1.2"));
     }
 
     virtual void TearDown() {
@@ -23,7 +23,7 @@ namespace kzh {
     using utility::split;
 
     EXPECT_EQ(
-      "current",
+      "0.1.2",
       split(subject.get_root_path().string(), '/').back()
     );
 

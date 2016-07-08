@@ -10,19 +10,27 @@
     <delete>
       <target><![CDATA[/bin/test]]></target>
     </delete>
+
     <create executable="true">
       <source checksum="12ef352ba60230160b94ac1993f12144" size="6653">
         <![CDATA[/0.1.1/bin/test]]>
       </source>
       <destination><![CDATA[/bin/test]]></destination>
     </create>
-    
-    <create>
-      <source checksum="87610a2ca1502b363c88e36ee7c61aa6" size="1126635520">
-        <![CDATA[/0.1.1/data/archive.tar]]>
-      </source>
-      <destination><![CDATA[/data/archive.tar]]></destination>
-    </create>
 
+    <delete>
+      <target><![CDATA[/data/scripts/foo]]></target>
+    </delete>
+
+    <delete>
+      <target><![CDATA[/data/scripts/bar]]></target>
+    </delete>
+
+    <create>
+      <source checksum="427fbbb5a80b517719defe07f7545686" size="1126635520">
+        <![CDATA[/0.1.1/data/common.tar]]>
+      </source>
+      <destination><![CDATA[/data/common.tar]]></destination>
+    </create>
   </release>
 </karazeh>

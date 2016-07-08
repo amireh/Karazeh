@@ -4,7 +4,7 @@
 #include "karazeh/path_resolver.hpp"
 #include "test_utils.hpp"
 #include <gtest/gtest.h>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 
 namespace kzh {
   test_config_t test_config;
