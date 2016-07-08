@@ -35,8 +35,6 @@ namespace kzh {
   }
   
   void hasher::assign_hasher(hasher const* h) {
-    assert(h);
-
     hasher_instance_ = h;
 
     if (h) {
