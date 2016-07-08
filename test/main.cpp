@@ -1,7 +1,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
-#include "karazeh/resource_manager.hpp"
+#include "karazeh/path_resolver.hpp"
 #include "test_utils.hpp"
 #include <gtest/gtest.h>
 #include <boost/filesystem/path.hpp>
@@ -39,11 +39,11 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::AddGlobalTestEnvironment(new kzh::unit_test_env(argc, argv));
 
-  kzh::resource_manager rmgr;
+  kzh::path_resolver path_resolver;
 
-  rmgr.resolve_paths();
+  path_resolver.resolve();
 
-  kzh::test_config.fixture_path = rmgr.root_path() / "test/fixture";
+  kzh::test_config.fixture_path = path_resolver.get_root_path() / "test/fixture";
   kzh::test_config.server_host = "http://localhost:9393";
 
   return RUN_ALL_TESTS();

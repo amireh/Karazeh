@@ -26,7 +26,9 @@
 
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
-#include "karazeh/resource_manager.hpp"
+#include "karazeh/config.hpp"
+#include "karazeh/downloader.hpp"
+#include "karazeh/file_manager.hpp"
 #include "karazeh/hasher.hpp"
 #include "karazeh/release_manifest.hpp"
 #include "karazeh/operation.hpp"
@@ -49,10 +51,10 @@ namespace kzh {
   class KARAZEH_EXPORT patcher : protected logger {
   public:
 
-    /** Given resource manager must have the paths resolved, 
-      * see resource_manager::resolve_paths()
+    /** Given resource manager must have the paths resolved,
+      * see downloader::resolve_paths()
       */
-    patcher(resource_manager&);
+    patcher(config_t const&, file_manager const&, downloader&);
     virtual ~patcher();
 
     /**
@@ -141,13 +143,15 @@ namespace kzh {
       string_t          checksum;
     };
 
-    
+
     typedef std::map<string_t, identity_list*> identity_lists_t;
     typedef std::vector<release_manifest*> rmanifests_t;
 
-    resource_manager  &rmgr_;
-    
-    /** 
+    downloader  &rmgr_;
+    config_t const &config_;
+    file_manager const& file_manager_;
+
+    /**
      * Points to the identity checksum resolved in identify(),
      * being empty indicates the version hasn't been identified.
      */
@@ -162,7 +166,7 @@ namespace kzh {
     /** All the release manifests, and the ones marked for applying. */
     rmanifests_t      rmanifests_, new_releases_;
 
-    /** 
+    /**
      * Used by error reporting helpers. This is set everytime
      * a method is parsing / handling a manifest.
      */
@@ -172,7 +176,7 @@ namespace kzh {
     bool is_identified() const;
 
     /**
-     * Checks whether the given node has the specified attribute @name, and 
+     * Checks whether the given node has the specified attribute @name, and
      * will compare its value if @value isn't empty (and the attribute exists).
      *
      * @throw kzh::missing_attribute when the attribute isn't set

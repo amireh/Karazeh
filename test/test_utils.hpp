@@ -1,5 +1,4 @@
 #include "karazeh/karazeh.hpp"
-#include "karazeh/resource_manager.hpp"
 #include "karazeh/utility.hpp"
 #include <regex.h>
 #include <gtest/internal/gtest-internal.h>
@@ -11,12 +10,21 @@ namespace kzh {
   } test_config_t;
 
   extern test_config_t test_config;
-
-  namespace test_utils {
-    std::string keywords(std::string const& s);
-  }
 }
 
+static std::string keywords(std::string const& s) {
+  using ::kzh::utility::partitioned_string_t;
+  using ::kzh::string_t;
+
+  string_t out;
+  partitioned_string_t parts = ::kzh::utility::split(s, ' ');
+
+  for (partitioned_string_t::const_iterator i = parts.begin(); i != parts.end(); ++i) {
+    out += (*i) + ".*";
+  }
+
+  return out.substr(0, out.length() - 2);
+}
 // TODO: use internal RE instead of gtest's
 
 #define ASSERT_THROW_WITH(statement, expected_exception, expected_msg) \
@@ -28,7 +36,6 @@ namespace kzh {
     } \
     catch (expected_exception const& e) { \
       using namespace ::testing::internal; \
-      using kzh::test_utils::keywords; \
       std::string errmsg = e.what(); \
       std::transform(errmsg.begin(), errmsg.end(), errmsg.begin(), ::tolower); \
       std::string expmsg(expected_msg); \
@@ -95,3 +102,10 @@ namespace kzh {
   } else \
     GTEST_CONCAT_TOKEN_(gtest_label_testthrow_, __LINE__): \
       GTEST_FATAL_FAILURE_(gtest_msg.value)
+
+
+#ifdef ASSERT_THROW
+  #undef ASSERT_THROW
+#endif
+
+#define ASSERT_THROW KZH_ASSERT_THROW

@@ -7,7 +7,7 @@ namespace kzh {
   TEST(md5_hasher_test, calculating_digest) {
     md5_hasher h;
 
-    hasher::digest_rc drc = h.hex_digest(KZH_FIXTURE_PATH / "hash_me.txt");
+    hasher::digest_rc drc = h.hex_digest(test_config.fixture_path / "hash_me.txt");
 
     ASSERT_TRUE(drc.valid);
     ASSERT_EQ(string_t("f1eb970aeb2e380593480ed76070acbe"), drc.digest);

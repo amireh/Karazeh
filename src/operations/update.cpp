@@ -1,9 +1,15 @@
 #include "karazeh/operations/update.hpp"
 
 namespace kzh {
+  namespace fs = boost::filesystem;
 
-  update_operation::update_operation(resource_manager& rmgr, release_manifest& rm)
-  : operation(rmgr, rm),
+  update_operation::update_operation(
+    config_t const& config,
+    file_manager const& file_manager,
+    downloader& downloader,
+    release_manifest& rm
+  )
+  : operation(config, file_manager, downloader, rm),
     logger("op_update"),
     patched_(false)
   {
@@ -17,20 +23,20 @@ namespace kzh {
     s << "update basis[" << basis << ']'
       << " using[" << delta << ']';
     return s.str();
-  }  
+  }
 
   STAGE_RC update_operation::stage() {
-    basis_path_     = rmgr_.root_path() / basis;
-    cache_dir_      = path_t(rmgr_.cache_path() / rm_.checksum / basis).parent_path();
+    basis_path_     = config_.root_path / basis;
+    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).parent_path();
     signature_path_ = cache_dir_ / (path_t(basis).filename().string() + ".signature");
     delta_path_     = cache_dir_ / (path_t(basis).filename().string() + ".delta");
     patched_path_   = cache_dir_ / (path_t(basis).filename().string() + ".patched");
 
     // basis must exist
-    if (!rmgr_.is_readable(basis_path_)) {
+    if (!file_manager_.is_readable(basis_path_)) {
       error()
         << "basis file does not exist at: " << basis_path_;
-        
+
       return STAGE_FILE_MISSING;
     }
 
@@ -45,10 +51,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (rmgr_.stat_filesize(basis_path_) != basis_length) {
-      error() 
+    if (file_manager_.stat_filesize(basis_path_) != basis_length) {
+      error()
         << "Length mismatch: "
-        << rmgr_.stat_filesize(basis_path_) << " to " << basis_length
+        << file_manager_.stat_filesize(basis_path_) << " to " << basis_length
         << " in file " << basis_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -57,7 +63,7 @@ namespace kzh {
 
     // prepare our cache directory, if necessary
     if (!fs::is_directory(cache_dir_)) {
-      if (!rmgr_.create_directory(cache_dir_)) {
+      if (!file_manager_.create_directory(cache_dir_)) {
         error() << "Unable to create cache directory: " << cache_dir_;
         return STAGE_UNAUTHORIZED;
       }
@@ -66,7 +72,7 @@ namespace kzh {
     // TODO: free space checks, need at least 2x basis file size + delta size
 
     // get the delta patch
-    if (!rmgr_.get_remote(delta, delta_path_, delta_checksum, delta_length)) {
+    if (!downloader_.fetch(delta, delta_path_, delta_checksum, delta_length)) {
       throw invalid_resource(delta);
     }
 
@@ -88,7 +94,7 @@ namespace kzh {
 
     if (rc != RS_DONE) {
       error()
-        << "Patching file " << basis_path_ << " using patch " << delta_path_ 
+        << "Patching file " << basis_path_ << " using patch " << delta_path_
         <<" has failed. librsync rc: " << rc;
 
       return STAGE_INTERNAL_ERROR;
@@ -104,10 +110,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (rmgr_.stat_filesize(patched_path_) != patched_length) {
-      error() 
+    if (file_manager_.stat_filesize(patched_path_) != patched_length) {
+      error()
         << "Length mismatch: "
-        << rmgr_.stat_filesize(patched_path_) << " to " << patched_length
+        << file_manager_.stat_filesize(patched_path_) << " to " << patched_length
         << " in file " << patched_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;

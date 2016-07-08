@@ -28,25 +28,25 @@
 #include "karazeh/logger.hpp"
 #include "karazeh/delta_encoder.hpp"
 #include "karazeh_export.h"
- 
+
 namespace kzh {
-  
+
   class KARAZEH_EXPORT update_operation : public operation, protected logger {
   public:
-    update_operation(resource_manager&, release_manifest&);
+    update_operation(config_t const&, file_manager const&, downloader&, release_manifest&);
     virtual ~update_operation();
 
     /**
      * Verifies the source's existence and its integrity, then
      * computes the source's signature, and downloads the delta
      * file.
-     * 
+     *
      * Returns STAGE_OK on success, otherwise an error indicated by the return code,
      * see karazeh/operation.hpp for a complete listing.
      */
     virtual STAGE_RC stage();
 
-    /** 
+    /**
      * Applies the delta patch on a clone of the source,
      * then swaps the source into the cache with the patched
      * version.

@@ -16,15 +16,18 @@ SET(Karazeh_SRCS
   ../include/karazeh/operations/create.hpp
   ../include/karazeh/operations/update.hpp
   ../include/karazeh/operations/delete.hpp
+  ../include/karazeh/config.hpp
   ../include/karazeh/delta_encoder.hpp
+  ../include/karazeh/downloader.hpp
   ../include/karazeh/exception.hpp
+  ../include/karazeh/file_manager.hpp
   ../include/karazeh/hasher.hpp
   ../include/karazeh/karazeh.hpp
   ../include/karazeh/logger.hpp
   ../include/karazeh/operation.hpp
   ../include/karazeh/patcher.hpp
+  ../include/karazeh/path_resolver.hpp
   ../include/karazeh/release_manifest.hpp
-  ../include/karazeh/resource_manager.hpp
   ../include/karazeh/settings.hpp
   ../include/karazeh/utility.hpp
 
@@ -32,21 +35,21 @@ SET(Karazeh_SRCS
   ../deps/md5/md5.cpp
   ../deps/binreloc/binreloc.c
 
-  karazeh.cpp
-
   hashers/md5_hasher.cpp
-  hasher.cpp
-
-  logger.cpp
-  resource_manager.cpp
-  release_manifest.cpp
-  patcher.cpp
   operations/create.cpp
   operations/delete.cpp
   operations/update.cpp
-  settings.cpp
 
   delta_encoder.cpp
+  downloader.cpp
+  file_manager.cpp
+  hasher.cpp
+  karazeh.cpp
+  logger.cpp
+  patcher.cpp
+  path_resolver.cpp
+  release_manifest.cpp
+  settings.cpp
 )
 
 # generate library

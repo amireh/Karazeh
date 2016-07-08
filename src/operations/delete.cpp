@@ -23,11 +23,17 @@
 
 #include "karazeh/operations/delete.hpp"
 #include "karazeh/hasher.hpp"
- 
-namespace kzh {
 
-  delete_operation::delete_operation(resource_manager& rmgr, release_manifest& rm)
-  : operation(rmgr, rm),
+namespace kzh {
+  namespace fs = boost::filesystem;
+
+  delete_operation::delete_operation(
+    config_t const& config,
+    file_manager const& file_manager,
+    downloader& downloader,
+    release_manifest& rm
+  )
+  : operation(config, file_manager, downloader, rm),
     logger("op_delete"),
     deleted_(false)
   {
@@ -37,8 +43,8 @@ namespace kzh {
   }
 
   STAGE_RC delete_operation::stage() {
-    dst_dir_ = (rmgr_.root_path() / dst_path).parent_path();
-    cache_path_ = rmgr_.cache_path() / rm_.checksum / "deleted" / dst_path;
+    dst_dir_ = (config_.root_path / dst_path).parent_path();
+    cache_path_ = config_.cache_path / rm_.checksum / "deleted" / dst_path;
     cache_dir_ = cache_path_.parent_path();
 
     indent();
@@ -48,7 +54,7 @@ namespace kzh {
     deindent();
 
     // Make sure the destination exists
-    if (!fs::exists(rmgr_.root_path() / dst_path)) {
+    if (!fs::exists(config_.root_path / dst_path)) {
       error() << "Destination does not exist: " << dst_path;
 
       return STAGE_FILE_MISSING;
@@ -61,7 +67,7 @@ namespace kzh {
       return STAGE_FILE_EXISTS;
     }
 
-    if (!rmgr_.create_directory(cache_dir_)) {
+    if (!file_manager_.create_directory(cache_dir_)) {
       error() << "Unable to create caching directory: " << cache_dir_;
 
       return STAGE_UNAUTHORIZED;
@@ -72,10 +78,10 @@ namespace kzh {
 
   STAGE_RC delete_operation::deploy() {
     using fs::rename;
-    
+
     // Make sure the destination exists
-    if (!fs::exists(rmgr_.root_path() / dst_path)) {
-      error() << "Destination does not exist: " << rmgr_.root_path() / dst_path;
+    if (!fs::exists(config_.root_path / dst_path)) {
+      error() << "Destination does not exist: " << config_.root_path / dst_path;
 
       return STAGE_FILE_MISSING;
     }
@@ -89,15 +95,15 @@ namespace kzh {
 
     // Move the staged file to the destination
     info()
-      << "Moving " << rmgr_.root_path() / dst_path << " to "
+      << "Moving " << config_.root_path / dst_path << " to "
       << cache_path_;
 
-    rename(rmgr_.root_path() / dst_path, cache_path_);
+    rename(config_.root_path / dst_path, cache_path_);
 
     deleted_ = true;
 
     return STAGE_OK;
-  } 
+  }
 
   void delete_operation::rollback() {
     using fs::is_empty;
@@ -105,7 +111,7 @@ namespace kzh {
 
     if (deleted_) {
       try {
-        rename(cache_path_, rmgr_.root_path() / dst_path);
+        rename(cache_path_, config_.root_path / dst_path);
       } catch (fs::filesystem_error &e) {
         error() << "Cached file could not be found! Can not rollback!! Cause: " << e.what();
         // TODO: handle rollback failures

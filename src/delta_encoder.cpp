@@ -18,11 +18,11 @@ namespace kzh {
     FILE            *basis_file, *sig_file;
     rs_stats_t      stats;
     rs_result       result;
-    
-    if (!rmgr_.is_readable(basis_path)) {
+
+    if (!file_manager_.is_readable(basis_path)) {
       throw invalid_resource("no such basis for signature: " + basis_path.string());
     }
-    if (!rmgr_.is_writable(sig_path)) {
+    if (!file_manager_.is_writable(sig_path)) {
       throw invalid_state("signature destination is not writable: " + sig_path.string());
     }
 
@@ -48,16 +48,16 @@ namespace kzh {
     rs_signature_t  *sumset;
     rs_stats_t      stats;
 
-    if (!rmgr_.is_readable(sig_path)) {
+    if (!file_manager_.is_readable(sig_path)) {
       throw invalid_resource("signature file is unreadable: " + sig_path.string());
     }
-    if (!rmgr_.is_readable(file_path)) {
+    if (!file_manager_.is_readable(file_path)) {
       throw invalid_resource("reference file is unreadable: " + file_path.string());
-    }    
-    if (!rmgr_.is_writable(delta_path)) {
+    }
+    if (!file_manager_.is_writable(delta_path)) {
       throw invalid_state("delta destination is not writable: " + delta_path.string());
     }
-    
+
     sig_file = rs_file_open(sig_path.string().c_str(), "rb");
     new_file = rs_file_open(file_path.string().c_str(), "rb");
     delta_file = rs_file_open(delta_path.string().c_str(), "wb");
@@ -87,16 +87,16 @@ namespace kzh {
     rs_stats_t          stats;
     rs_result           result;
 
-    if (!rmgr_.is_readable(basis_path)) {
+    if (!file_manager_.is_readable(basis_path)) {
       throw invalid_resource("basis file is unreadable: " + basis_path.string());
     }
-    if (!rmgr_.is_readable(delta_path)) {
+    if (!file_manager_.is_readable(delta_path)) {
       throw invalid_resource("delta file is unreadable: " + delta_path.string());
-    }    
-    if (!rmgr_.is_writable(out_path)) {
+    }
+    if (!file_manager_.is_writable(out_path)) {
       throw invalid_state("target destination is not writable: " + out_path.string());
     }
-    
+
     basis_file = rs_file_open(basis_path.string().c_str(), "rb");
     delta_file = rs_file_open(delta_path.string().c_str(), "rb");
     new_file =   rs_file_open(out_path.string().c_str(), "wb");

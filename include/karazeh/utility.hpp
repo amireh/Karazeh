@@ -28,7 +28,8 @@
 #include "karazeh/exception.hpp"
 #include "tinyxml2/tinyxml2.h"
 #include <algorithm>
- 
+#include <sstream>
+
 namespace kzh {
 namespace utility {
   static const string_t tinyxml2_errors[] = {
@@ -77,13 +78,13 @@ namespace utility {
     T _value;
     convert(s, _value, fail_if_leftovers);
     return _value;
-  } 
+  }
 
   inline static uint64_t tonumber(string_t const& s) {
     return convert_to<uint64_t>(s);
   }
 
-  inline static string_t 
+  inline static string_t
   dump_node(const tinyxml2::XMLNode* const node, bool with_brackets = true) {
     using namespace tinyxml2;
 
@@ -116,7 +117,7 @@ namespace utility {
   string_t sanitize(string_t const& s) {
     string_t out(s);
     std::transform(out.begin(), out.end(), out.begin(), ::tolower);
-    std::replace(out.begin(),   out.end(), ' ', '_');    
+    std::replace(out.begin(),   out.end(), ' ', '_');
     return out;
   }
 } // namespace utility

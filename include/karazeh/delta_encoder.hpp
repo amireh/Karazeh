@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 1999, 2000, 2001 by Martin Pool <mbp@samba.org>,
  *                2011-2012 Ahmad Amireh <ahmad@amireh.net>
- *  
+ *
  *  This implementation was adapted from librsync:
  *    librsync -- the library for network deltas
  *    Website: http://librsync.sourceforge.net/
@@ -31,7 +31,7 @@
 
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
-#include "karazeh/resource_manager.hpp"
+#include "karazeh/file_manager.hpp"
 #include "karazeh_export.h"
 
 extern "C" {
@@ -49,11 +49,11 @@ namespace kzh {
   class KARAZEH_EXPORT delta_encoder : public logger
   {
   public:
-    
+
     delta_encoder();
     virtual ~delta_encoder();
 
-    /** 
+    /**
      * Generates the signature from the basis file.
      *
      * @param basis path to the file you want to generate the signature for
@@ -80,7 +80,7 @@ namespace kzh {
      * @throw kzh::invalid_state if target destination is unwritable
      */
     rs_result delta(path_t const& signature, path_t const& new_file, path_t const& delta);
-    
+
     /**
      * Applies a patch on the basis file and stores it somewhere else.
      *
@@ -95,10 +95,10 @@ namespace kzh {
      * @throw kzh::invalid_state if target destination is unwritable
      */
     rs_result patch(path_t const& basis, path_t const& delta, path_t const& target);
-    
+
   protected:
     /// used for validating paths and file permissions
-    resource_manager rmgr_;
+    file_manager file_manager_;
   };
 
 } // end of namespace kzh

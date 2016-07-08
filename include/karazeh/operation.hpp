@@ -25,12 +25,13 @@
 #define H_KARAZEH_OPERATION_H
 
 #include "karazeh/karazeh.hpp"
-#include "karazeh/resource_manager.hpp"
+#include "karazeh/config.hpp"
+#include "karazeh/downloader.hpp"
 #include "karazeh/release_manifest.hpp"
 #include "karazeh_export.h"
- 
+
 namespace kzh {
-  
+
   enum STAGE_RC {
     STAGE_OK = 0,
     /** Running user lacks the required permission to read/write */
@@ -50,8 +51,15 @@ namespace kzh {
 
   class KARAZEH_EXPORT operation {
   public:
-    inline operation(resource_manager& rmgr, release_manifest& rm)
-    : rmgr_(rmgr),
+    inline operation(
+      config_t const& config,
+      file_manager const& fmgr,
+      downloader& downloader,
+      release_manifest& rm
+    )
+    : config_(config),
+      file_manager_(fmgr),
+      downloader_(downloader),
       rm_(rm)
     {}
 
@@ -106,8 +114,10 @@ namespace kzh {
     inline virtual string_t tostring() { return ""; }
 
   protected:
-    resource_manager  &rmgr_;
-    release_manifest  &rm_;
+    config_t const& config_;
+    file_manager const& file_manager_;
+    downloader &downloader_;
+    release_manifest &rm_;
   };
 
 } // end of namespace kzh

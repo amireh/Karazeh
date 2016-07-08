@@ -27,13 +27,15 @@
 #include <string>
 #include <cassert>
 #include "karazeh/exception.hpp"
+#include <boost/filesystem.hpp>
 
 #define KZH_DISTANCE_FROM_ROOT 1
 
 namespace kzh {
   typedef std::string string_t;
   typedef unsigned long uint64_t;
-  
+  typedef boost::filesystem::path path_t;
+
   int karazeh_init(int argc, char** argv);
   int karazeh_cleanup();
 }

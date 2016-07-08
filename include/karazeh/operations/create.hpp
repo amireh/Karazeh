@@ -27,12 +27,12 @@
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh_export.h"
- 
+
 namespace kzh {
-  
+
   class KARAZEH_EXPORT create_operation : public operation, protected logger {
   public:
-    create_operation(resource_manager&, release_manifest&);
+    create_operation(config_t const&, file_manager const&, downloader&, release_manifest&);
     virtual ~create_operation();
 
     /**
@@ -45,7 +45,7 @@ namespace kzh {
      * 1. No file must exist at dst_path
      * 2. Running user must have write permissions for dst_path
      * 3. Enough available space to hold src_size bytes
-     * 
+     *
      * @throw kzh::invalid_resource if the file couldn't be DLed
      *
      * Returns STAGE_OK on success, otherwise an error indicated by the return code,

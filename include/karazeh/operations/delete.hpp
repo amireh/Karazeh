@@ -27,23 +27,23 @@
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh_export.h"
- 
+
 namespace kzh {
-  
+
   class KARAZEH_EXPORT delete_operation : public operation, protected logger {
   public:
-    delete_operation(resource_manager&, release_manifest&);
+    delete_operation(config_t const&, file_manager const&, downloader&, release_manifest&);
     virtual ~delete_operation();
 
     /**
      * Checks whether the source to be removed exists.
-     * 
+     *
      * Returns STAGE_OK on success, otherwise an error indicated by the return code,
      * see karazeh/operation.hpp for a complete listing.
      */
     virtual STAGE_RC stage();
 
-    /** 
+    /**
      * Moves the file or directory at a given path to Karazeh's cache.
      * The entry is purged from the cache if the patch was successful
      * (no rollback required).
@@ -66,7 +66,7 @@ namespace kzh {
     path_t dst_dir_;
     path_t cache_dir_;
     path_t cache_path_;
-    
+
     bool deleted_;
   };
 

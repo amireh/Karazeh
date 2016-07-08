@@ -22,6 +22,9 @@
  */
 
 #include "karazeh/patcher.hpp"
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 namespace kzh {
 
@@ -37,9 +40,11 @@ namespace kzh {
     }
   }
 
-  patcher::patcher(resource_manager& rmgr)
+  patcher::patcher(config_t const& config, file_manager const& fmgr, downloader& rmgr)
   : logger("patcher"),
-    rmgr_(rmgr)
+    rmgr_(rmgr),
+    config_(config),
+    file_manager_(fmgr)
   {
 
   }
@@ -64,7 +69,7 @@ namespace kzh {
 
     current_manifest_uri_ = "version[" + manifest_uri + "]";
 
-    if (!rmgr_.get_resource(manifest_uri, manifest_xml)) {
+    if (!rmgr_.fetch(manifest_uri, manifest_xml)) {
       throw invalid_resource(manifest_uri);
     }
 
@@ -112,13 +117,13 @@ namespace kzh {
       XMLElement *ifile_node = ilist_node->FirstChildElement();
       while (ifile_node) {
         identity_file *ifile = new identity_file();
-        ifile->filepath = (rmgr_.root_path() / ifile_node->GetText());
+        ifile->filepath = (config_.root_path / ifile_node->GetText());
         ifile->checksum = "";
 
         ilist->files.push_back(ifile);
 
         /** verify that the file exists and is readable */
-        if (!rmgr_.is_readable(ifile->filepath)) {
+        if (!file_manager_.is_readable(ifile->filepath)) {
           throw manifest_error("Identity file " + ifile->filepath.string() + " is not readable.");
         }
 
@@ -274,7 +279,7 @@ namespace kzh {
     // Download the manifest and parse it
     string_t rm_xml;
 
-    if (!rmgr_.get_remote(next_update->uri, rm_xml)) {
+    if (!rmgr_.fetch(next_update->uri, rm_xml)) {
       throw invalid_resource(next_update->uri);
     }
 
@@ -337,7 +342,7 @@ namespace kzh {
         // <destination>PATH</destination>
         XMLElement *dst_node = op_node->FirstChildElement("destination");
 
-        create_operation* op = new create_operation(rmgr_, *next_update);
+        create_operation* op = new create_operation(config_, file_manager_, rmgr_, *next_update);
         op->src_checksum = src_node->Attribute("checksum");
         op->src_size = utility::tonumber(src_node->Attribute("size"));
         op->src_uri = src_node->GetText();
@@ -371,7 +376,7 @@ namespace kzh {
 
         // TODO: verify that nodes aren't empty
 
-        update_operation *op = new update_operation(rmgr_, *next_update);
+        update_operation *op = new update_operation(config_, file_manager_, rmgr_, *next_update);
         op->basis = basis_node->GetText();
         op->basis_checksum = basis_node->Attribute("pre-checksum");
         op->basis_length = tonumber(basis_node->Attribute("pre-size"));
@@ -397,7 +402,7 @@ namespace kzh {
         // <target>PATH</target>
         XMLElement *tgt_node = op_node->FirstChildElement("target");
 
-        delete_operation* op = new delete_operation(rmgr_, *next_update);
+        delete_operation* op = new delete_operation(config_, file_manager_, rmgr_, *next_update);
         op->dst_path = tgt_node->GetText();
 
         debug() << op->tostring();
@@ -413,7 +418,7 @@ namespace kzh {
     info() << "Staging...";
 
     // create the cache directory for this release
-    rmgr_.create_directory(rmgr_.cache_path() / next_update->checksum);
+    file_manager_.create_directory(config_.cache_path / next_update->checksum);
 
     bool staging_failure = false;
     for (operations_t::iterator op_itr = patch.operations.begin();
@@ -443,7 +448,7 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(config_.cache_path / next_update->checksum);
 
       return false;
     }
@@ -477,7 +482,7 @@ namespace kzh {
         (*op_itr)->rollback();
       }
 
-      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(config_.cache_path / next_update->checksum);
 
       return false;
     } else {
@@ -492,7 +497,7 @@ namespace kzh {
         (*op_itr)->commit();
       }
 
-      fs::remove_all(rmgr_.cache_path() / next_update->checksum);
+      fs::remove_all(config_.cache_path / next_update->checksum);
     }
 
     return true;

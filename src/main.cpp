@@ -1,47 +1,60 @@
 #include "karazeh/patcher.hpp"
+#include "karazeh/path_resolver.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
 #include "karazeh/settings.hpp"
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 int main(int argc, char** argv) {
-  using namespace kzh;
+  using kzh::string_t;
 
   string_t root_path;
-  logger::enable_timestamps(false);
+
+  kzh::logger::enable_timestamps(false);
+  kzh::logger logger("test");
+  kzh::path_resolver path_resolver;
+  kzh::file_manager file_manager;
+  kzh::config_t config;
+  kzh::md5_hasher hasher;
+
   if (argc > 1) {
     for (int i = 0; i < argc; ++i) {
       string_t arg = argv[i];
+
       if (arg == "-r" && argc > i) {
         root_path = string_t(argv[++i]);
       }
       else if (arg == "-v") {
-        settings::enable("-v");
-      }
-      else if (arg == "-vv") {
-        settings::enable("-vv");
+        config.verbose = true;
       }
     }
   }
 
-  logger l("test");
+  path_resolver.resolve(root_path);
 
-  resource_manager rmgr("http://localhost:9333");
-  rmgr.resolve_paths(root_path);
+  // create the folders if they doesn't exist
+  fs::create_directory(path_resolver.get_cache_path());
 
-  md5_hasher my_hasher;
-  hasher::assign_hasher(&my_hasher);
+  config.root_path = path_resolver.get_root_path();
+  config.cache_path = path_resolver.get_cache_path();
+  config.host = "http://localhost:9393";
+  config.hasher = &hasher;
 
-  patcher p(rmgr);
-  if (p.identify(rmgr.host_address() + "/version.xml")) {
-    if (p.is_update_available()) {
-      if (p.apply_next_update()) {
-        l.info() << "Successfully updated";
+  kzh::downloader downloader(file_manager, config);
+  kzh::patcher patcher(config, file_manager, downloader);
+
+  if (patcher.identify(config.host + "/version.xml")) {
+    if (patcher.is_update_available()) {
+      if (patcher.apply_next_update()) {
+        logger.info() << "Successfully updated";
       } else {
-        l.error() << "Wasn't able to update.";
+        logger.error() << "Wasn't able to update.";
       }
     }
   } // identify()
   else {
-    l.error() << "unable to identify version";
+    logger.error() << "unable to identify version";
   }
 
   return 0;
