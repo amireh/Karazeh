@@ -31,6 +31,29 @@
 
 #define KZH_DISTANCE_FROM_ROOT 1
 
+// Finds the current platform.
+//
+// Proudly stolen from Ogre3D code in OgrePlatform.h
+#define KZH_PLATFORM_WIN32 1
+#define KZH_PLATFORM_LINUX 2
+#define KZH_PLATFORM_APPLE 3
+#define KZH_PLATFORM_SYMBIAN 4
+#define KZH_PLATFORM_IPHONE 5
+
+#if defined( __SYMBIAN32__ )
+#   define KZH_PLATFORM KZH_PLATFORM_SYMBIAN
+#elif defined( __WIN32__ ) || defined( _WIN32 )
+#   define KZH_PLATFORM KZH_PLATFORM_WIN32
+#elif defined( __APPLE_CC__)
+#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 30000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 30000
+#       define KZH_PLATFORM KZH_PLATFORM_IPHONE
+#   else
+#       define KZH_PLATFORM KZH_PLATFORM_APPLE
+#   endif
+#else
+#   define KZH_PLATFORM KZH_PLATFORM_LINUX
+#endif
+
 namespace kzh {
   typedef std::string string_t;
   typedef unsigned long uint64_t;
