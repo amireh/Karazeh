@@ -92,7 +92,7 @@ namespace kzh {
     ASSERT_THROW_WITH(
       subject->identify(m),
       kzh::manifest_error,
-      "must have file nodes");
+      "node <identity name=\"general\"> must have <file> nodes to define identity files");
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_releases) {
@@ -101,7 +101,7 @@ namespace kzh {
     ASSERT_THROW_WITH(
       subject->identify(m),
       kzh::missing_node,
-      "missing child release");
+      "missing a required child <release>");
   }
 
   TEST_F(patcher_test, manifest_invalid_identity_list_missing_initial_release) {
@@ -128,6 +128,6 @@ namespace kzh {
     ASSERT_THROW_WITH(
       subject->identify(m),
       kzh::missing_attribute,
-      "missing required attribute identity");
+      "missing required attribute 'identity'");
   }
 } // namespace kzh

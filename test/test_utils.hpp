@@ -1,6 +1,5 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/utility.hpp"
-#include <regex.h>
 #include <gtest/internal/gtest-internal.h>
 
 namespace kzh {
@@ -40,7 +39,7 @@ static std::string keywords(std::string const& s) {
       std::transform(errmsg.begin(), errmsg.end(), errmsg.begin(), ::tolower); \
       std::string expmsg(expected_msg); \
       std::transform(expmsg.begin(), expmsg.end(), expmsg.begin(), ::tolower); \
-      gtest_caught_expected = RE::PartialMatch(errmsg, RE(keywords(expmsg))); \
+      gtest_caught_expected = errmsg.find(expmsg) != std::string::npos; \
       if (!gtest_caught_expected) { \
         std::ostringstream m; \
         m << "Expected: " #statement " throws an exception of type " \
