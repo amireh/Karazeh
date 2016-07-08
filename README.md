@@ -47,3 +47,11 @@ Copyright 2011-2016 Ahmad Amireh <ahmad@amireh.net>.
 
 The code is licensed under the GNU L-GPL v3.0 (see COPYING) and is free to use,
 link-against and embed within free and commercial applications.
+
+Libraries used by Karazeh to link against and their respective licenses:
+
+- [TinyXML-2](https://github.com/leethomason/tinyxml2) - z-lib
+- [librsync](http://librsync.sourcefrog.net/) - GNU LGPL v2.1
+- [binreloc](https://github.com/datenwolf/binreloc) - DWTFYWT
+- RSA Data Security, Inc. MD5 Message-Digest
+Algorithm - ???

@@ -1,8 +1,5 @@
 FIND_PACKAGE(GTest REQUIRED)
 
-# All unit test executables will be in test/unit/bin
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-
 INCLUDE_DIRECTORIES(.) # for test.hpp
 INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
@@ -29,5 +26,13 @@ INCLUDE(cmake/macros/ConfigureRSync)
 
 FILE(GLOB_RECURSE SPECS "./*_test.cpp")
 
-ADD_EXECUTABLE(${PROJECT_NAME}_unit_tests ${SPECS} main.cpp)
+ADD_EXECUTABLE(${PROJECT_NAME}_unit_tests
+  hashers/md5_hasher.test.cpp
+  delta_encoder.test.cpp
+  hasher.test.cpp
+  patcher.test.cpp
+  resource_manager.test.cpp
+
+  main.cpp
+)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}_unit_tests ${GTEST_LIBRARIES} kzh)
