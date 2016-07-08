@@ -35,8 +35,8 @@
 #include "karazeh_export.h"
 
 extern "C" {
-  #include "librsync-0.9.7/librsync.h"
-  #include "librsync-0.9.7/fileutil.h"
+  #include "librsync-2.0.0/src/librsync.h"
+  #include "librsync-2.0.0/src/fileutil.h"
 }
 
 namespace kzh {

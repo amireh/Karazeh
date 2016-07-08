@@ -18,6 +18,7 @@ INCLUDE(CMakeDependentOption)
 SET(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/cmake/modules
+  ${CMAKE_SOURCE_DIR}/deps/librsync-2.0.0/cmake
   ${CMAKE_MODULE_PATH}
 )
 
@@ -59,7 +60,7 @@ LINK_LIBRARIES(
   ${CURL_LIBRARIES}
 )
 
-ADD_SUBDIRECTORY(deps/librsync-0.9.7)
+ADD_SUBDIRECTORY(deps/librsync-2.0.0)
 ADD_SUBDIRECTORY(src)
 
 IF (KARAZEH_BUILD_TESTS)

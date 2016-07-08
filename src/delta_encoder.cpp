@@ -3,7 +3,7 @@
 namespace kzh {
 
   static size_t block_len = RS_DEFAULT_BLOCK_LEN;
-  static size_t strong_len = RS_DEFAULT_STRONG_LEN;
+  static size_t strong_len = RS_MAX_STRONG_SUM_LENGTH;
 
   delta_encoder::delta_encoder()
   : logger("delta_encoder[rdiff]")
@@ -29,7 +29,7 @@ namespace kzh {
     basis_file  = rs_file_open(basis_path.string().c_str(), "rb");
     sig_file    = rs_file_open(sig_path.string().c_str(), "wb");
 
-    result = rs_sig_file(basis_file, sig_file, block_len, strong_len, &stats);
+    result = rs_sig_file(basis_file, sig_file, block_len, strong_len, RS_BLAKE2_SIG_MAGIC, &stats);
 
     rs_file_close(sig_file);
     rs_file_close(basis_file);
