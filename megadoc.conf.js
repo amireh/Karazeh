@@ -6,10 +6,6 @@ module.exports = {
 
   title: 'Karazeh',
 
-  assets: [
-    'doc/Karazeh v2 - Patching.png',
-  ],
-
   layoutOptions: {
     banner: false,
     rewrite: {
