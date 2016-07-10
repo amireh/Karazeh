@@ -43,6 +43,11 @@ namespace kzh {
     bool load_file(string_t const& path, string_t& out_buf) const;
     bool load_file(path_t const& path, string_t& out_buf) const;
 
+    bool remove_file(path_t const&) const;
+    bool remove_directory(path_t const&) const;
+
+    bool exists(path_t const&) const;
+
     /** Checks if the resource at the given path exists, is a file, and is readable. */
     bool is_readable(path_t const &path) const;
     bool is_readable(string_t const &path) const;

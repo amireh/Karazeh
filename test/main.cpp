@@ -49,13 +49,17 @@ int main(int argc, char **argv) {
   ::testing::AddGlobalTestEnvironment(new kzh::unit_test_env(argc, argv));
 
   kzh::path_resolver path_resolver;
-  kzh::path_t base_path(get_env_var("ROOT", ""));
+  kzh::path_t base_path = kzh::path_t(get_env_var("ROOT", "")).make_preferred();
   kzh::string_t host(get_env_var("HOST", "http://localhost:9393"));
 
   path_resolver.resolve(base_path);
-
-  kzh::test_config.fixture_path = path_resolver.get_root_path() / "test/fixture";
+  
+  kzh::test_config.fixture_path = (path_resolver.get_root_path() / "test/fixture").make_preferred();
   kzh::test_config.server_host = host;
+
+
+  std::cout << "Fixture path: " << kzh::test_config.fixture_path.string() << "\n";
+  std::cout << "Server host: " << kzh::test_config.server_host << "\n";
 
   return RUN_ALL_TESTS();
 }

@@ -29,6 +29,7 @@ FIND_LIBRARY(CURL_LIBRARY NAMES
     curl
   # Windows MSVC prebuilts:
     curllib
+	libcurl
     libcurl_imp
     curllib_static
 )

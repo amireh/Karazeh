@@ -26,6 +26,9 @@
 
 #include "karazeh/hasher.hpp"
 #include "md5/md5.hpp"
+// extern "C" {
+// #include "md5_2/md5.h"
+// }
 #include "karazeh_export.h"
 
 namespace kzh {

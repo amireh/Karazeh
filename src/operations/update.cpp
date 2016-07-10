@@ -26,11 +26,11 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::stage() {
-    basis_path_     = config_.root_path / basis;
-    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).parent_path();
-    signature_path_ = cache_dir_ / (path_t(basis).filename().string() + ".signature");
-    delta_path_     = cache_dir_ / (path_t(basis).filename().string() + ".delta");
-    patched_path_   = cache_dir_ / (path_t(basis).filename().string() + ".patched");
+    basis_path_     = (config_.root_path / basis).make_preferred();
+    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).make_preferred().parent_path();
+    signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
+    delta_path_     = (cache_dir_ / basis).make_preferred().filename().string() + ".delta";
+    patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";
 
     // basis must exist
     if (!file_manager_.is_readable(basis_path_)) {

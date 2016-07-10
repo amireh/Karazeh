@@ -30,8 +30,11 @@ SET(Karazeh_SRCS
   ../include/karazeh/release_manifest.hpp
   ../include/karazeh/utility.hpp
 
+  ../deps/tinyxml2/tinyxml2.h
   ../deps/tinyxml2/tinyxml2.cpp
+  ../deps/md5/md5.hpp
   ../deps/md5/md5.cpp
+  ../deps/binreloc/binreloc.h
   ../deps/binreloc/binreloc.c
 
   hashers/md5_hasher.cpp
