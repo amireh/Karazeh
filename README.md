@@ -15,7 +15,7 @@ Both tools are freely available and licensed under the MIT license.
 
 ## Building
 
-_TBD_
+See the [[Building]] guide.
 
 ## Usage
 
@@ -23,16 +23,18 @@ _TBD_
 
 ## Tests
 
-To run the unit tests you must launch an http server to serve the fixtures. You can
-easily do this using a light http daemon such as `darkhttpd` and running it
-on port 8080 to serve `/path/to/karazeh/test/fixture` as the root directory.
+To run the unit tests you must launch an http server on port 9393 to serve the 
+files under `/path/to/karazeh/test/fixture` for the tests. 
 
-Example on Arch Linux:
+If you have Python2 available, it's very easy:
+
+    (cd test/fixture; python2 -m SimpleHTTPServer 9393)
+
+If you're on Arch Linux, you can use `darkhttpd` instead:
 
 ```bash
 pacman -S darkhttpd
-cd /path/to/karazeh/test/fixture
-darkhttpd .
+darkhttpd /path/to/karazeh/test/fixture --port 9393
 ```
 
 Afterwards, run the binary:
@@ -40,6 +42,12 @@ Afterwards, run the binary:
 ```bash
 ./karazeh_unit_tests
 ```
+
+The test runner can be customized using some environment variables:
+
+- `VERBOSE=1` if you want more output
+- `ROOT=/path/to/root` should point to the root directory of the Karazeh repository; this is needed in case the built-in binary locators aren't doing their job correctly.
+- `HOST=http://customhost:1234` should point to the fixture server. Defaults to `http://localhost:9393`
 
 ## License
 

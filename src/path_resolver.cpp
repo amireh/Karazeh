@@ -23,7 +23,7 @@
 namespace kzh {
   namespace fs = boost::filesystem;
 
-  static path_t locate_bin_directory(const logger*);
+  static path_t locate_bin_directory(const logger*, bool verbose);
   static path_t locate_root_directory(const path_t&);
 
   path_resolver::path_resolver()
@@ -34,9 +34,9 @@ namespace kzh {
   path_resolver::~path_resolver() {
   }
 
-  void path_resolver::resolve(path_t root) {
+  void path_resolver::resolve(path_t root, bool verbose) {
     if (root.empty()) {
-      root_path_ = locate_root_directory(locate_bin_directory(this));
+      root_path_ = locate_root_directory(locate_bin_directory(this, verbose));
     }
     else {
       root_path_ = root;
@@ -45,23 +45,31 @@ namespace kzh {
     // locate the binary and build its path
     #if KZH_PLATFORM == KZH_PLATFORM_LINUX
       // Linux:
-      debug() << "Platform: Linux";
+      if (verbose) {
+        debug() << "Platform: Linux";
+      }
 
       cache_path_ = path_t(root_path_ / ".kzh" / "cache").make_preferred();
     #elif KZH_PLATFORM == KZH_PLATFORM_APPLE
       // OS X:
-      debug() << "Platform: OS X";
+      if (verbose) {
+        debug() << "Platform: OS X";
+      }
 
       cache_path_ = path_t(root_path_ / "/Resources/.kzh/cache").make_preferred();
     #else
       // Windows:
-      debug() << "Platform: Windows";
+      if (verbose) {
+        debug() << "Platform: Windows";
+      }
 
       cache_path_ = path_t(root_path_ / ".kzh/cache").make_preferred();
     #endif
 
-    debug() << "Root path: " <<  root_path_;
-    debug() << "Cache path: " <<  cache_path_;
+    if (verbose) {
+      debug() << "Root path: " <<  root_path_;
+      debug() << "Cache path: " <<  cache_path_;
+    }
   }
 
   path_t const& path_resolver::get_root_path() const {
@@ -72,13 +80,16 @@ namespace kzh {
     return cache_path_;
   }
 
-  path_t locate_bin_directory(const logger* log) {
+  path_t locate_bin_directory(const logger* log, bool verbose) {
     // locate the binary and build its path
     #if KZH_PLATFORM == KZH_PLATFORM_LINUX
       // use binreloc and fs to build up our paths
       int brres = br_init(0);
       if (brres == 0) {
-        log->error() << "binreloc could not be initialised";
+        if (verbose) {
+          log->error() << "binreloc could not be initialised";
+        }
+
         throw internal_error("Unable to resolve paths! binreloc could not be initialized");
       }
 
@@ -88,8 +99,6 @@ namespace kzh {
 
       return bin_path;
     #elif KZH_PLATFORM == KZH_PLATFORM_APPLE
-      log->debug() << "Platform: OS X";
-
       // use NSBundlePath() to build up our paths
       return path_t(Utility::macBundlePath() + "/Contents/MacOS").make_preferred();
     #else // Windows
@@ -97,7 +106,10 @@ namespace kzh {
       TCHAR szPath[MAX_PATH];
 
       if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
-        log->error() << "Unable to resolve path: " << GetLastError();;
+        if (verbose) {
+          log->error() << "Unable to resolve path: " << GetLastError();;
+        }
+
         throw internal_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
       }
 

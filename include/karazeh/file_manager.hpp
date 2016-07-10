@@ -48,6 +48,8 @@ namespace kzh {
 
     bool exists(path_t const&) const;
 
+    bool is_directory(path_t const&) const;
+
     /** Checks if the resource at the given path exists, is a file, and is readable. */
     bool is_readable(path_t const &path) const;
     bool is_readable(string_t const &path) const;
@@ -64,6 +66,7 @@ namespace kzh {
      * will be logged.
      */
     bool create_directory(path_t const& path) const;
+    bool ensure_directory(path_t const& path) const;
 
     /**
      * Enables the executable permission flag for systems that support it.

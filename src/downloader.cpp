@@ -158,7 +158,10 @@ namespace kzh {
       dl.to_file = true;
       dl.uri = in_uri;
       dl.retry_no = i;
-      (*nr_retries) = i;
+
+      if (nr_retries != nullptr) {
+        (*nr_retries) = i;
+      }
 
       if (fetch(in_uri, &dl, false)) {
 

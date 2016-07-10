@@ -37,7 +37,6 @@ namespace kzh {
     marked_for_deletion_(false),
     is_executable(false)
   {
-
   }
 
   create_operation::~create_operation() {
@@ -54,20 +53,23 @@ namespace kzh {
 
     if (config_.verbose) {
       indent();
+
       debug() << "Caching path: "<< cache_path_;
       debug() << "Caching dir: "<< cache_dir_;
       debug() << "Dest dir: "<< dst_dir_;
+      debug() << "Dest path: " << dst_path;
+
       deindent();
     }
 
     // Prepare our staging directory
-    if (!file_manager_.create_directory(cache_dir_)) {
+    if (!file_manager_.ensure_directory(cache_dir_)) {
       error() << "Unable to create caching directory: " << cache_dir_;
       return STAGE_UNAUTHORIZED;
     }
 
     // Prepare our destination directory, if necessary
-    if (!fs::is_directory(dst_dir_)) {
+    if (!file_manager_.exists(dst_dir_)) {
       if (!file_manager_.create_directory(dst_dir_)) {
         error() << "Unable to create destination dir: " << dst_dir_;
         return STAGE_UNAUTHORIZED;

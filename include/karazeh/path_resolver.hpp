@@ -63,7 +63,7 @@ namespace kzh {
      *
      * All the other paths are derived from the bin_path unless overridden.
      */
-    void resolve(path_t root = "");
+    void resolve(path_t root = "", bool verbose = false);
 
   private:
     path_t root_path_;

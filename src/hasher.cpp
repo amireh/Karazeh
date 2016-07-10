@@ -26,7 +26,7 @@ namespace kzh {
   const hasher* hasher::hasher_instance_ = NULL;
 
   hasher::~hasher() {
-    if (hasher::instance() == this) {
+    if (hasher_instance_ == this) {
       hasher::assign_hasher(NULL);
     }
   }

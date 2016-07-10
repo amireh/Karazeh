@@ -56,8 +56,6 @@ namespace kzh {
 
   bool file_manager::is_readable(string_t const& resource) const
   {
-    namespace fs = boost::filesystem;
-
     // boost::system::error_code ec;
     // fs::file_status result = fs::status(resource, ec);
 
@@ -79,19 +77,22 @@ namespace kzh {
     using fs::is_directory;
 
     path fp(resource);
+
     if (exists(fp)) {
       if (is_directory(fp)) {
         try {
-          for(fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
+          for (fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
             break;
           }
 
           return true;
-        } catch (fs::filesystem_error& e) {
+        }
+        catch (fs::filesystem_error& e) {
           error() << e.what();
           return false;
         }
-      } else {
+      }
+      else {
         std::ifstream fs(resource.c_str());
         bool readable = fs.is_open() && fs.good();
         fs.close();
@@ -155,24 +156,41 @@ namespace kzh {
     return is_writable(path_t(resource).make_preferred().string());
   }
 
-  bool file_manager::create_directory(path_t const& in_path) const
+  bool file_manager::is_directory(path_t const& path) const
+  {
+    return is_readable(path) && fs::is_directory(path);
+  }
+
+  bool file_manager::create_directory(path_t const& path) const
   {
     try {
-      fs::create_directories(in_path);
-    } catch (fs::filesystem_error &e) {
+      fs::create_directories(path);
+    }
+    catch (fs::filesystem_error &e) {
       error()
-        << "Unable to create directory chain @ " << in_path
+        << "Unable to create directory chain @ " << path
         << ". Cause: " << e.what();
 
       return false;
-    } catch (std::exception &e) {
-      error() << "Unknown error while creating directory chain @ " << in_path;
+    }
+    catch (std::exception &e) {
+      error() << "Unknown error while creating directory chain @ " << path;
       error() << "Possible cause: " << e.what();
 
       return false;
     }
 
     return true;
+  }
+
+  bool file_manager::ensure_directory(path_t const& path) const
+  {
+    if (is_directory(path)) {
+      return true;
+    }
+    else {
+      return create_directory(path);
+    }
   }
 
   bool file_manager::make_executable(path_t const& p) const

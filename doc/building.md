@@ -58,10 +58,6 @@ that we need.
 Nothing more to do here, this is built in the actual Karazeh solution we'll 
 get to later.
 
-### googletest (optional, if you want to run the tests)
-
-???
-
 ### Karazeh
 
 In order to make CMake find the libraries automatically (I'm talking about the
