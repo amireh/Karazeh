@@ -66,7 +66,11 @@ int rs_trace_level = RS_LOG_INFO;
 static void rs_log_va(int level, char const *fn, char const *fmt, va_list va);
 
 #if SIZEOF_SIZE_T > SIZEOF_LONG
-#  warning size_t is larger than a long integer, values in trace messages may be wrong
+# ifdef WIN32
+#   pragma message("size_t is larger than a long integer, values in trace messages may be wrong")
+# else
+#   warning size_t is larger than a long integer, values in trace messages may be wrong
+# endif
 #endif
 
 

@@ -244,7 +244,12 @@ set(rsync_LIB_SRCS
     src/whole.c
     src/blake2b-ref.c)
 
-add_library(rsync SHARED ${rsync_LIB_SRCS})
+add_library(rsync STATIC ${rsync_LIB_SRCS})
+
+IF(WIN32)
+  target_compile_definitions(rsync PRIVATE "-Dinline=__inline")
+  target_compile_definitions(rsync PRIVATE "-Dsnprintf=_snprintf")
+ENDIF()
 
 # Optionally link zlib and bzip2 if
 # - compression is enabled
