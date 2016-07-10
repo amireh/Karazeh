@@ -23,7 +23,7 @@ TEST_CASE("Patcher - Manifest validation", "[Patcher]") {
   downloader  downloader_(file_manager_, config_);
   patcher     subject(config_, file_manager_, downloader_);
 
-  auto load_manifest = [&](string_t const& p, XMLDocument& doc) -> bool {
+  auto load_manifest = [&](string_t const& p, tinyxml2::XMLDocument& doc) -> bool {
     string_t manifest_xml;
 
     downloader_.fetch(config_.host + "/manifests/" + p, manifest_xml);
