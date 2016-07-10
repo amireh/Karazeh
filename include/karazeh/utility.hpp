@@ -107,14 +107,6 @@ namespace utility {
     }
     return elems;
   }
-
-  inline static
-  string_t sanitize(string_t const& s) {
-    string_t out(s);
-    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
-    std::replace(out.begin(),   out.end(), ' ', '_');
-    return out;
-  }
 } // namespace utility
 } // namespace kzh
 
