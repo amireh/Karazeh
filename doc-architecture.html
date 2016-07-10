@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="
+
+" />
+
+    <title>Architecture
+</title>
+
+    
+    <link rel="stylesheet" href="styles.css" />
+    
+  </head>
+
+  <body class="body--themed">
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="314545598"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
+<!-- /react-text --></a></div><div data-reactid="18"><a href="" class="class-browser__entry-link active" data-reactid="19"><!-- react-text: 20 -->Architecture
+<!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
+<!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
+<!-- /react-text --></a></div><div data-reactid="27"><a href="doc-faq.html" class="class-browser__entry-link" data-reactid="28"><!-- react-text: 29 -->FAQ
+<!-- /react-text --></a></div><div data-reactid="30"><a href="doc-internals.html" class="class-browser__entry-link" data-reactid="31"><!-- react-text: 32 -->Internals
+<!-- /react-text --></a></div><div data-reactid="33"><a href="doc-overview.html" class="class-browser__entry-link" data-reactid="34"><!-- react-text: 35 -->Overview
+<!-- /react-text --></a></div></div></nav></div></div></div><div class="ui-resizable-handle ui-resizable-e" data-reactid="36"></div></div></div><div class="two-column-layout__right" style="margin-left:240px;" data-reactid="37"><div data-reactid="38"><div class="doc-content" data-reactid="39"><div data-reactid="40"><div data-reactid="41"><div class="highlighted-text " data-reactid="42">
+    <h1 class="anchorable-heading">
+      <a name="architecture" class="anchorable-heading__anchor"></a>
+      <a href="#architecture" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Architecture</span>
+    </h1>
+  <iframe
+  src='http://www.xmind.net/embed/jXME'
+  width='100%'
+  height='540px'
+  frameborder='0'
+  scrolling='no'
+></iframe>
+
+
+    <h2 class="anchorable-heading">
+      <a name="core" class="anchorable-heading__anchor"></a>
+      <a href="#core" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Core</span>
+    </h2>
+  
+    <h3 class="anchorable-heading">
+      <a name="transporters" class="anchorable-heading__anchor"></a>
+      <a href="#transporters" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Transporters</span>
+    </h3>
+  <ol>
+<li>Need to provide a post-download hook for a compressor to decompress if necessary.</li>
+</ol>
+
+    <h3 class="anchorable-heading">
+      <a name="path-resolver" class="anchorable-heading__anchor"></a>
+      <a href="#path-resolver" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Path Resolver</span>
+    </h3>
+  <ol>
+<li>Must allow for user-defined special paths</li>
+</ol>
+
+    <h2 class="anchorable-heading">
+      <a name="images" class="anchorable-heading__anchor"></a>
+      <a href="#images" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Images</span>
+    </h2>
+  <ol>
+<li>are uniquely identified by the sum of checksums of identity files specified in an identity list</li>
+</ol>
+
+    <h2 class="anchorable-heading">
+      <a name="manifests" class="anchorable-heading__anchor"></a>
+      <a href="#manifests" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Manifests</span>
+    </h2>
+  
+    <h3 class="anchorable-heading">
+      <a name="the-flavor-manifest-fmf" class="anchorable-heading__anchor"></a>
+      <a href="#the-flavor-manifest-fmf" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">The Flavor Manifest (FMF)</span>
+    </h3>
+  <p>Every application has one and only one FMF. Each FMF entry describes a completely separate &quot;flavor&quot; of the application which will be represented by its own set of manifests.</p>
+<p>This is crucial for applications of all types, and games in particular. If a game supports DLCs or Expansion sets, then each flavor would most probably need its own branch of patching.</p>
+<p>An application is not restricted to qualify as only one flavor. Following the game example, a flavor of the game with the DLC X may very well still use the patches for the original game. And if both DLC X and Y are installed, then all of the original, DLC X, and DLC Y flavor branches should be followed.</p>
+<p>An FMF entry:</p>
+<ol>
+<li>should be tagged</li>
+<li>should define a condition that identifies the flavor</li>
+</ol>
+<p>FMF template:</p>
+<pre class="language-xml"><code><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>karazeh</span><span class="token punctuation" >></span></span>
+  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>flavors</span><span class="token punctuation" >></span></span>
+    <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>flavor</span> <span class="token attr-name" >name</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>Vanilla<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span>
+      <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>conditions</span><span class="token punctuation" >></span></span>
+        <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>condition</span><span class="token punctuation" >></span></span>
+          <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>name</span><span class="token punctuation" >></span></span>file-exists<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>name</span><span class="token punctuation" >></span></span>
+          <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>args</span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[path/to/file|folder]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>args</span><span class="token punctuation" >></span></span>
+        <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>condition</span><span class="token punctuation" >></span></span>
+        <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>condition</span><span class="token punctuation" >></span></span>
+          <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>name</span><span class="token punctuation" >></span></span>custom<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>name</span><span class="token punctuation" >></span></span>
+          <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>args</span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[identify_my_flavor]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>args</span><span class="token punctuation" >></span></span>
+        <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>condition</span><span class="token punctuation" >></span></span>        
+      <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>conditions</span><span class="token punctuation" >></span></span>
+    <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>flavor</span><span class="token punctuation" >></span></span>
+  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>flavors</span><span class="token punctuation" >></span></span>
+<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>karazeh</span><span class="token punctuation" >></span></span></code></pre><p>Finally, the use of FMF is optional. The default should contain a single entry tagged as &#39;Vanilla&#39; or &#39;Original&#39; with a condition that always evaluates to true.</p>
+
+    <h3 class="anchorable-heading">
+      <a name="identity-manifests-imf" class="anchorable-heading__anchor"></a>
+      <a href="#identity-manifests-imf" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Identity Manifests (IMF)</span>
+    </h3>
+  <p>There needs to be a method to uniquely identify the application at any version. Identity lists are intended to do just that; specify a list of files, the accumulative checksum of which will be the application&#39;s <em>identity</em>.</p>
+<p>Using that identity value, the application at each version will represented by a unique <em>Image</em>.</p>
+<p>The IMF contains all the identity lists (ILs) the application requires. It is fetched and parsed right after the FMF. An identity registry will be built using the identity lists described in the IMF, and the application is expected to be identified by exactly one IL for each flavor the application was identified to represent.</p>
+<p>The actual identification is done in the VMF parsing stage.</p>
+
+    <h3 class="anchorable-heading">
+      <a name="the-version-manifest-vmf" class="anchorable-heading__anchor"></a>
+      <a href="#the-version-manifest-vmf" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">The Version Manifest (VMF)</span>
+    </h3>
+  <p>As the name implies, the purpose of the VMF is to identify the version of the application (aka, locating its Image), and describe the history of the application.</p>
+<p>There should be only one VMF per application flavor. The VMF contains a listing of entries that map to the final manifest entity, Release Manifests (RMFs).</p>
+<p>VMF entries should:</p>
+<ol>
+<li>specify the image id the RMF is for</li>
+<li>specify the RMF URI</li>
+</ol>
+<p>If the application could not be identified at this stage, no further processing will be allowed and the image should be reported to be corrupt.</p>
+
+    <h3 class="anchorable-heading">
+      <a name="release-manifests-rmf" class="anchorable-heading__anchor"></a>
+      <a href="#release-manifests-rmf" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Release Manifests (RMF)</span>
+    </h3>
+  </div><!-- react-empty: 43 --></div></div></div><div class="footer" data-reactid="44"><div class="markdown-text " data-reactid="45"><p>Made with &#9829; using <a href="https://github.com/megadoc" target="_blank">megadoc</a>.</p>
+</div></div></div></div><div class="two-column-layout__nav" data-reactid="46"><div class="sticky-container" data-reactid="47"><div class="doc-content" data-reactid="48"><p data-reactid="49">Contents</p><div data-reactid="50"><div data-reactid="51"><ul class="markdown-toc markdown-toc--flat" data-reactid="52"><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="53"><i class="icon icon-arrow-right" data-reactid="54"></i><a href="#core" class="" data-reactid="55">Core</a><ul class="markdown-toc" data-reactid="56"><li class="markdown-toc__entry" data-reactid="57"><a href="#transporters" class="" data-reactid="58">Transporters</a></li><li class="markdown-toc__entry" data-reactid="59"><a href="#path-resolver" class="" data-reactid="60">Path Resolver</a></li></ul></li><li class="markdown-toc__entry" data-reactid="61"><a href="#images" class="" data-reactid="62">Images</a></li><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="63"><i class="icon icon-arrow-right" data-reactid="64"></i><a href="#manifests" class="" data-reactid="65">Manifests</a><ul class="markdown-toc" data-reactid="66"><li class="markdown-toc__entry" data-reactid="67"><a href="#the-flavor-manifest-fmf" class="" data-reactid="68">The Flavor Manifest (FMF)</a></li><li class="markdown-toc__entry" data-reactid="69"><a href="#identity-manifests-imf" class="" data-reactid="70">Identity Manifests (IMF)</a></li><li class="markdown-toc__entry" data-reactid="71"><a href="#the-version-manifest-vmf" class="" data-reactid="72">The Version Manifest (VMF)</a></li><li class="markdown-toc__entry" data-reactid="73"><a href="#release-manifests-rmf" class="" data-reactid="74">Release Manifests (RMF)</a></li></ul></li></ul></div></div></div></div></div></div></div></div></div></div>
+    
+    <script type="text/javascript" src="config.js"></script>
+    
+    <script type="text/javascript" src="megadoc__vendor.js"></script>
+    
+    <script type="text/javascript" src="megadoc.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-theme-qt.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-plugin-markdown.js"></script>
+    
+    <script type="text/javascript">
+      megadoc.start({
+        startingDocumentUID: "articles/doc-architecture"
+      });
+    </script>
+  </body>
+</html>

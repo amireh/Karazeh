@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="NOTE" />
+
+    <title>Karazeh
+</title>
+
+    
+    <link rel="stylesheet" href="styles.css" />
+    
+  </head>
+
+  <body class="body--themed">
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-1143738187"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="" class="class-browser__entry-link active" data-reactid="16"><!-- react-text: 17 -->Karazeh
+<!-- /react-text --></a></div><div data-reactid="18"><a href="doc-architecture.html" class="class-browser__entry-link" data-reactid="19"><!-- react-text: 20 -->Architecture
+<!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
+<!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
+<!-- /react-text --></a></div><div data-reactid="27"><a href="doc-faq.html" class="class-browser__entry-link" data-reactid="28"><!-- react-text: 29 -->FAQ
+<!-- /react-text --></a></div><div data-reactid="30"><a href="doc-internals.html" class="class-browser__entry-link" data-reactid="31"><!-- react-text: 32 -->Internals
+<!-- /react-text --></a></div><div data-reactid="33"><a href="doc-overview.html" class="class-browser__entry-link" data-reactid="34"><!-- react-text: 35 -->Overview
+<!-- /react-text --></a></div></div></nav></div></div></div><div class="ui-resizable-handle ui-resizable-e" data-reactid="36"></div></div></div><div class="two-column-layout__right" style="margin-left:240px;" data-reactid="37"><div data-reactid="38"><div class="doc-content" data-reactid="39"><div data-reactid="40"><div data-reactid="41"><div class="highlighted-text " data-reactid="42">
+    <h1 class="anchorable-heading">
+      <a name="karazeh" class="anchorable-heading__anchor"></a>
+      <a href="#karazeh" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Karazeh</span>
+    </h1>
+  <blockquote>
+<p><strong>NOTE</strong></p>
+<p>You are currently reading the documentation for the <em>master</em> branch which
+is NOT stable and is not yet ready for production use. Refer to the 
+<a href="https://github.com/amireh/Karazeh/tree/stable" target="_blank">stable</a> branch if that&#39;s
+what you&#39;re looking for.</p>
+</blockquote>
+<p>Karazeh is a cross-platform tool for patching and launching desktop applications, suited for PC games. The purpose of this tool is to provide you with the ability to update your users&#39; clients with minimal hassle without requiring you to re-invent the wheel and write your own patcher.</p>
+<p>Karazeh is meant to be used with <a href="https://github.com/amireh/Kiwi" target="_blank">Kiwi</a>, the tool that generates the patch scripts which Karazeh consumes. They both should operate on Windows, Linux, and Mac OS X.</p>
+<p>Both tools are freely available and licensed under the MIT license.</p>
+
+    <h2 class="anchorable-heading">
+      <a name="building" class="anchorable-heading__anchor"></a>
+      <a href="#building" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Building</span>
+    </h2>
+  <p><em>TBD</em></p>
+
+    <h2 class="anchorable-heading">
+      <a name="usage" class="anchorable-heading__anchor"></a>
+      <a href="#usage" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Usage</span>
+    </h2>
+  <p><em>TBD</em></p>
+
+    <h2 class="anchorable-heading">
+      <a name="tests" class="anchorable-heading__anchor"></a>
+      <a href="#tests" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Tests</span>
+    </h2>
+  <p>To run the unit tests you must launch an http server to serve the fixtures. You can
+easily do this using a light http daemon such as <code>darkhttpd</code> and running it
+on port 8080 to serve <code>/path/to/karazeh/test/fixture</code> as the root directory.</p>
+<p>Example on Arch Linux:</p>
+<pre class="language-bash"><code>pacman -S darkhttpd
+<span class="token function" >cd</span> /path/to/karazeh/test/fixture
+darkhttpd <span class="token keyword" >.</span></code></pre><p>Afterwards, run the binary:</p>
+<pre class="language-bash"><code>./karazeh_unit_tests</code></pre>
+    <h2 class="anchorable-heading">
+      <a name="license" class="anchorable-heading__anchor"></a>
+      <a href="#license" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">License</span>
+    </h2>
+  <p>Copyright 2011-2016 Ahmad Amireh <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#97;&#104;&#x6d;&#x61;&#100;&#x40;&#x61;&#x6d;&#x69;&#x72;&#x65;&#x68;&#x2e;&#x6e;&#x65;&#x74;" target="_blank">&#97;&#104;&#x6d;&#x61;&#100;&#x40;&#x61;&#x6d;&#x69;&#x72;&#x65;&#x68;&#x2e;&#x6e;&#x65;&#x74;</a>.</p>
+<p>The code is licensed under the GNU L-GPL v3.0 (see COPYING) and is free to use,
+link-against and embed within free and commercial applications.</p>
+<p>Libraries used by Karazeh to link against and their respective licenses:</p>
+<ul>
+<li><a href="https://github.com/leethomason/tinyxml2" target="_blank">TinyXML-2</a> - z-lib</li>
+<li><a href="http://librsync.sourcefrog.net/" target="_blank">librsync</a> - GNU LGPL v2.1</li>
+<li><a href="https://github.com/datenwolf/binreloc" target="_blank">binreloc</a> - DWTFYWT</li>
+<li>RSA Data Security, Inc. MD5 Message-Digest
+Algorithm - ???</li>
+</ul>
+</div><!-- react-empty: 43 --></div></div></div><div class="footer" data-reactid="44"><div class="markdown-text " data-reactid="45"><p>Made with &#9829; using <a href="https://github.com/megadoc" target="_blank">megadoc</a>.</p>
+</div></div></div></div><div class="two-column-layout__nav" data-reactid="46"><div class="sticky-container" data-reactid="47"><div class="doc-content" data-reactid="48"><p data-reactid="49">Contents</p><div data-reactid="50"><div data-reactid="51"><ul class="markdown-toc markdown-toc--flat" data-reactid="52"><li class="markdown-toc__entry" data-reactid="53"><a href="#building" class="" data-reactid="54">Building</a></li><li class="markdown-toc__entry" data-reactid="55"><a href="#usage" class="" data-reactid="56">Usage</a></li><li class="markdown-toc__entry" data-reactid="57"><a href="#tests" class="" data-reactid="58">Tests</a></li><li class="markdown-toc__entry" data-reactid="59"><a href="#license" class="" data-reactid="60">License</a></li></ul></div></div></div></div></div></div></div></div></div></div>
+    
+    <script type="text/javascript" src="config.js"></script>
+    
+    <script type="text/javascript" src="megadoc__vendor.js"></script>
+    
+    <script type="text/javascript" src="megadoc.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-theme-qt.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-plugin-markdown.js"></script>
+    
+    <script type="text/javascript">
+      megadoc.start({
+        startingDocumentUID: "articles/readme"
+      });
+    </script>
+  </body>
+</html>

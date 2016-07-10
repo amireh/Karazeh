@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="The cache is a collection of files and directories used to store transient data required for deploying or rolling back a patch; newly created files, .patch patch files, and files to be deleted are all stored inside the cache. The cache is also used when attempting to repair a corrupt version." />
+
+    <title>FAQ
+</title>
+
+    
+    <link rel="stylesheet" href="styles.css" />
+    
+  </head>
+
+  <body class="body--themed">
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-1232340988"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
+<!-- /react-text --></a></div><div data-reactid="18"><a href="doc-architecture.html" class="class-browser__entry-link" data-reactid="19"><!-- react-text: 20 -->Architecture
+<!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
+<!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
+<!-- /react-text --></a></div><div data-reactid="27"><a href="" class="class-browser__entry-link active" data-reactid="28"><!-- react-text: 29 -->FAQ
+<!-- /react-text --></a></div><div data-reactid="30"><a href="doc-internals.html" class="class-browser__entry-link" data-reactid="31"><!-- react-text: 32 -->Internals
+<!-- /react-text --></a></div><div data-reactid="33"><a href="doc-overview.html" class="class-browser__entry-link" data-reactid="34"><!-- react-text: 35 -->Overview
+<!-- /react-text --></a></div></div></nav></div></div></div><div class="ui-resizable-handle ui-resizable-e" data-reactid="36"></div></div></div><div class="two-column-layout__right" style="margin-left:240px;" data-reactid="37"><div data-reactid="38"><div class="doc-content" data-reactid="39"><div data-reactid="40"><div data-reactid="41"><div class="highlighted-text " data-reactid="42">
+    <h1 class="anchorable-heading">
+      <a name="faq" class="anchorable-heading__anchor"></a>
+      <a href="#faq" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">FAQ</span>
+    </h1>
+  
+    <h2 class="anchorable-heading">
+      <a name="what-is-the-cache-where-is-it-and-why-is-it-used" class="anchorable-heading__anchor"></a>
+      <a href="#what-is-the-cache-where-is-it-and-why-is-it-used" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">What is the cache, where is it, and why is it used?</span>
+    </h2>
+  <p>The cache is a collection of files and directories used to store transient data required for deploying or rolling back a patch; newly created files, <code>.patch</code> patch files, and files to be <em>deleted</em> are all stored inside the cache. The cache is also used when attempting to repair a corrupt version.</p>
+<p>The cache can be found inside the <code>.kzh/cache</code> folder in the application&#39;s root directory.</p>
+<p>Note that the cache is emptied (or <em>purged</em>) once Karazeh is done deploying a patch (regardless of the state), so users won&#39;t have to worry about wasted space becaue there won&#39;t be any.</p>
+
+    <h2 class="anchorable-heading">
+      <a name="can-users-mess-with-the-cache-is-it-harmful" class="anchorable-heading__anchor"></a>
+      <a href="#can-users-mess-with-the-cache-is-it-harmful" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Can users mess with the cache? Is it harmful?</span>
+    </h2>
+  <p>Nothing stops them from deleting the cache or tampering with files inside of it as it is a visible and writable folder. Usually it is harmless unless Karazeh gets abnormally terminated and it needs to perform a rollback from a corrupt version.</p>
+
+    <h2 class="anchorable-heading">
+      <a name="what-happens-if-the-patcher-was-interrupted-killed-or-somehow-terminated-while-doing-its-work" class="anchorable-heading__anchor"></a>
+      <a href="#what-happens-if-the-patcher-was-interrupted-killed-or-somehow-terminated-while-doing-its-work" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">What happens if the patcher was interrupted, killed, or somehow terminated while doing its work?</span>
+    </h2>
+  <p>When Karazeh starts its patching routines, it probes the cache, and if the cache turns out not to be empty, that indicates that Karazeh was interrupted abnormally the last time it was run.</p>
+<p>Once it is determined that a patch was being applied, Karazeh attempts to identify its <em>last known version</em> which is <strong>stored in the cache</strong>^[1] right before any patch is applied (and removed once the patch is successfully deployed, or rolled-back).</p>
+<p>Now that the original version is identified, Karazeh will fetch the version manifest, and download the release version for the one that comes right after the original one (which is the patch that had been interrupted). Using that manifest, it resumes the procedure as it normally does: it will first roll-back all the changes, then stage, deploy, and purge.</p>
+<blockquote>
+<p>[1] The reason the patcher does not in this case identify the version using the version manifest as it normally does is because the <em>identity files</em> might have been changed during the last patch, and then checksum-ming those files would result in an identity that corresponds to no valid release!</p>
+</blockquote>
+
+    <h2 class="anchorable-heading">
+      <a name="what-happens-if-a-patch-file-could-not-be-downloaded" class="anchorable-heading__anchor"></a>
+      <a href="#what-happens-if-a-patch-file-could-not-be-downloaded" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">What happens if a patch file could not be downloaded?</span>
+    </h2>
+  <p>If the file&#39;s integrity was mismatched (the expected checksum or filesize of the original file didn&#39;t match the downloaded one) then the download is retried up to a configurable number of times. If it still fails, or none of the patch servers could be contacted, the patcher performs a roll-back.</p>
+
+    <h2 class="anchorable-heading">
+      <a name="what-happens-if-something-goes-wrong-while-patching" class="anchorable-heading__anchor"></a>
+      <a href="#what-happens-if-something-goes-wrong-while-patching" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">What happens if something goes wrong while patching?</span>
+    </h2>
+  <p>For every operation that&#39;s &quot;comitted&quot; in a single Karazeh patch there&#39;s a rollback procedure that undoes it. This design allows for a robust and determinate behavior.</p>
+<p>For example, if a <code>delete</code> operation was committed at some point while patching (and its target file or directory was effectively deleted) while a later operation fails and the patch needs to be rolled back, the deleted target will be properly restored.</p>
+</div><!-- react-empty: 43 --></div></div></div><div class="footer" data-reactid="44"><div class="markdown-text " data-reactid="45"><p>Made with &#9829; using <a href="https://github.com/megadoc" target="_blank">megadoc</a>.</p>
+</div></div></div></div><div class="two-column-layout__nav" data-reactid="46"><div class="sticky-container" data-reactid="47"><div class="doc-content" data-reactid="48"><p data-reactid="49">Contents</p><div data-reactid="50"><div data-reactid="51"><ul class="markdown-toc markdown-toc--flat" data-reactid="52"><li class="markdown-toc__entry" data-reactid="53"><a href="#what-is-the-cache-where-is-it-and-why-is-it-used" class="" data-reactid="54">What is the cache, where is it, and why is it used?</a></li><li class="markdown-toc__entry" data-reactid="55"><a href="#can-users-mess-with-the-cache-is-it-harmful" class="" data-reactid="56">Can users mess with the cache? Is it harmful?</a></li><li class="markdown-toc__entry" data-reactid="57"><a href="#what-happens-if-the-patcher-was-interrupted-killed-or-somehow-terminated-while-doing-its-work" class="" data-reactid="58">What happens if the patcher was interrupted, killed, or somehow terminated while doing its work?</a></li><li class="markdown-toc__entry" data-reactid="59"><a href="#what-happens-if-a-patch-file-could-not-be-downloaded" class="" data-reactid="60">What happens if a patch file could not be downloaded?</a></li><li class="markdown-toc__entry" data-reactid="61"><a href="#what-happens-if-something-goes-wrong-while-patching" class="" data-reactid="62">What happens if something goes wrong while patching?</a></li></ul></div></div></div></div></div></div></div></div></div></div>
+    
+    <script type="text/javascript" src="config.js"></script>
+    
+    <script type="text/javascript" src="megadoc__vendor.js"></script>
+    
+    <script type="text/javascript" src="megadoc.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-theme-qt.js"></script>
+    
+    <script type="text/javascript" src="plugins/megadoc-plugin-markdown.js"></script>
+    
+    <script type="text/javascript">
+      megadoc.start({
+        startingDocumentUID: "articles/doc-faq"
+      });
+    </script>
+  </body>
+</html>
