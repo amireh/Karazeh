@@ -45,7 +45,6 @@ SET(Karazeh_SRCS
   delta_encoder.cpp
   downloader.cpp
   file_manager.cpp
-  hasher.cpp
   logger.cpp
   patcher.cpp
   path_resolver.cpp

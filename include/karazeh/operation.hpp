@@ -51,7 +51,7 @@ namespace kzh {
     inline operation(
       config_t const& config,
       file_manager const& fmgr,
-      downloader& downloader,
+      downloader const& downloader,
       release_manifest& rm
     )
     : config_(config),
@@ -113,7 +113,7 @@ namespace kzh {
   protected:
     config_t const& config_;
     file_manager const& file_manager_;
-    downloader &downloader_;
+    downloader const &downloader_;
     release_manifest &rm_;
   };
 

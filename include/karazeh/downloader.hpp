@@ -36,7 +36,7 @@ namespace kzh {
 
   class KARAZEH_EXPORT downloader : protected logger {
   public:
-    downloader(file_manager const&, config_t const&);
+    downloader(config_t const&, file_manager const&);
     virtual ~downloader();
 
     /** The number of times to retry a download */
@@ -50,10 +50,10 @@ namespace kzh {
      *
      * @return true if the file was correctly DLed, false otherwise
      */
-    bool fetch(string_t const& URI, string_t& out_buf);
+    bool fetch(string_t const& URI, string_t& out_buf) const;
 
     /** same as above but outputs to file instead of buffer */
-    bool fetch(string_t const& URI, std::ostream& out_file);
+    bool fetch(string_t const& URI, std::ostream& out_file) const;
 
     /**
      * Downloads the file found at the given URI and verifies
@@ -68,13 +68,13 @@ namespace kzh {
       string_t const& checksum,
       uint64_t expected_size_bytes = 0,
       int* const nr_retries = NULL
-    );
+    ) const;
 
   private:
-    const file_manager& file_manager_;
     const config_t &config_;
+    const file_manager& file_manager_;
 
-    bool fetch(string_t const& URI, download_t*, bool assume_ownership = true);
+    bool fetch(string_t const& URI, download_t*, bool assume_ownership = true) const;
 
     int nr_retries_;
   };

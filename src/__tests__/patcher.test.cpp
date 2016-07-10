@@ -3,6 +3,7 @@
 #include "karazeh/utility.hpp"
 #include "karazeh/patcher.hpp"
 #include "karazeh/path_resolver.hpp"
+#include "karazeh/hashers/md5_hasher.hpp"
 #include "test_utils.hpp"
 #include "tinyxml2/tinyxml2.h"
 
@@ -10,7 +11,7 @@ using namespace kzh;
 using namespace Catch::Matchers;
 
 TEST_CASE("Patcher - Manifest validation", "[Patcher]") {
-  config_t              config_;
+  config_t              config_(sample_config);
   path_resolver         path_resolver_;
   file_manager          file_manager_;
   tinyxml2::XMLDocument manifest_doc_;
@@ -20,7 +21,7 @@ TEST_CASE("Patcher - Manifest validation", "[Patcher]") {
   config_.root_path = path_resolver_.get_root_path();
   config_.cache_path = path_resolver_.get_cache_path();
 
-  downloader  downloader_(file_manager_, config_);
+  downloader  downloader_(config_, file_manager_);
   patcher     subject(config_, file_manager_, downloader_);
 
   auto load_manifest = [&](string_t const& p, tinyxml2::XMLDocument& doc) -> bool {

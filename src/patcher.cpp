@@ -37,9 +37,9 @@ namespace kzh {
     }
   }
 
-  patcher::patcher(config_t const& config, file_manager const& fmgr, downloader& rmgr)
+  patcher::patcher(config_t const& config, file_manager const& fmgr, downloader const& downloader)
   : logger("patcher"),
-    rmgr_(rmgr),
+    downloader_(downloader),
     config_(config),
     file_manager_(fmgr)
   {
@@ -66,7 +66,7 @@ namespace kzh {
 
     current_manifest_uri_ = "version[" + manifest_uri + "]";
 
-    if (!rmgr_.fetch(manifest_uri, manifest_xml)) {
+    if (!downloader_.fetch(manifest_uri, manifest_xml)) {
       throw invalid_resource(manifest_uri);
     }
 
@@ -126,7 +126,7 @@ namespace kzh {
 
         /** calculate the checksum */
         std::ifstream fh(ifile->filepath.string().c_str());
-        hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
+        hasher::digest_rc rc = config_.hasher->hex_digest(fh);
         if (!rc.valid) {
           throw manifest_error("Identity file " + ifile->filepath.string() + " could not be digested.");
         }
@@ -138,7 +138,7 @@ namespace kzh {
         ifile_node = ifile_node->NextSiblingElement();
       }
 
-      ilist->checksum = hasher::instance()->hex_digest(ilist->checksum).digest;
+      ilist->checksum = config_.hasher->hex_digest(ilist->checksum).digest;
       debug() << "ilist[" << ilist->name << "] => " << ilist->checksum;
 
       ilist_node = ilist_node->NextSiblingElement("identity");
@@ -276,7 +276,7 @@ namespace kzh {
     // Download the manifest and parse it
     string_t rm_xml;
 
-    if (!rmgr_.fetch(next_update->uri, rm_xml)) {
+    if (!downloader_.fetch(next_update->uri, rm_xml)) {
       throw invalid_resource(next_update->uri);
     }
 
@@ -339,7 +339,7 @@ namespace kzh {
         // <destination>PATH</destination>
         XMLElement *dst_node = op_node->FirstChildElement("destination");
 
-        create_operation* op = new create_operation(config_, file_manager_, rmgr_, *next_update);
+        create_operation* op = new create_operation(config_, file_manager_, downloader_, *next_update);
         op->src_checksum = src_node->Attribute("checksum");
         op->src_size = utility::tonumber(src_node->Attribute("size"));
         op->src_uri = src_node->GetText();
@@ -373,7 +373,7 @@ namespace kzh {
 
         // TODO: verify that nodes aren't empty
 
-        update_operation *op = new update_operation(config_, file_manager_, rmgr_, *next_update);
+        update_operation *op = new update_operation(config_, file_manager_, downloader_, *next_update);
         op->basis = basis_node->GetText();
         op->basis_checksum = basis_node->Attribute("pre-checksum");
         op->basis_length = tonumber(basis_node->Attribute("pre-size"));
@@ -399,7 +399,7 @@ namespace kzh {
         // <target>PATH</target>
         XMLElement *tgt_node = op_node->FirstChildElement("target");
 
-        delete_operation* op = new delete_operation(config_, file_manager_, rmgr_, *next_update);
+        delete_operation* op = new delete_operation(config_, file_manager_, downloader_, *next_update);
         op->dst_path = tgt_node->GetText();
 
         debug() << op->tostring();

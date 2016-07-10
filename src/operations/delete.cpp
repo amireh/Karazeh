@@ -19,7 +19,6 @@
  */
 
 #include "karazeh/operations/delete.hpp"
-#include "karazeh/hasher.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -27,7 +26,7 @@ namespace kzh {
   delete_operation::delete_operation(
     config_t const& config,
     file_manager const& file_manager,
-    downloader& downloader,
+    downloader const& downloader,
     release_manifest& rm
   )
   : operation(config, file_manager, downloader, rm),

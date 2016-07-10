@@ -33,8 +33,8 @@ namespace kzh {
   {
     public:
 
-    inline hasher(string_t const& name) : name_(name) { }
-    virtual ~hasher();
+    inline hasher(string_t const& name) : name_(name) { };
+    inline virtual ~hasher() {};
 
     /**
      * all hashers must return this struct as a result of their
@@ -53,6 +53,7 @@ namespace kzh {
       bool operator==(string_t const& checksum) {
         return valid && checksum == digest;
       }
+
       bool operator!=(string_t const& checksum) {
         return !valid || checksum != digest;
       }
@@ -65,18 +66,11 @@ namespace kzh {
     virtual digest_rc hex_digest(std::ifstream& src) const = 0;
     virtual digest_rc hex_digest(path_t const& path) const = 0;
 
-    /** A hasher must be assigned so the other components can transparently
-      * use it to calculate digests.
-      */
-    static void assign_hasher(hasher const*);
-
-    /** Returns a usable hasher instance. */
-    static hasher const* const instance();
-
-    string_t const& name() const;
+    inline string_t const& name() const {
+      return name_;
+    };
 
   protected:
-    static hasher const* hasher_instance_;
     string_t name_;
   };
 

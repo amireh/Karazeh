@@ -37,9 +37,6 @@ int main(int argc, char **argv) {
   kzh::sample_config.hasher = &hasher;
   kzh::sample_config.verbose = verbose;
 
-  // ugh
-  kzh::hasher::assign_hasher(&hasher);
-
   file_manager.ensure_directory(kzh::test_config.temp_path);
   file_manager.ensure_directory(kzh::sample_config.cache_path);
 
@@ -50,7 +47,6 @@ int main(int argc, char **argv) {
 
   result = Catch::Session().run( argc, argv );
 
-  kzh::hasher::assign_hasher(nullptr);
   file_manager.remove_directory(kzh::test_config.temp_path);
   file_manager.remove_directory(kzh::sample_config.cache_path.parent_path()); // the .kzh directory
 

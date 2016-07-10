@@ -29,7 +29,7 @@ namespace kzh {
 
   class KARAZEH_EXPORT create_operation : public operation, protected logger {
   public:
-    create_operation(config_t const&, file_manager const&, downloader&, release_manifest&);
+    create_operation(config_t const&, file_manager const&, downloader const&, release_manifest&);
     virtual ~create_operation();
 
     /**

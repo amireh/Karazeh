@@ -21,7 +21,7 @@
 #include "karazeh/downloader.hpp"
 
 namespace kzh {
-  downloader::downloader(file_manager const& fmgr, config_t const& config)
+  downloader::downloader(config_t const& config, file_manager const& fmgr)
   : logger("downloader"),
     config_(config),
     nr_retries_(2),
@@ -57,7 +57,7 @@ namespace kzh {
     return realsize;
   }
 
-  bool downloader::fetch(string_t const& in_uri, download_t* dl, bool assume_ownership)
+  bool downloader::fetch(string_t const& in_uri, download_t* dl, bool assume_ownership) const
   {
     string_t uri(in_uri);
     if (in_uri.find("http://") == std::string::npos) {
@@ -117,7 +117,7 @@ namespace kzh {
     return true;
   }
 
-  bool downloader::fetch(string_t const& in_uri, string_t& out_buf)
+  bool downloader::fetch(string_t const& in_uri, string_t& out_buf) const
   {
     download_t *dl = new download_t(std::cout);
     dl->buf = &out_buf;
@@ -126,7 +126,7 @@ namespace kzh {
     return fetch(in_uri, dl);
   }
 
-  bool downloader::fetch(string_t const& in_uri, std::ostream& out_stream)
+  bool downloader::fetch(string_t const& in_uri, std::ostream& out_stream) const
   {
     download_t *dl = new download_t(out_stream);
     dl->to_file = true;
@@ -140,10 +140,8 @@ namespace kzh {
     path_t const& path,
     string_t const& checksum,
     uint64_t expected_size,
-    int* const nr_retries)
+    int* const nr_retries) const
   {
-    // TODO: verify a hasher instance is registered
-
     for (int i = 0; i < nr_retries_ + 1; ++i) {
       std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
 
@@ -173,7 +171,7 @@ namespace kzh {
         }
 
         // validate integrity
-        hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
+        hasher::digest_rc rc = config_.hasher->hex_digest(fh);
 
         fh.close();
 

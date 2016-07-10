@@ -19,7 +19,6 @@
  */
 
 #include "karazeh/operations/create.hpp"
-#include "karazeh/hasher.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -27,7 +26,7 @@ namespace kzh {
   create_operation::create_operation(
     config_t const& config,
     file_manager const& file_manager,
-    downloader& downloader,
+    downloader const& downloader,
     release_manifest& rm
   )
   : operation(config, file_manager, downloader, rm),
@@ -132,7 +131,7 @@ namespace kzh {
 
     // validate integrity
     std::ifstream fh((config_.root_path / dst_path).string().c_str());
-    hasher::digest_rc rc = hasher::instance()->hex_digest(fh);
+    hasher::digest_rc rc = config_.hasher->hex_digest(fh);
     fh.close();
 
     if (rc != src_checksum) {

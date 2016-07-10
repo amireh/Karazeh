@@ -26,7 +26,6 @@
 #include "karazeh/config.hpp"
 #include "karazeh/downloader.hpp"
 #include "karazeh/file_manager.hpp"
-#include "karazeh/hasher.hpp"
 #include "karazeh/release_manifest.hpp"
 #include "karazeh/operation.hpp"
 #include "karazeh/operations/create.hpp"
@@ -51,7 +50,7 @@ namespace kzh {
     /** Given resource manager must have the paths resolved,
       * see downloader::resolve_paths()
       */
-    patcher(config_t const&, file_manager const&, downloader&);
+    patcher(config_t const&, file_manager const&, downloader const&);
     virtual ~patcher();
 
     /**
@@ -144,7 +143,7 @@ namespace kzh {
     typedef std::map<string_t, identity_list*> identity_lists_t;
     typedef std::vector<release_manifest*> rmanifests_t;
 
-    downloader  &rmgr_;
+    downloader const &downloader_;
     config_t const &config_;
     file_manager const& file_manager_;
 

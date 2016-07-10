@@ -2,6 +2,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 #include "karazeh/operations/create.hpp"
+#include "karazeh/hashers/md5_hasher.hpp"
 #include "karazeh/release_manifest.hpp"
 #include "test_utils.hpp"
 #include <boost/filesystem.hpp>
@@ -12,7 +13,8 @@ namespace fs = boost::filesystem;
 TEST_CASE("create_operation - Staging") {
   config_t          config_(kzh::sample_config);
   file_manager      file_manager_;
-  downloader        downloader_(file_manager_, kzh::sample_config);
+  md5_hasher        md5_hasher_;
+  downloader        downloader_(kzh::sample_config, file_manager_);
   release_manifest  manifest_;
 
   create_operation subject(

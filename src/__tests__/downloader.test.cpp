@@ -2,6 +2,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/utility.hpp"
 #include "karazeh/downloader.hpp"
+#include "karazeh/hashers/md5_hasher.hpp"
 #include "catch.hpp"
 #include <boost/filesystem.hpp>
 
@@ -11,12 +12,9 @@ using namespace kzh;
 TEST_CASE("Downloader") {
   const path_t temp_file_path = test_config.temp_path / "downloader_test.out";
 
-  config_t config_;
-  config_.host = test_config.server_host;
-  config_.verbose = false;
-
-  file_manager file_manager_;
-  downloader subject(file_manager_, config_);
+  config_t config_(sample_config);
+  file_manager  file_manager_;
+  downloader subject(config_, file_manager_);
 
   SECTION("it should load a remote resource") {
     string_t buf;

@@ -26,7 +26,7 @@ namespace kzh {
   update_operation::update_operation(
     config_t const& config,
     file_manager const& file_manager,
-    downloader& downloader,
+    downloader const& downloader,
     release_manifest& rm
   )
   : operation(config, file_manager, downloader, rm),
@@ -61,7 +61,7 @@ namespace kzh {
     }
 
     // basis checksum check
-    hasher::digest_rc digest = hasher::instance()->hex_digest(basis_path_);
+    hasher::digest_rc digest = config_.hasher->hex_digest(basis_path_);
     if (digest != basis_checksum) {
       error()
         << "Basis file checksum mismatch: "
@@ -120,7 +120,7 @@ namespace kzh {
       return STAGE_INTERNAL_ERROR;
     }
 
-    hasher::digest_rc digest = hasher::instance()->hex_digest(patched_path_);
+    hasher::digest_rc digest = config_.hasher->hex_digest(patched_path_);
     if (digest != patched_checksum) {
       error()
         << "Checksum mismatch: "
