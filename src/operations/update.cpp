@@ -1,3 +1,23 @@
+/**
+ * karazeh -- the library for patching software
+ *
+ * Copyright (C) 2011-2016 by Ahmad Amireh <ahmad@amireh.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
 #include "karazeh/operations/update.hpp"
 
 namespace kzh {
@@ -26,11 +46,11 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::stage() {
-    basis_path_     = config_.root_path / basis;
-    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).parent_path();
-    signature_path_ = cache_dir_ / (path_t(basis).filename().string() + ".signature");
-    delta_path_     = cache_dir_ / (path_t(basis).filename().string() + ".delta");
-    patched_path_   = cache_dir_ / (path_t(basis).filename().string() + ".patched");
+    basis_path_     = (config_.root_path / basis).make_preferred();
+    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).make_preferred().parent_path();
+    signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
+    delta_path_     = (cache_dir_ / basis).make_preferred().filename().string() + ".delta";
+    patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";
 
     // basis must exist
     if (!file_manager_.is_readable(basis_path_)) {

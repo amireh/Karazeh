@@ -67,9 +67,7 @@ namespace kzh {
     ASSERT_EQ(RS_DONE, rc);
 
     // verify the checksum
-    std::ifstream sig(sig_path.c_str());
-    hasher::digest_rc drc = hasher::instance()->hex_digest(sig);
-    sig.close();
+    ASSERT_EQ(sig_checksum, hasher::instance()->hex_digest(sig_path).digest);
   }
 
   TEST_F(delta_encoder_test, delta_generation) {
@@ -85,10 +83,7 @@ namespace kzh {
     ASSERT_NO_THROW(rc = encoder_.delta(sig_path.c_str(), archive_012.c_str(), delta_path.c_str()));
     ASSERT_EQ(RS_DONE, rc);
 
-    std::ifstream delta(delta_path.c_str());
-    hasher::digest_rc drc = hasher::instance()->hex_digest(delta);
-    delta.close();
-    ASSERT_EQ(delta_checksum, drc.digest);
+    ASSERT_EQ(delta_checksum, hasher::instance()->hex_digest(delta_path).digest);
   }
 
   TEST_F(delta_encoder_test, target_patching) {
@@ -110,11 +105,7 @@ namespace kzh {
     ASSERT_NO_THROW(rc = encoder_.patch(archive_011.c_str(), delta_path.c_str(), target_path.c_str()));
     ASSERT_EQ(RS_DONE, rc);
 
-    std::ifstream target(target_path.c_str());
-    hasher::digest_rc drc = hasher::instance()->hex_digest(target);
-    target.close();
-
-    ASSERT_EQ(target_checksum, drc.digest);
+    ASSERT_EQ(target_checksum, hasher::instance()->hex_digest(target_path).digest);
   }
 
 } // namespace kzh

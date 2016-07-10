@@ -28,7 +28,7 @@ namespace kzh {
     );
 
     EXPECT_EQ(
-      subject.get_root_path().string() + "/.kzh/cache",
+      path_t(subject.get_root_path() / ".kzh/cache").make_preferred().string(),
       subject.get_cache_path().string()
     );
   }
@@ -41,7 +41,7 @@ namespace kzh {
     EXPECT_EQ( "tmp_path", subject.get_root_path().filename() );
     EXPECT_EQ(
       path_t("./tmp_path/.kzh/cache").make_preferred().string(),
-      subject.get_cache_path().string()
+      path_t(subject.get_cache_path()).make_preferred().string()
     );
   }
 }

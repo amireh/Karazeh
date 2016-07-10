@@ -1,29 +1,21 @@
-/*
- *  Copyright (C) 1999, 2000, 2001 by Martin Pool <mbp@samba.org>,
- *                2011-2012 Ahmad Amireh <ahmad@amireh.net>
+/**
+ * karazeh -- the library for patching software
  *
- *  This implementation was adapted from librsync:
- *    librsync -- the library for network deltas
- *    Website: http://librsync.sourceforge.net/
+ * Copyright (C) 2011-2016 by Ahmad Amireh <ahmad@amireh.net>
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"),
- *  to deal in the Software without restriction, including without limitation
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
- *  and/or sell copies of the Software, and to permit persons to whom the
- *  Software is furnished to do so, subject to the following conditions:
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
- *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #ifndef H_KARAZEH_DELTA_ENCODER_H
@@ -35,8 +27,8 @@
 #include "karazeh_export.h"
 
 extern "C" {
-  #include "librsync-0.9.7/librsync.h"
-  #include "librsync-0.9.7/fileutil.h"
+  #include "librsync-2.0.0/src/librsync.h"
+  #include "librsync-2.0.0/src/fileutil.h"
 }
 
 namespace kzh {

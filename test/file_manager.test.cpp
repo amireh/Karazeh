@@ -29,7 +29,7 @@ namespace kzh {
   }
 
   TEST_F(file_manager_test, checking_directory_read_permissions) {
-    fs::path p(test_config.fixture_path / "permissions/readable_dir");
+    path_t p(test_config.fixture_path / "permissions/readable_dir");
 
     ASSERT_TRUE(subject->is_readable(p));
   }
@@ -39,27 +39,33 @@ namespace kzh {
   }
 
   TEST_F(file_manager_test, removing_unwritable_file) {
-    fs::path p(test_config.fixture_path / "permissions/unwritable_dir/unwritable_file.txt");
-    ASSERT_THROW(fs::remove(p), fs::filesystem_error);
+    path_t p(test_config.fixture_path / "permissions/unwritable_dir/unwritable_file.txt");
+
+    ASSERT_FALSE(subject->remove_file(p));
   }
 
   TEST_F(file_manager_test, removing_unwritable_directory) {
     path_t path(test_config.fixture_path / "permissions/unwritable_dir/unwritable_empty_dir");
-    ASSERT_THROW(fs::exists(path), fs::filesystem_error);
-    ASSERT_THROW(fs::remove_all(path), fs::filesystem_error);
+
+    ASSERT_FALSE(subject->create_directory(path));
   }
 
   TEST_F(file_manager_test, creating_directories) {
-    fs::path p(test_config.fixture_path / "permissions/readable_dir");
-    ASSERT_TRUE(fs::exists(p));
-    ASSERT_TRUE(fs::is_directory(p));
+    path_t p(test_config.fixture_path / "permissions/readable_dir");
+
+    ASSERT_TRUE(subject->exists(p));
+    ASSERT_TRUE(subject->is_writable(p));
 
     ASSERT_TRUE(subject->create_directory(p / "created_by_kzh_test"));
-    ASSERT_TRUE(fs::remove_all(p / "created_by_kzh_test"));
+    ASSERT_TRUE(subject->remove_directory(p / "created_by_kzh_test"));
+  }
 
-    p = fs::path(test_config.fixture_path / "permissions/unwritable_dir");
+  TEST_F(file_manager_test, creating_directories_inside_unwritable_directory) {
+    path_t p(test_config.fixture_path / "permissions/unwritable_dir");
+
+    ASSERT_FALSE(subject->is_writable(p));
     ASSERT_FALSE(subject->create_directory(p / "created_by_kzh_test"));
-    ASSERT_THROW(fs::exists(p / "created_by_kzh_test"), fs::filesystem_error);
+    ASSERT_FALSE(subject->exists(p / "created_by_kzh_test"));
   }
 
   TEST_F(file_manager_test, loading_a_local_file_from_stream) {

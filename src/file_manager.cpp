@@ -210,4 +210,43 @@ namespace kzh {
 
     return size;
   }
+
+  bool file_manager::remove_file(const path_t& path) const {
+    if (!is_writable(path)) {
+      return false;
+    }
+
+    try {
+      fs::remove(path);
+    }
+    catch (fs::filesystem_error &e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool file_manager::remove_directory(const path_t& path) const {
+    if (!is_readable(path)) {
+      return false;
+    }
+
+    try {
+      fs::remove_all(path);
+    }
+    catch (fs::filesystem_error &e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool file_manager::exists(const path_t& path) const {
+    try {
+      return fs::exists(path);
+    }
+    catch (fs::filesystem_error &e) {
+      return false;
+    }
+  }
 }
