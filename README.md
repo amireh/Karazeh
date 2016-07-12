@@ -40,7 +40,7 @@ darkhttpd /path/to/karazeh/test/fixture --port 9393
 Afterwards, run the binary:
 
 ```bash
-./karazeh_unit_tests
+./karazeh_tests
 ```
 
 The test runner can be customized using some environment variables:
