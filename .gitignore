@@ -1,5 +1,4 @@
 # build artifacts
-/bin
 /build
 /deps/*/build
 /deps/*/lib

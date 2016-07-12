@@ -13,6 +13,14 @@ using namespace fakeit;
 
 namespace fs = boost::filesystem;
 
+#define STUB_MOVE ConstOverloadedMethod(spy, move, bool(path_t const&, path_t const&))
+#define STUB_REMOVE_FILE ConstOverloadedMethod(spy, remove_file, bool(path_t const&))
+#define STUB_REMOVE_DIRECTORY ConstOverloadedMethod(spy, remove_directory, bool(path_t const&))
+#define STUB_MAKE_EXECUTABLE ConstOverloadedMethod(spy, make_executable, bool(path_t const&))
+#define STUB_IS_READABLE ConstOverloadedMethod(spy, is_readable, bool(path_t const&))
+#define STUB_IS_WRITABLE ConstOverloadedMethod(spy, is_writable, bool(path_t const&))
+#define STUB_HEX_DIGEST ConstOverloadedMethod(hasherSpy, hex_digest, hasher::digest_rc(const path_t&))
+
 TEST_CASE("create_operation") {
   config_t          config_(kzh::sample_config);
   file_manager      file_manager_;
@@ -111,11 +119,9 @@ TEST_CASE("create_operation") {
 
     WHEN("The destination is occupied") {
       Mock<file_manager> spy(file_manager_);
-      When(ConstOverloadedMethod(spy, is_readable, bool(path_t const&)))
-        .AlwaysDo([&](const path_t &path) {
-          return path == destPath;
-        })
-      ;
+      When(STUB_IS_READABLE).AlwaysDo([&](const path_t &path) {
+        return path == destPath;
+      });
 
       THEN("It aborts") {
         REQUIRE(subject.deploy() == STAGE_FILE_EXISTS);
@@ -124,11 +130,9 @@ TEST_CASE("create_operation") {
 
     WHEN("The destination is not writable") {
       Mock<file_manager> spy(file_manager_);
-      When(ConstOverloadedMethod(spy, is_writable, bool(path_t const&)))
-        .AlwaysDo([&](const path_t &path) {
-          return path == destPath ? false : true;
-        })
-      ;
+      When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
+        return path != destPath;
+      });
 
       THEN("It aborts") {
         REQUIRE(subject.deploy() == STAGE_UNAUTHORIZED);
@@ -137,11 +141,9 @@ TEST_CASE("create_operation") {
 
     WHEN("The cache source is not writable") {
       Mock<file_manager> spy(file_manager_);
-      When(ConstOverloadedMethod(spy, is_writable, bool(path_t const&)))
-        .AlwaysDo([&](const path_t &path) {
-          return path == cachePath ? false : true;
-        })
-      ;
+      When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
+        return path != cachePath;
+      });
 
       THEN("It aborts") {
         REQUIRE(subject.deploy() == STAGE_UNAUTHORIZED);
@@ -165,14 +167,100 @@ TEST_CASE("create_operation") {
       subject.is_executable = true;
 
       Mock<file_manager> spy(file_manager_);
-      Fake(ConstOverloadedMethod(spy, make_executable, bool(path_t const&)));
+      Fake(STUB_MAKE_EXECUTABLE);
 
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It sets the executable bit") {
-        Verify(ConstOverloadedMethod(spy, make_executable, bool(path_t const&)))
+        Verify(STUB_MAKE_EXECUTABLE)
           .Exactly(Once)
         ;
+      }
+    }
+  }
+
+  SECTION("Rolling back") {
+    const path_t cachePath(config_.cache_path / manifest_.checksum / subject.dst_path);
+    const path_t destPath(config_.root_path / subject.dst_path);
+
+    WHEN("It has been staged") {
+      REQUIRE(subject.stage() == STAGE_OK);
+
+      THEN("It removes the directory it has created") {
+        Mock<file_manager> spy(file_manager_);
+        Fake(STUB_REMOVE_DIRECTORY);
+
+        subject.rollback();
+
+        Verify(STUB_REMOVE_DIRECTORY).Exactly(Once);
+      }
+    }
+
+    WHEN("It has been deployed") {
+      REQUIRE(subject.stage() == STAGE_OK);
+      REQUIRE(subject.deploy() == STAGE_OK);
+
+      THEN("It moves the file back into staging") {
+        Mock<file_manager> spy(file_manager_);
+        Fake(STUB_MOVE);
+
+        subject.rollback();
+
+        Verify(STUB_MOVE).Exactly(1);
+      }
+    }
+
+    WHEN("It has neither been staged nor deployed") {
+      Mock<file_manager> spy(file_manager_);
+
+      Fake(STUB_MOVE);
+      Fake(STUB_REMOVE_DIRECTORY);
+
+      THEN("It does nothing") {
+        subject.rollback();
+
+        Verify(STUB_MOVE).Exactly(0);
+        Verify(STUB_REMOVE_DIRECTORY).Exactly(0);
+      }
+    }
+  }
+
+  SECTION("Committing") {
+    WHEN("It has been deployed") {
+      THEN("It does nothing") {}
+    }
+
+    WHEN("It has been rolled-back") {
+      Mock<file_manager> spy(file_manager_);
+      Fake(STUB_REMOVE_FILE);
+
+      REQUIRE(subject.stage() == STAGE_OK);
+      REQUIRE(subject.deploy() == STAGE_OK);
+
+      subject.rollback();
+
+      THEN("It removes the staged file") {
+        subject.commit();
+
+        Verify(STUB_REMOVE_FILE).Exactly(1);
+      }
+
+      THEN("It does not remove the staged file if it finds the checksum not to match") {
+        Mock<md5_hasher> hasherSpy;
+        config_.hasher = &hasherSpy.get();
+
+        When(STUB_HEX_DIGEST).AlwaysDo([&](const path_t&) {
+          hasher::digest_rc rc;
+
+          rc.valid = true;
+          rc.digest = "asdf";
+
+          return rc;
+        });
+
+        subject.commit();
+
+        Verify(STUB_REMOVE_FILE).Exactly(0);
       }
     }
   }
@@ -180,3 +268,11 @@ TEST_CASE("create_operation") {
   fs::remove_all(sample_config.cache_path / "CreateOperationTest");
   fs::remove_all(test_config.fixture_path / "CreateOperationTest");
 }
+
+#undef STUB_MOVE
+#undef STUB_REMOVE_FILE
+#undef STUB_REMOVE_DIRECTORY
+#undef STUB_MAKE_EXECUTABLE
+#undef STUB_IS_READABLE
+#undef STUB_IS_WRITABLE
+#undef STUB_HEX_DIGEST

@@ -158,6 +158,11 @@ namespace kzh {
     return false;
   }
 
+  bool file_manager::is_empty(path_t const& path) const
+  {
+    return fs::is_empty(path);
+  }
+
   bool file_manager::is_writable(path_t const& resource) const
   {
     return is_writable(path_t(resource).make_preferred().string());
@@ -271,6 +276,22 @@ namespace kzh {
       return fs::exists(path);
     }
     catch (fs::filesystem_error &e) {
+      return false;
+    }
+  }
+
+  bool file_manager::move(path_t const& src, path_t const& dst) const {
+    if (exists(src) && !exists(dst)) {
+      try {
+        fs::rename(src, dst);
+
+        return true;
+      }
+      catch (fs::filesystem_error) {
+        return false;
+      }
+    }
+    else {
       return false;
     }
   }

@@ -51,6 +51,7 @@ namespace kzh {
     virtual STAGE_RC stage();
     virtual STAGE_RC deploy();
     virtual void rollback();
+    virtual void commit();
 
     virtual string_t tostring();
 
@@ -61,6 +62,9 @@ namespace kzh {
     bool      is_executable;
 
     void marked_for_deletion();
+  protected:
+    bool has_deployed() const;
+    path_t get_destination() const;
 
   private:
     path_t dst_dir_;
@@ -68,7 +72,6 @@ namespace kzh {
     path_t cache_path_;
 
     bool created_directory_;
-    bool created_;
     bool marked_for_deletion_;
   };
 

@@ -32,7 +32,6 @@ namespace kzh {
   : operation(config, file_manager, downloader, rm),
     logger("op_create"),
     created_directory_(false),
-    created_(false),
     marked_for_deletion_(false),
     is_executable(false)
   {
@@ -104,8 +103,6 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::deploy() {
-    using fs::rename;
-
     // Make sure the destination is free
     if (file_manager_.is_readable(config_.root_path / dst_path)) {
       error() << "Destination is occupied: " << dst_path;
@@ -126,8 +123,7 @@ namespace kzh {
 
     // Move the staged file to the destination
     info() << "Creating " << config_.root_path / dst_path;
-    rename(cache_path_, config_.root_path / dst_path);
-    created_ = true;
+    file_manager_.move(cache_path_, config_.root_path / dst_path);
 
     // validate integrity
     std::ifstream fh((config_.root_path / dst_path).string().c_str());
@@ -148,24 +144,34 @@ namespace kzh {
   }
 
   void create_operation::rollback() {
-    using fs::is_empty;
-    using fs::remove;
-
-    if (created_) {
-      remove(config_.root_path / dst_path);
+    if (has_deployed()) {
+      file_manager_.move(get_destination(), cache_path_);
     }
 
     // If we were responsible for creating the directory of our dst_path
     // we need to remove it and all its ancestors if they're empty
+    //
+    // TODO: this might be better done by keeping track of it in the
+    // cache so that the rollback becomes idempotent cross-runs
     if (created_directory_) {
-      path_t curr_dir = dst_dir_;
-      while (is_empty(curr_dir)) {
-        remove(curr_dir);
-        curr_dir = curr_dir.parent_path();
+      path_t dir = dst_dir_;
+
+      while (file_manager_.is_empty(dir)) {
+        file_manager_.remove_directory(dir);
+        dir = dir.parent_path();
       }
     }
+  }
 
-    return;
+  void create_operation::commit() {
+    // in case of roll back, the source file will still be staged in the cache
+    if (
+      file_manager_.exists(cache_path_) &&
+      // just to be safe, double-check it's our own file!
+      config_.hasher->hex_digest(cache_path_) == src_checksum
+    ) {
+      file_manager_.remove_file(cache_path_);
+    }
   }
 
   string_t create_operation::tostring() {
@@ -175,5 +181,18 @@ namespace kzh {
       << " checksum[" << this->src_checksum << ']'
       << " size[" << this->src_size << ']';
     return s.str();
+  }
+
+  bool create_operation::has_deployed() const {
+    const path_t &destination = get_destination();
+
+    return (
+      file_manager_.exists(destination) &&
+      config_.hasher->hex_digest(destination) == src_checksum
+    );
+  }
+
+  path_t create_operation::get_destination() const {
+    return config_.root_path / dst_path;
   }
 }

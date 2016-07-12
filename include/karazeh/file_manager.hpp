@@ -48,6 +48,7 @@ namespace kzh {
 
     virtual bool exists(path_t const&) const;
 
+    virtual bool is_empty(path_t const&) const;
     virtual bool is_directory(path_t const&) const;
 
     /** Checks if the resource at the given path exists, is a file, and is readable. */
@@ -57,6 +58,8 @@ namespace kzh {
     /** Checks if the resource at the given path exists, is a file, and is writable. */
     virtual bool is_writable(path_t const &path) const;
     virtual bool is_writable(string_t const &path) const;
+
+    virtual bool move(path_t const&, path_t const&) const;
 
     /**
      * Creates a directory indicated by the given path,

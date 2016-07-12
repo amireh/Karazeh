@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+$(which fswatch &> /dev/null) || {
+  echo "fswatch must be installed."
+  exit 1
+}
+
+if [ -z "${CONCURRENCY}" ]; then
+  CONCURRENCY=3
+fi
+
+function run {
+  (cd build; make -j${CONCURRENCY}) && ./build/karazeh_tests $@
+}
+
+fswatch \
+  -v -r --exclude="fixture" --format="%p" \
+  -m kqueue_monitor \
+  src test include |
+  while read; do run; done
