@@ -78,26 +78,31 @@ namespace kzh {
 
     path fp(resource);
 
-    if (exists(fp)) {
-      if (is_directory(fp)) {
-        try {
-          for (fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
-            break;
-          }
+    try {
+      if (exists(fp)) {
+        if (is_directory(fp)) {
+          try {
+            for (fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
+              break;
+            }
 
-          return true;
+            return true;
+          }
+          catch (fs::filesystem_error& e) {
+            error() << e.what();
+            return false;
+          }
         }
-        catch (fs::filesystem_error& e) {
-          error() << e.what();
-          return false;
+        else {
+          std::ifstream fs(resource.c_str());
+          bool readable = fs.is_open() && fs.good();
+          fs.close();
+          return is_regular_file(fp) && readable;
         }
       }
-      else {
-        std::ifstream fs(resource.c_str());
-        bool readable = fs.is_open() && fs.good();
-        fs.close();
-        return is_regular_file(fp) && readable;
-      }
+    }
+    catch (fs::filesystem_error &e) {
+      return false;
     }
 
     return false;
@@ -116,6 +121,7 @@ namespace kzh {
 
     try {
       path fp(resource);
+
       if (exists(fp)) {
 
         if (is_directory(fp)) {
@@ -143,7 +149,8 @@ namespace kzh {
 
         return writable;
       }
-    } catch (...) {
+    }
+    catch (fs::filesystem_error &e) {
       // something bad happened, it is most likely unwritable
       return false;
     }

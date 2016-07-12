@@ -37,26 +37,26 @@ namespace kzh {
     virtual ~file_manager();
 
     /** Loads the content of a file stream into memory */
-    bool load_file(std::ifstream &fs, string_t& out_buf) const;
+    virtual bool load_file(std::ifstream &fs, string_t& out_buf) const;
 
     /** Loads the content of a file found at @path into memory */
-    bool load_file(string_t const& path, string_t& out_buf) const;
-    bool load_file(path_t const& path, string_t& out_buf) const;
+    virtual bool load_file(string_t const& path, string_t& out_buf) const;
+    virtual bool load_file(path_t const& path, string_t& out_buf) const;
 
-    bool remove_file(path_t const&) const;
-    bool remove_directory(path_t const&) const;
+    virtual bool remove_file(path_t const&) const;
+    virtual bool remove_directory(path_t const&) const;
 
-    bool exists(path_t const&) const;
+    virtual bool exists(path_t const&) const;
 
-    bool is_directory(path_t const&) const;
+    virtual bool is_directory(path_t const&) const;
 
     /** Checks if the resource at the given path exists, is a file, and is readable. */
-    bool is_readable(path_t const &path) const;
-    bool is_readable(string_t const &path) const;
+    virtual bool is_readable(path_t const &path) const;
+    virtual bool is_readable(string_t const &path) const;
 
     /** Checks if the resource at the given path exists, is a file, and is writable. */
-    bool is_writable(path_t const &path) const;
-    bool is_writable(string_t const &path) const;
+    virtual bool is_writable(path_t const &path) const;
+    virtual bool is_writable(string_t const &path) const;
 
     /**
      * Creates a directory indicated by the given path,
@@ -65,8 +65,8 @@ namespace kzh {
      * Returns false if the directories couldn't be created, and the cause
      * will be logged.
      */
-    bool create_directory(path_t const& path) const;
-    bool ensure_directory(path_t const& path) const;
+    virtual bool create_directory(path_t const& path) const;
+    virtual bool ensure_directory(path_t const& path) const;
 
     /**
      * Enables the executable permission flag for systems that support it.
@@ -75,10 +75,10 @@ namespace kzh {
      *
      * Returns false if the permissions couldn't be modified.
      */
-    bool make_executable(path_t const&) const;
+    virtual bool make_executable(path_t const&) const;
 
-    uint64_t stat_filesize(path_t const&) const;
-    uint64_t stat_filesize(std::ifstream&) const;
+    virtual uint64_t stat_filesize(path_t const&) const;
+    virtual uint64_t stat_filesize(std::ifstream&) const;
   };
 
 } // end of namespace kzh

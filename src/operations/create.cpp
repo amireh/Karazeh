@@ -140,6 +140,7 @@ namespace kzh {
     }
 
     if (is_executable) {
+      std::cout << "MARKING EXECUTABLE!\n";
       file_manager_.make_executable(config_.root_path / dst_path);
     }
 
