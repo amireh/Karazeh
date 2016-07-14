@@ -18,6 +18,7 @@ ADD_EXECUTABLE(${PROJECT_NAME}_tests
   ../src/__tests__/file_manager.test.cpp
   ../src/__tests__/patcher.test.cpp
   ../src/__tests__/path_resolver.test.cpp
+  ../src/__tests__/version_manifest.test.cpp
   main.cpp
 )
 

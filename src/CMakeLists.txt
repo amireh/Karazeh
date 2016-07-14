@@ -33,10 +33,13 @@ SET(Karazeh_SRCS
   ../include/karazeh/patcher.hpp
   ../include/karazeh/path_resolver.hpp
   ../include/karazeh/release_manifest.hpp
+  ../include/karazeh/version_manifest.hpp
   ../include/karazeh/utility.hpp
 
   ../deps/tinyxml2/tinyxml2.h
   ../deps/tinyxml2/tinyxml2.cpp
+  ../deps/json11/json11.hpp
+  ../deps/json11/json11.cpp
   ../deps/md5/md5.hpp
   ../deps/md5/md5.cpp
   ../deps/binreloc/binreloc.h
@@ -54,6 +57,7 @@ SET(Karazeh_SRCS
   patcher.cpp
   path_resolver.cpp
   release_manifest.cpp
+  version_manifest.cpp
 )
 
 # generate library

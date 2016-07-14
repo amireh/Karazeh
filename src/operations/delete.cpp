@@ -19,6 +19,7 @@
  */
 
 #include "karazeh/operations/delete.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -27,7 +28,7 @@ namespace kzh {
     config_t const& config,
     file_manager const& file_manager,
     downloader const& downloader,
-    release_manifest& rm
+    release_manifest const& rm
   )
   : operation(config, file_manager, downloader, rm),
     logger("op_delete"),
@@ -40,7 +41,7 @@ namespace kzh {
 
   STAGE_RC delete_operation::stage() {
     dst_dir_ = (config_.root_path / dst_path).parent_path();
-    cache_path_ = config_.cache_path / rm_.checksum / "deleted" / dst_path;
+    cache_path_ = config_.cache_path / rm_.id / "deleted" / dst_path;
     cache_dir_ = cache_path_.parent_path();
 
     indent();

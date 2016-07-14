@@ -1,0 +1,59 @@
+{
+  "releases": [
+    {
+      "id": "ebb5dcbf784e0ef2fe6c37dae8d52722",
+      "tag": "0.1.1",
+      "operations": [
+        {
+          "type": "create",
+          "source": {
+            "url": "/0.1.1/data/media/materials/programs/celshader.cg",
+            "checksum": "3858f62230ac3c915f300c664312c63f",
+            "size": 6
+          },
+
+          "destination": "/data/media/materials/programs/celshader.cg"
+        },
+
+        {
+          "type": "delete",
+          "target": "/bin/test"
+        },
+
+        {
+          "type": "create",
+          "source": {
+            "url": "/0.1.1/bin/test",
+            "checksum": "12ef352ba60230160b94ac1993f12144",
+            "size": 6653
+          },
+
+          "destination": "/bin/test",
+          "flags": {
+            "executable": true
+          }
+        },
+
+        {
+          "type": "delete",
+          "target": "/data/scripts/foo"
+        },
+
+        {
+          "type": "delete",
+          "target": "/data/scripts/bar"
+        },
+
+        {
+          "type": "create",
+          "source": {
+            "url": "/0.1.1/data/common.tar",
+            "checksum": "427fbbb5a80b517719defe07f7545686",
+            "size": 1126635520
+          },
+          "destination": "/data/common.tar"
+        }
+      ]
+    }
+  ]
+}

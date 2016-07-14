@@ -19,6 +19,7 @@
  */
 
 #include "karazeh/operations/update.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -27,7 +28,7 @@ namespace kzh {
     config_t const& config,
     file_manager const& file_manager,
     downloader const& downloader,
-    release_manifest& rm
+    release_manifest const& rm
   )
   : operation(config, file_manager, downloader, rm),
     logger("op_update"),
@@ -47,7 +48,7 @@ namespace kzh {
 
   STAGE_RC update_operation::stage() {
     basis_path_     = (config_.root_path / basis).make_preferred();
-    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).make_preferred().parent_path();
+    cache_dir_      = path_t(config_.cache_path / rm_.id / basis).make_preferred().parent_path();
     signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
     delta_path_     = (cache_dir_ / basis).make_preferred().filename().string() + ".delta";
     patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";

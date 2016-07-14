@@ -19,6 +19,7 @@
  */
 
 #include "karazeh/operations/create.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
@@ -27,7 +28,7 @@ namespace kzh {
     config_t const& config,
     file_manager const& file_manager,
     downloader const& downloader,
-    release_manifest& rm
+    release_manifest const& rm
   )
   : operation(config, file_manager, downloader, rm),
     logger("op_create"),
@@ -45,7 +46,7 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::stage() {
-    cache_path_ = path_t(config_.cache_path / rm_.checksum / dst_path);
+    cache_path_ = path_t(config_.cache_path / rm_.id / dst_path);
     cache_dir_ = cache_path_.parent_path();
     dst_dir_ = (config_.root_path / dst_path).parent_path();
 

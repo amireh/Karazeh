@@ -24,10 +24,10 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 #include "karazeh/downloader.hpp"
-#include "karazeh/release_manifest.hpp"
 #include "karazeh_export.h"
 
 namespace kzh {
+  struct release_manifest;
 
   enum STAGE_RC {
     STAGE_OK = 0,
@@ -52,7 +52,7 @@ namespace kzh {
       config_t const& config,
       file_manager const& fmgr,
       downloader const& downloader,
-      release_manifest& rm
+      release_manifest const& rm
     )
     : config_(config),
       file_manager_(fmgr),
@@ -114,7 +114,7 @@ namespace kzh {
     config_t const& config_;
     file_manager const& file_manager_;
     downloader const &downloader_;
-    release_manifest &rm_;
+    release_manifest const&rm_;
   };
 
 } // end of namespace kzh

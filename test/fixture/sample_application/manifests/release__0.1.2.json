@@ -1,0 +1,55 @@
+{
+  "releases": [
+    {
+      "id": "f265230773c54396fbf4da894127cfa8",
+      "tag": "0.1.2",
+      "operations": [
+        {
+          "type": "create",
+          "source": {
+            "url": "/0.1.2/data/media/materials/scripts/skies.material",
+            "checksum": "3ba3d3767c9c8768f449c3cbfe559796",
+            "size": 221
+          },
+
+          "destination": "/data/media/materials/scripts/skies.material"
+        },
+
+        {
+          "type": "delete",
+          "target": "/bin/test"
+        },
+
+        {
+          "type": "create",
+          "source": {
+            "url": "/0.1.2/bin/test",
+            "checksum": "ec5656da77dfaa00e2de49eeb17067ea",
+            "size": 6653
+          },
+
+          "destination": "/bin/test",
+
+          "flags": {
+            "executable": true
+          }
+        },
+
+        {
+          "type": "update",
+          "basis": {
+            "pre_checksum": "427fbbb5a80b517719defe07f7545686",
+            "post_checksum": "72eda360361e155ad8eabd07f07fa017",
+            "filepath": "/data/common.tar"
+          },
+
+          "delta": {
+            "checksum": "b02c5026a9e24d0cdefa19641077ca91",
+            "size": 60058,
+            "url": "/patch_v0.1.1-v0.1.2/data_common.tar.delta"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "identities": [
+    {
+      "name": "Base",
+      "files": [
+        "bin/test"
+      ]
+    }
+  ],
+
+  "releases": [
+    {
+      "identity": "Base",
+      "id": "bae3d8f9b767a12336768dacf72cb0de",
+      "tag": "0.1.0"
+    },
+
+    {
+      "identity": "Base",
+      "id": "ebb5dcbf784e0ef2fe6c37dae8d52722",
+      "head": "bae3d8f9b767a12336768dacf72cb0de",
+      "tag": "0.1.1",
+      "uri": "/manifests/release__0.1.1.json"
+    },
+
+    {
+      "identity": "Base",
+      "id": "f265230773c54396fbf4da894127cfa8",
+      "head": "ebb5dcbf784e0ef2fe6c37dae8d52722",
+      "tag": "0.1.2",
+      "uri": "/manifests/release__0.1.2.json"
+    }
+  ]
+}

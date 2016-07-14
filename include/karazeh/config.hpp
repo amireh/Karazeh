@@ -22,15 +22,20 @@
 #define H_KARAZEH_CONFIG_H
 
 #include "karazeh/karazeh.hpp"
-#include "karazeh/hasher.hpp"
 #include "karazeh_export.h"
 
 namespace kzh {
+  class downloader;
+  class file_manager;
+  class hasher;
+
   typedef struct KARAZEH_EXPORT {
     string_t host;
     path_t root_path;
     path_t cache_path;
     kzh::hasher const* hasher;
+    kzh::downloader const* downloader;
+    kzh::file_manager const* file_manager;
     bool verbose;
   } config_t;
 

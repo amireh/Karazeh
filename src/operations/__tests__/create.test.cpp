@@ -30,7 +30,7 @@ TEST_CASE("create_operation") {
 
   downloader_.set_retry_count(0);
 
-  manifest_.checksum = "somethingsomething";
+  manifest_.id = "somethingsomething";
 
   create_operation subject(
     config_,
@@ -50,7 +50,7 @@ TEST_CASE("create_operation") {
         REQUIRE(subject.stage() == STAGE_OK);
 
         REQUIRE(file_manager_.exists(
-          (config_.cache_path / manifest_.checksum / subject.dst_path).parent_path()
+          (config_.cache_path / manifest_.id / subject.dst_path).parent_path()
         ));
       }
     }
@@ -112,7 +112,7 @@ TEST_CASE("create_operation") {
   } // Staging
 
   SECTION("Deploying") {
-    const path_t cachePath(config_.cache_path / manifest_.checksum / subject.dst_path);
+    const path_t cachePath(config_.cache_path / manifest_.id / subject.dst_path);
     const path_t destPath(config_.root_path / subject.dst_path);
 
     REQUIRE(subject.stage() == STAGE_OK);
@@ -180,7 +180,7 @@ TEST_CASE("create_operation") {
   }
 
   SECTION("Rolling back") {
-    const path_t cachePath(config_.cache_path / manifest_.checksum / subject.dst_path);
+    const path_t cachePath(config_.cache_path / manifest_.id / subject.dst_path);
     const path_t destPath(config_.root_path / subject.dst_path);
 
     WHEN("It has been staged") {

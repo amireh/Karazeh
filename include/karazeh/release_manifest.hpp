@@ -21,19 +21,34 @@
 #ifndef H_KARAZEH_RELEASE_MANIFEST_H
 #define H_KARAZEH_RELEASE_MANIFEST_H
 
-#include "karazeh/karazeh.hpp"
+#include <vector>
 #include "karazeh_export.h"
+#include "karazeh/karazeh.hpp"
+#include "karazeh/operation.hpp"
 
 namespace kzh {
   typedef string_t identity_t;
 
   struct KARAZEH_EXPORT release_manifest {
-    identity_t  checksum;
-    string_t    tag;
-    string_t    uri;
+    inline release_manifest() {};
+    inline ~release_manifest() {
+      while (!operations.empty()) {
+        delete operations.back();
 
-    string_t tostring() const;
-    friend std::ostream& operator<<(std::ostream&, release_manifest*);
+        operations.pop_back();
+      }
+    };
+
+    release_manifest(const release_manifest&) = delete;
+    release_manifest& operator=(const release_manifest &) = delete;
+
+    string_t id;
+    string_t head;
+    string_t identity;
+    string_t tag;
+    string_t uri;
+
+    std::vector<operation*> operations;
   };
 
 } // end of namespace kzh
