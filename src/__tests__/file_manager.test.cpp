@@ -18,9 +18,7 @@ TEST_CASE("FileManager") {
   }
 
   SECTION("checking_directory_read_permissions") {
-    path_t p(test_config.fixture_path / "permissions/readable_dir");
-
-    REQUIRE(subject.is_readable(p));
+    REQUIRE(subject.is_readable(test_config.fixture_path / "permissions/readable_dir"));
   }
 
   SECTION("checking_directory_write_permissions") {

@@ -112,6 +112,32 @@ namespace kzh {
   }
 
   void
+  version_manifest::load_release_from_string(string_t const& json_string) {
+    string_t err;
+
+    JSON manifest = JSON::parse(json_string, err);
+
+    if (!err.empty()) {
+      throw invalid_manifest("JSON Parse error: " + err);
+    }
+
+    for (auto release_node : manifest["releases"].array_items()) {
+      parse_release(release_node);
+    }
+  }
+
+  void
+  version_manifest::load_release_from_uri(string_t const& uri) {
+    string_t buffer;
+
+    if (!config_.downloader->fetch(uri, buffer)) {
+      throw invalid_resource(uri);
+    }
+
+    load_release_from_string(buffer);
+  }
+
+  void
   version_manifest::parse(JSON const& manifest) {
     const JSON::array &identity_list_nodes = manifest["identities"].array_items();
     const JSON::array &release_nodes = manifest["releases"].array_items();
@@ -162,50 +188,7 @@ namespace kzh {
 
   void
   version_manifest::parse_release(const JSON& manifest) {
-    const release_manifest *release = find_or_create_release(manifest);
-    const JSON::array &operation_nodes = manifest["operations"].array_items();
-
-    for (auto operation_node : operation_nodes) {
-
-    }
-
-    // XMLElement* op_node = release->FirstChildElement();
-    // while (op_node) {
-    //   using utility::tonumber;
-
-    //   debug() << op_node->Value();
-    //   if (strcmp(op_node->Value(), "create") == 0) {
-    //   } // <create>
-
-    //   else if (strcmp(op_node->Value(), "update") == 0) {
-
-    //     debug() << op->tostring();
-
-    //     patch.operations.push_back(op);
-
-    //   } // <update>
-    //   else if (strcmp(op_node->Value(), "rename") == 0) {
-    //     notice() << "rename operations are not yet implemented";
-    //   } // <rename>
-    //   else if (strcmp(op_node->Value(), "delete") == 0) {
-    //     // <delete> operations have a single node: <target>
-
-    //     ensure_has_child(op_node, "target");
-
-    //     // <target>PATH</target>
-    //     XMLElement *tgt_node = op_node->FirstChildElement("target");
-
-    //     delete_operation* op = new delete_operation(config_, file_manager_, downloader_, *next_update);
-    //     op->dst_path = tgt_node->GetText();
-
-    //     debug() << op->tostring();
-
-    //     patch.operations.push_back(op);
-    //     patch.marked_for_deletion.insert(std::make_pair(op->dst_path, true));
-    //   } // <delete>
-
-    //   op_node = op_node->NextSiblingElement();
-    // }
+    find_or_create_release(manifest);
   }
 
   int
@@ -292,7 +275,7 @@ namespace kzh {
     return update_list;
   }
 
-  release_manifest const*
+  release_manifest*
   version_manifest::find_or_create_release(JSON const& release_node) {
     // TODO: we need to relax this restriction if the release is to be loaded
     // from multiple sources!
@@ -344,7 +327,7 @@ namespace kzh {
       }
 
       for (auto operation_node : operation_nodes) {
-        operation *op = parse_operation(*release, operation_node);
+        operation *op = parse_operation(*release, release_node, operation_node);
 
         if (op != nullptr) {
           release->operations.push_back(op);
@@ -359,15 +342,16 @@ namespace kzh {
       throw;
     }
 
-    releases_.push_back(release);
+    if (owned) {
+      releases_.push_back(release);
+    }
 
     return release;
   }
 
   operation*
-  version_manifest::parse_operation(release_manifest const& release, JSON const& operation_node) const {
+  version_manifest::parse_operation(release_manifest const& release, JSON const& releaes_node, JSON const& operation_node) const {
     const string_t &operation_type = operation_node["type"].string_value();
-
 
     if (operation_type == "create") {
       validate_schema(operation_node, SCHEMA_CREATE_OPERATION);
@@ -380,15 +364,30 @@ namespace kzh {
 
       op->src_uri = source_node["url"].string_value();
       op->src_checksum = source_node["checksum"].string_value();
-      op->src_size = source_node["size"].int_value();
+
+      if (source_node["size"].type() == JSON::NUMBER) {
+        op->src_size = source_node["size"].int_value();
+      }
+
       op->dst_path = operation_node["destination"].string_value();
       op->is_executable = operation_node["flags"]["executable"].bool_value();
 
-      // // TODO: offload this onto an external state, preferably something
-      // // serialized to disk so that we can share cross-runs
-      // if (patch.marked_for_deletion.find(op->dst_path) != patch.marked_for_deletion.end()) {
-      //   op->marked_for_deletion();
-      // }
+      // TODO: offload this onto an external state, preferably something
+      // serialized to disk so that we can share cross-runs
+      bool marked_for_deletion = false;
+
+      for (auto sibling_operation_node : releaes_node["operations"].array_items()) {
+        if (sibling_operation_node == operation_node) {
+          break;
+        }
+        else if (
+          sibling_operation_node["type"].string_value() == "delete" &&
+          sibling_operation_node["target"].string_value() == op->dst_path
+        )
+        {
+          op->marked_for_deletion();
+        }
+      }
 
       return op;
     }
@@ -404,7 +403,10 @@ namespace kzh {
       op->patched_checksum = operation_node["basis"]["post_checksum"].string_value();
       op->delta = operation_node["delta"]["url"].string_value();
       op->delta_checksum = operation_node["delta"]["checksum"].string_value();
-      op->delta_length = operation_node["delta"]["size"].int_value();
+
+      if (operation_node["delta"]["size"].type() == JSON::NUMBER) {
+        op->delta_length = operation_node["delta"]["size"].int_value();
+      }
 
       return op;
     }
@@ -416,8 +418,6 @@ namespace kzh {
       op->dst_path = operation_node["target"].string_value();
 
       return op;
-      // TODO: reenable
-      // patch.marked_for_deletion.insert(std::make_pair(op->dst_path, true));
     }
 
     return nullptr;

@@ -35,96 +35,66 @@ namespace kzh {
   patcher::~patcher() {
   }
 
-  bool patcher::apply_update(const release_manifest& release) {
-    // info() << "applying update: " << next_update;
+  STAGE_RC patcher::apply_update(const release_manifest& release) {
+    const path_t staging_path(config_.cache_path / release.id);
+    const auto rollback = [&](STAGE_RC rc) -> STAGE_RC {
+      // rollback any changes if the staging failed
+      info() << "Rolling back all changes.";
 
+      for (auto op : release.operations) {
+        op->rollback();
+      }
 
-    // Perform the staging step for all operations
-    // info() << "Staging...";
+      file_manager_.remove_directory(staging_path);
 
-    // // create the cache directory for this release
-    // file_manager_.create_directory(config_.cache_path / next_update->checksum);
+      return rc;
+    };
 
-    // bool staging_failure = false;
-    // for (operations_t::iterator op_itr = patch.operations.begin();
-    //   op_itr != patch.operations.end();
-    //   ++op_itr) {
+    info() << "Applying update: <<" << release.tag << ">>";
+    info() << "Update has " << release.operations.size() << " operations to be applied.";
+    info() << "Staging...";
 
-    //   STAGE_RC rc = (*op_itr)->stage();
-    //   if (rc != STAGE_OK) {
-    //     error() << "An operation failed to stage, patch will not be applied.";
-    //     error() << (*op_itr)->tostring();
-    //     debug() << "STAGE_RC: " << rc;
-    //     staging_failure = true;
-    //     break;
-    //   }
-    // }
+    // create the cache directory for this release
+    file_manager_.create_directory(staging_path);
 
-    // // TODO: an option to keep the data that has been downloaded would be nice
+    for (auto op : release.operations) {
+      STAGE_RC rc = op->stage();
 
-    // if (staging_failure) {
-    //   // rollback any changes if the staging failed
-    //   info() << "Rolling back all changes.";
+      if (rc != STAGE_OK) {
+        error() << "An operation failed to stage, patch will not be applied.";
+        error() << op->tostring();
+        debug() << "STAGE_RC: " << rc;
 
-    //   for (operations_t::iterator op_itr = patch.operations.begin();
-    //     op_itr != patch.operations.end();
-    //     ++op_itr)
-    //   {
-    //     (*op_itr)->rollback();
-    //   }
+        // TODO: an option to keep the data that has been downloaded would be nice
+        return rollback(rc);
+      }
+    }
 
-    //   fs::remove_all(config_.cache_path / next_update->checksum);
+    // Commit the patch
+    info() << "Deploying...";
 
-    //   return false;
-    // }
+    for (auto op : release.operations) {
+      STAGE_RC rc = op->deploy();
 
-    // // Commit the patch
-    // info() << "Comitting...";
+      if (rc != STAGE_OK) {
+        error() << "An operation failed to deploy, patch will not be applied.";
+        error() << op->tostring();
+        debug() << "STAGE_RC: " << rc;
 
-    // bool deploy_failure = false;
-    // for (operations_t::iterator op_itr = patch.operations.begin();
-    //   op_itr != patch.operations.end();
-    //   ++op_itr) {
+        return rollback(rc);
+      }
+    }
 
-    //   STAGE_RC rc = (*op_itr)->deploy();
-    //   if (rc != STAGE_OK) {
-    //     error() << "An operation failed to deploy, patch will not be applied.";
-    //     error() << (*op_itr)->tostring();
-    //     debug() << "STAGE_RC: " << rc;
-    //     deploy_failure = true;
-    //     break;
-    //   }
-    // }
+    info() << "All operations staged and deployed, now to clean artifacts...";
 
-    // if (deploy_failure) {
-    //   // rollback any changes if the deploy failed
-    //   info() << "Rolling back all changes.";
+    for (auto op : release.operations) {
+      op->commit();
+    }
 
-    //   for (operations_t::iterator op_itr = patch.operations.begin();
-    //     op_itr != patch.operations.end();
-    //     ++op_itr)
-    //   {
-    //     (*op_itr)->rollback();
-    //   }
+    file_manager_.remove_directory(staging_path);
 
-    //   fs::remove_all(config_.cache_path / next_update->checksum);
+    info() << "Patch applied successfully.";
 
-    //   return false;
-    // } else {
-    //   info() << "patch applied successfully, committing and purging the cache...";
-    //   // BOOST_FOREACH(operation* op, patch.operations) {
-    //   //   op->commit();
-    //   // }
-    //   for (operations_t::iterator op_itr = patch.operations.begin();
-    //     op_itr != patch.operations.end();
-    //     ++op_itr)
-    //   {
-    //     (*op_itr)->commit();
-    //   }
-
-    //   fs::remove_all(config_.cache_path / next_update->checksum);
-    // }
-
-    // return true;
+    return STAGE_OK;
   }
 }

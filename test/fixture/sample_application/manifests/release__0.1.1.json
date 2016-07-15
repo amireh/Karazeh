@@ -2,6 +2,7 @@
   "releases": [
     {
       "id": "ebb5dcbf784e0ef2fe6c37dae8d52722",
+      "identity": "Base",
       "tag": "0.1.1",
       "operations": [
         {
@@ -49,7 +50,7 @@
           "source": {
             "url": "/0.1.1/data/common.tar",
             "checksum": "427fbbb5a80b517719defe07f7545686",
-            "size": 1126635520
+            "size": 20480
           },
           "destination": "/data/common.tar"
         }

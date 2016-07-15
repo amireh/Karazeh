@@ -123,6 +123,7 @@ namespace kzh {
       char *tmp_bin_path = br_find_exe_dir(".");
       path_t bin_path = path_t(tmp_bin_path).make_preferred();
       free(tmp_bin_path);
+      br_free();
 
       return bin_path;
     #elif KZH_PLATFORM == KZH_PLATFORM_APPLE

@@ -187,11 +187,8 @@ namespace kzh {
             << " (got " << dl.size << " out of " << expected_size << " expected bytes)";
 
           if (config_.verbose) {
-            std::ifstream fh(path.string().c_str());
             string_t buf;
-            file_manager_.load_file(fh, buf);
-            debug() << "Contents (" << buf.size() << "): " << buf;
-            fh.close();
+            file_manager_.load_file(path, buf);
           }
         }
       } else {

@@ -1,3 +1,6 @@
+#ifndef H_KARAZEH_TEST_UTILS_H
+#define H_KARAZEH_TEST_UTILS_H
+
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 
@@ -10,4 +13,10 @@ namespace kzh {
 
   extern test_config_t test_config;
   extern config_t      sample_config;
+
+  namespace test_utils {
+    bool copy_directory(path_t const& source, path_t const& destination);
+  }
 }
+
+#endif

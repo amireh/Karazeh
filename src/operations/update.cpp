@@ -22,8 +22,6 @@
 #include "karazeh/release_manifest.hpp"
 
 namespace kzh {
-  namespace fs = boost::filesystem;
-
   update_operation::update_operation(
     config_t const& config,
     file_manager const& file_manager,
@@ -83,7 +81,7 @@ namespace kzh {
 
 
     // prepare our cache directory, if necessary
-    if (!fs::is_directory(cache_dir_)) {
+    if (!file_manager_.is_directory(cache_dir_)) {
       if (!file_manager_.create_directory(cache_dir_)) {
         error() << "Unable to create cache directory: " << cache_dir_;
         return STAGE_UNAUTHORIZED;
@@ -143,9 +141,11 @@ namespace kzh {
     // swap the files
     debug() << "Swapping files: " << basis_path_ << " & " << patched_path_;
 
-    fs::rename(patched_path_, path_t(patched_path_.string() + ".tmp"));
-    fs::rename(basis_path_, patched_path_);
-    fs::rename(path_t(patched_path_.string() + ".tmp"), basis_path_);
+    const path_t temp_path(path_t(patched_path_.string() + ".tmp").make_preferred());
+
+    file_manager_.move(patched_path_, temp_path);
+    file_manager_.move(basis_path_, patched_path_);
+    file_manager_.move(temp_path, basis_path_);
 
     patched_ = true;
 
@@ -153,19 +153,21 @@ namespace kzh {
   }
 
   void update_operation::rollback() {
+    auto file_manager = config_.file_manager;
+
     // make sure the basis still exists in cache
     if (patched_) {
 
-      if (!fs::exists(patched_path_)) {
+      if (!file_manager->exists(patched_path_)) {
         throw invalid_state("Basis no longer exists in cache, can not rollback!");
       }
 
       // the file should be there.. but just in case
-      if (fs::exists(basis_path_)) {
-        fs::remove(basis_path_);
+      if (file_manager->exists(basis_path_)) {
+        file_manager->remove_file(basis_path_);
       }
 
-      fs::rename(patched_path_, basis_path_);
+      file_manager->move(patched_path_, basis_path_);
     }
 
     cleanup();
@@ -176,14 +178,15 @@ namespace kzh {
   }
 
   void update_operation::cleanup() {
+    auto file_manager = config_.file_manager;
 
     // delete the delta patch
-    if (fs::exists(delta_path_)) {
-      fs::remove(delta_path_);
+    if (file_manager->exists(delta_path_)) {
+      file_manager->remove_file(delta_path_);
     }
 
-    if (fs::exists(signature_path_)) {
-      fs::remove(signature_path_);
+    if (file_manager->exists(signature_path_)) {
+      file_manager->remove_file(signature_path_);
     }
 
   }

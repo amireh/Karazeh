@@ -49,7 +49,11 @@ int main(int argc, char **argv) {
     std::cout << "Server host: " << kzh::test_config.server_host << "\n";
   }
 
+  curl_global_init(CURL_GLOBAL_ALL);
+
   result = Catch::Session().run( argc, argv );
+
+  curl_global_cleanup();
 
   file_manager.remove_directory(kzh::test_config.temp_path);
   file_manager.remove_directory(kzh::sample_config.cache_path.parent_path()); // the .kzh directory

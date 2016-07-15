@@ -2,6 +2,7 @@
   "releases": [
     {
       "id": "f265230773c54396fbf4da894127cfa8",
+      "identity": "Base",
       "tag": "0.1.2",
       "operations": [
         {

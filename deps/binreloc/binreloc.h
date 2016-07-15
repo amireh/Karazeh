@@ -39,6 +39,7 @@ typedef enum {
 	 */
 	#define br_init             Gjms10592817877212_br_init
 	#define br_init_lib         Gjms10592817877212_br_init_lib
+	#define br_free             Gjms10592817877212_br_free
 	#define br_find_exe         Gjms10592817877212_br_find_exe
 	#define br_find_exe_dir     Gjms10592817877212_br_find_exe_dir
 	#define br_find_prefix      Gjms10592817877212_br_find_prefix
@@ -56,7 +57,7 @@ typedef enum {
 
 int   br_init             (BrInitError *error);
 int   br_init_lib         (BrInitError *error);
-
+void  br_free             ();
 char *br_find_exe         (const char *default_exe);
 char *br_find_exe_dir     (const char *default_dir);
 char *br_find_prefix      (const char *default_prefix);

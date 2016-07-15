@@ -40,31 +40,33 @@ namespace kzh {
   }
 
   STAGE_RC delete_operation::stage() {
+    auto file_manager = config_.file_manager;
+
     dst_dir_ = (config_.root_path / dst_path).parent_path();
     cache_path_ = config_.cache_path / rm_.id / "deleted" / dst_path;
     cache_dir_ = cache_path_.parent_path();
+    const path_t source_path(config_.root_path / dst_path);
 
     indent();
       debug() << "Dst dir: " << dst_dir_;
       debug() << "Cache path: " << cache_path_;
-      debug() << "Cache dir: " << cache_dir_;
     deindent();
 
     // Make sure the destination exists
-    if (!fs::exists(config_.root_path / dst_path)) {
+    if (!file_manager->exists(source_path)) {
       error() << "Destination does not exist: " << dst_path;
 
       return STAGE_FILE_MISSING;
     }
 
     // Make sure the cache destination is _free_
-    if (fs::exists(cache_path_)) {
+    if (file_manager->exists(cache_path_)) {
       error() << "Caching destination exists!" << cache_path_;
 
       return STAGE_FILE_EXISTS;
     }
 
-    if (!file_manager_.create_directory(cache_dir_)) {
+    if (!file_manager->create_directory(cache_dir_)) {
       error() << "Unable to create caching directory: " << cache_dir_;
 
       return STAGE_UNAUTHORIZED;
@@ -74,28 +76,27 @@ namespace kzh {
   }
 
   STAGE_RC delete_operation::deploy() {
-    using fs::rename;
+    auto file_manager = config_.file_manager;
+    const path_t source_path(config_.root_path / dst_path);
 
     // Make sure the destination exists
-    if (!fs::exists(config_.root_path / dst_path)) {
+    if (!file_manager->exists(source_path)) {
       error() << "Destination does not exist: " << config_.root_path / dst_path;
 
       return STAGE_FILE_MISSING;
     }
 
     // Make sure the cache destination is _free_
-    if (fs::exists(cache_path_)) {
+    if (file_manager->exists(cache_path_)) {
       error() << "Caching destination exists!" << cache_path_;
 
       return STAGE_FILE_EXISTS;
     }
 
     // Move the staged file to the destination
-    info()
-      << "Moving " << config_.root_path / dst_path << " to "
-      << cache_path_;
+    info() << "Moving " << source_path << " to " << cache_path_;
 
-    rename(config_.root_path / dst_path, cache_path_);
+    file_manager->move(source_path, cache_path_);
 
     deleted_ = true;
 
@@ -103,25 +104,22 @@ namespace kzh {
   }
 
   void delete_operation::rollback() {
-    using fs::is_empty;
-    using fs::remove;
+    auto file_manager = config_.file_manager;
+    const path_t source_path(config_.root_path / dst_path);
 
     if (deleted_) {
       try {
-        rename(cache_path_, config_.root_path / dst_path);
-      } catch (fs::filesystem_error &e) {
+        file_manager->move(cache_path_, source_path);
+      }
+      catch (fs::filesystem_error &e) {
         error() << "Cached file could not be found! Can not rollback!! Cause: " << e.what();
         // TODO: handle rollback failures
       }
     }
-
-    return;
   }
 
   void delete_operation::commit() {
-    debug() << "Deleting " << cache_path_ << "...";
-    fs::remove_all(cache_path_);
-    debug() << "Truly deleted " << cache_path_;
+    config_.file_manager->remove_file(cache_path_);
   }
 
   string_t delete_operation::tostring() {

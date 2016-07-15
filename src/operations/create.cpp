@@ -34,7 +34,8 @@ namespace kzh {
     logger("op_create"),
     created_directory_(false),
     marked_for_deletion_(false),
-    is_executable(false)
+    is_executable(false),
+    src_size(0)
   {
   }
 
@@ -54,8 +55,6 @@ namespace kzh {
       indent();
 
       debug() << "Caching path: "<< cache_path_;
-      debug() << "Caching dir: "<< cache_dir_;
-      debug() << "Dest dir: "<< dst_dir_;
       debug() << "Dest path: " << dst_path;
 
       deindent();
@@ -104,15 +103,17 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::deploy() {
+    path_t full_destination_path = config_.root_path / dst_path;
+
     // Make sure the destination is free
-    if (file_manager_.is_readable(config_.root_path / dst_path)) {
-      error() << "Destination is occupied: " << dst_path;
+    if (file_manager_.is_readable(full_destination_path)) {
+      error() << "Destination is occupied: " << full_destination_path;
       return STAGE_FILE_EXISTS;
     }
 
     // Can we write to the destination?
-    if (!file_manager_.is_writable(config_.root_path / dst_path)) {
-      error() << "Destination isn't writable: " << config_.root_path /dst_path;
+    if (!file_manager_.is_writable(full_destination_path)) {
+      error() << "Destination isn't writable: " << full_destination_path;
       return STAGE_UNAUTHORIZED;
     }
 
@@ -123,13 +124,11 @@ namespace kzh {
     }
 
     // Move the staged file to the destination
-    info() << "Creating " << config_.root_path / dst_path;
-    file_manager_.move(cache_path_, config_.root_path / dst_path);
+    info() << "Creating " << full_destination_path;
+    file_manager_.move(cache_path_, full_destination_path);
 
     // validate integrity
-    std::ifstream fh((config_.root_path / dst_path).string().c_str());
-    hasher::digest_rc rc = config_.hasher->hex_digest(fh);
-    fh.close();
+    hasher::digest_rc rc = config_.hasher->hex_digest(full_destination_path);
 
     if (rc != src_checksum) {
       error() << "Created file integrity mismatch: " << rc.digest << " vs " << src_checksum;
@@ -137,8 +136,8 @@ namespace kzh {
     }
 
     if (is_executable) {
-      std::cout << "MARKING EXECUTABLE!\n";
-      file_manager_.make_executable(config_.root_path / dst_path);
+      debug() << "MARKING EXECUTABLE!\n";
+      file_manager_.make_executable(full_destination_path);
     }
 
     return STAGE_OK;

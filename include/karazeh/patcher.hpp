@@ -57,7 +57,7 @@ namespace kzh {
      *
      * Returns true if the patch was successfully applied, false otherwise.
      */
-    bool apply_update(release_manifest const&);
+    STAGE_RC apply_update(release_manifest const&);
 
   private:
     downloader      const &downloader_;

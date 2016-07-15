@@ -70,6 +70,27 @@ namespace kzh {
     void load_from_string(string_t const& raw_json);
 
     /**
+     * A convenience method for downloading a JSON **release** manifest from a
+     * remote server and then parsing it. This implicitly calls
+     * #load_release_from_string() and #parse_release().
+     *
+     * @throw kzh::invalid_manifest
+     *        If the supplied JSON string is malformed or could not be parsed
+     *        for some reason.
+     */
+    void load_release_from_uri(string_t const&);
+
+    /**
+     * A convenience method for parsing a JSON **release** manifest from a
+     * string. This implicitly calls #parse_release().
+     *
+     * @throw kzh::invalid_manifest
+     *        If the supplied JSON string is malformed or could not be parsed
+     *        for some reason.
+     */
+    void load_release_from_string(string_t const& raw_json);
+
+    /**
      * Populate the version manifest object from a JSON manifest.
      *
      * This method tracks the identity lists defined in the manifest as well as
@@ -146,8 +167,8 @@ namespace kzh {
     vector<release_manifest*>      releases_;
     config_t                       const &config_;
 
-    release_manifest const* find_or_create_release(JSON const&);
-    operation* parse_operation(release_manifest const&, JSON const&) const;
+    release_manifest* find_or_create_release(JSON const&);
+    operation* parse_operation(release_manifest const&, JSON const&, JSON const&) const;
   };
 
 } // end of namespace kzh
