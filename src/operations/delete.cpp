@@ -26,11 +26,9 @@ namespace kzh {
 
   delete_operation::delete_operation(
     config_t const& config,
-    file_manager const& file_manager,
-    downloader const& downloader,
     release_manifest const& rm
   )
-  : operation(config, file_manager, downloader, rm),
+  : operation(config, rm),
     logger("op_delete"),
     deleted_(false)
   {

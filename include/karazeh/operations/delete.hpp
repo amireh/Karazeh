@@ -27,9 +27,10 @@
 
 namespace kzh {
 
+  // TODO: require target checksum
   class KARAZEH_EXPORT delete_operation : public operation, protected logger {
   public:
-    delete_operation(config_t const&, file_manager const&, downloader const&, release_manifest const&);
+    delete_operation(config_t const&, release_manifest const&);
     virtual ~delete_operation();
 
     /**

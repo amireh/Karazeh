@@ -1,7 +1,6 @@
 #include "catch.hpp"
 #include "test_utils.hpp"
 #include "karazeh/karazeh.hpp"
-#include "karazeh/utility.hpp"
 #include "karazeh/file_manager.hpp"
 
 using namespace kzh;

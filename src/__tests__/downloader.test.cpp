@@ -1,6 +1,5 @@
 #include "test_utils.hpp"
 #include "karazeh/karazeh.hpp"
-#include "karazeh/utility.hpp"
 #include "karazeh/downloader.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
 #include "catch.hpp"

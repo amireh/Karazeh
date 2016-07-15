@@ -24,6 +24,7 @@
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 #include "karazeh/downloader.hpp"
+#include "karazeh/file_manager.hpp"
 #include "karazeh_export.h"
 
 namespace kzh {
@@ -48,15 +49,8 @@ namespace kzh {
 
   class KARAZEH_EXPORT operation {
   public:
-    inline operation(
-      config_t const& config,
-      file_manager const& fmgr,
-      downloader const& downloader,
-      release_manifest const& rm
-    )
+    inline operation(config_t const& config, release_manifest const& rm)
     : config_(config),
-      file_manager_(fmgr),
-      downloader_(downloader),
       rm_(rm)
     {}
 
@@ -112,8 +106,6 @@ namespace kzh {
 
   protected:
     config_t const& config_;
-    file_manager const& file_manager_;
-    downloader const &downloader_;
     release_manifest const&rm_;
   };
 

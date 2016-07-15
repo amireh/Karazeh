@@ -24,11 +24,9 @@
 namespace kzh {
   update_operation::update_operation(
     config_t const& config,
-    file_manager const& file_manager,
-    downloader const& downloader,
     release_manifest const& rm
   )
-  : operation(config, file_manager, downloader, rm),
+  : operation(config, rm),
     logger("op_update"),
     patched_(false)
   {
@@ -45,6 +43,8 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::stage() {
+    auto file_manager = config_.file_manager;
+
     basis_path_     = (config_.root_path / basis).make_preferred();
     cache_dir_      = path_t(config_.cache_path / rm_.id / basis).make_preferred().parent_path();
     signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
@@ -52,7 +52,7 @@ namespace kzh {
     patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";
 
     // basis must exist
-    if (!file_manager_.is_readable(basis_path_)) {
+    if (!file_manager->is_readable(basis_path_)) {
       error()
         << "basis file does not exist at: " << basis_path_;
 
@@ -70,10 +70,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (file_manager_.stat_filesize(basis_path_) != basis_length) {
+    if (file_manager->stat_filesize(basis_path_) != basis_length) {
       error()
         << "Length mismatch: "
-        << file_manager_.stat_filesize(basis_path_) << " to " << basis_length
+        << file_manager->stat_filesize(basis_path_) << " to " << basis_length
         << " in file " << basis_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -81,8 +81,8 @@ namespace kzh {
 
 
     // prepare our cache directory, if necessary
-    if (!file_manager_.is_directory(cache_dir_)) {
-      if (!file_manager_.create_directory(cache_dir_)) {
+    if (!file_manager->is_directory(cache_dir_)) {
+      if (!file_manager->create_directory(cache_dir_)) {
         error() << "Unable to create cache directory: " << cache_dir_;
         return STAGE_UNAUTHORIZED;
       }
@@ -91,7 +91,7 @@ namespace kzh {
     // TODO: free space checks, need at least 2x basis file size + delta size
 
     // get the delta patch
-    if (!downloader_.fetch(delta, delta_path_, delta_checksum, delta_length)) {
+    if (!config_.downloader->fetch(delta, delta_path_, delta_checksum, delta_length)) {
       throw invalid_resource(delta);
     }
 
@@ -108,6 +108,8 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::deploy() {
+    auto file_manager = config_.file_manager;
+
     debug() << "patching file " << basis_path_ << " using delta " << delta_path_ << " out to " << patched_path_;
     rs_result rc = encoder_.patch(basis_path_.c_str(), delta_path_.c_str(), patched_path_.c_str());
 
@@ -129,10 +131,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (file_manager_.stat_filesize(patched_path_) != patched_length) {
+    if (file_manager->stat_filesize(patched_path_) != patched_length) {
       error()
         << "Length mismatch: "
-        << file_manager_.stat_filesize(patched_path_) << " to " << patched_length
+        << file_manager->stat_filesize(patched_path_) << " to " << patched_length
         << " in file " << patched_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -143,9 +145,9 @@ namespace kzh {
 
     const path_t temp_path(path_t(patched_path_.string() + ".tmp").make_preferred());
 
-    file_manager_.move(patched_path_, temp_path);
-    file_manager_.move(basis_path_, patched_path_);
-    file_manager_.move(temp_path, basis_path_);
+    file_manager->move(patched_path_, temp_path);
+    file_manager->move(basis_path_, patched_path_);
+    file_manager->move(temp_path, basis_path_);
 
     patched_ = true;
 

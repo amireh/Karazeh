@@ -30,7 +30,7 @@ namespace kzh {
 
   class KARAZEH_EXPORT update_operation : public operation, protected logger {
   public:
-    update_operation(config_t const&, file_manager const&, downloader const&, release_manifest const&);
+    update_operation(config_t const&, release_manifest const&);
     virtual ~update_operation();
 
     /**

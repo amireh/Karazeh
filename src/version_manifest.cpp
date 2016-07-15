@@ -360,7 +360,7 @@ namespace kzh {
 
       validate_schema(source_node, SCHEMA_CREATE_OPERATION_SOURCE);
 
-      create_operation *op = new create_operation(config_, *config_.file_manager, *config_.downloader, release);
+      create_operation *op = new create_operation(config_, release);
 
       op->src_uri = source_node["url"].string_value();
       op->src_checksum = source_node["checksum"].string_value();
@@ -396,7 +396,7 @@ namespace kzh {
       validate_schema(operation_node["basis"], SCHEMA_UPDATE_OPERATION_BASIS);
       validate_schema(operation_node["delta"], SCHEMA_UPDATE_OPERATION_DELTA);
 
-      auto op = new update_operation(config_, *config_.file_manager, *config_.downloader, release);
+      auto op = new update_operation(config_, release);
 
       op->basis = operation_node["basis"]["filepath"].string_value();
       op->basis_checksum = operation_node["basis"]["pre_checksum"].string_value();
@@ -413,7 +413,7 @@ namespace kzh {
     else if (operation_type == "delete") {
       validate_schema(operation_node, SCHEMA_DELETE_OPERATION);
 
-      auto op = new delete_operation(config_, *config_.file_manager, *config_.downloader, release);
+      auto op = new delete_operation(config_, release);
 
       op->dst_path = operation_node["target"].string_value();
 

@@ -30,12 +30,13 @@ TEST_CASE("create_operation") {
 
   downloader_.set_retry_count(0);
 
+  config_.downloader = &downloader_;
+  config_.file_manager = &file_manager_;
+
   manifest_.id = "somethingsomething";
 
   create_operation subject(
     config_,
-    file_manager_,
-    downloader_,
     manifest_
   );
 

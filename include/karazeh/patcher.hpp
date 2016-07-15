@@ -36,7 +36,7 @@ namespace kzh {
     /** Given resource manager must have the paths resolved,
       * see downloader::resolve_paths()
       */
-    patcher(config_t const&, file_manager const&, downloader const&);
+    patcher(config_t const&);
     virtual ~patcher();
 
     /**
@@ -60,9 +60,7 @@ namespace kzh {
     STAGE_RC apply_update(release_manifest const&);
 
   private:
-    downloader      const &downloader_;
-    config_t        const &config_;
-    file_manager    const &file_manager_;
+    config_t const &config_;
   };
 
 } // end of namespace kzh

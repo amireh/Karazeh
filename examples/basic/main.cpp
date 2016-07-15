@@ -10,12 +10,13 @@ int main(int argc, char** argv) {
 
   string_t root_path;
 
+  kzh::config_t config;
   kzh::logger::enable_timestamps(false);
   kzh::logger logger("test");
   kzh::path_resolver path_resolver;
   kzh::file_manager file_manager;
-  kzh::config_t config;
   kzh::md5_hasher hasher;
+  kzh::downloader downloader(config, file_manager);
 
   if (argc > 1) {
     for (int i = 0; i < argc; ++i) {
@@ -39,9 +40,10 @@ int main(int argc, char** argv) {
   config.cache_path = path_resolver.get_cache_path();
   config.host = "http://localhost:9393";
   config.hasher = &hasher;
+  config.file_manager = &file_manager;
+  config.downloader = &downloader;
 
-  kzh::downloader downloader(file_manager, config);
-  kzh::patcher patcher(config, file_manager, downloader);
+  kzh::patcher patcher(config);
 
   if (patcher.identify(config.host + "/version.xml")) {
     if (patcher.is_update_available()) {

@@ -1,6 +1,5 @@
 #include "catch.hpp"
 #include "karazeh/karazeh.hpp"
-#include "karazeh/utility.hpp"
 #include "karazeh/version_manifest.hpp"
 #include "karazeh/path_resolver.hpp"
 #include "test_utils.hpp"

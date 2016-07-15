@@ -3,7 +3,6 @@ INCLUDE(GenerateExportHeader)
 
 INCLUDE_DIRECTORIES(../include)
 INCLUDE_DIRECTORIES(../deps)
-INCLUDE_DIRECTORIES(../deps/tinyxml2)
 INCLUDE_DIRECTORIES(../deps/md5)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/exports)
 
@@ -34,10 +33,7 @@ SET(Karazeh_SRCS
   ../include/karazeh/path_resolver.hpp
   ../include/karazeh/release_manifest.hpp
   ../include/karazeh/version_manifest.hpp
-  ../include/karazeh/utility.hpp
 
-  ../deps/tinyxml2/tinyxml2.h
-  ../deps/tinyxml2/tinyxml2.cpp
   ../deps/json11/json11.hpp
   ../deps/json11/json11.cpp
   ../deps/md5/md5.hpp

@@ -1,6 +1,5 @@
 #include "catch.hpp"
 #include "karazeh/karazeh.hpp"
-#include "karazeh/utility.hpp"
 #include "karazeh/patcher.hpp"
 #include "karazeh/path_resolver.hpp"
 #include "karazeh/version_manifest.hpp"
@@ -27,7 +26,7 @@ TEST_CASE("Patcher", "[Patcher_JSON]") {
 
   version_manifest      version(config_);
 
-  patcher subject(config_, *config_.file_manager, *config_.downloader);
+  patcher subject(config_);
 
   SECTION("#apply_update()") {
     sample_config.host = sample_config.host + "/sample_application";

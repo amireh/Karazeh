@@ -24,11 +24,9 @@
 namespace fs = boost::filesystem;
 
 namespace kzh {
-  patcher::patcher(config_t const& config, file_manager const& fmgr, downloader const& downloader)
+  patcher::patcher(config_t const& config)
   : logger("patcher"),
-    downloader_(downloader),
-    config_(config),
-    file_manager_(fmgr)
+    config_(config)
   {
   }
 
@@ -36,6 +34,8 @@ namespace kzh {
   }
 
   STAGE_RC patcher::apply_update(const release_manifest& release) {
+    auto file_manager = config_.file_manager;
+
     const path_t staging_path(config_.cache_path / release.id);
     const auto rollback = [&](STAGE_RC rc) -> STAGE_RC {
       // rollback any changes if the staging failed
@@ -45,7 +45,7 @@ namespace kzh {
         op->rollback();
       }
 
-      file_manager_.remove_directory(staging_path);
+      file_manager->remove_directory(staging_path);
 
       return rc;
     };
@@ -55,7 +55,7 @@ namespace kzh {
     info() << "Staging...";
 
     // create the cache directory for this release
-    file_manager_.create_directory(staging_path);
+    file_manager->create_directory(staging_path);
 
     for (auto op : release.operations) {
       STAGE_RC rc = op->stage();
@@ -91,7 +91,7 @@ namespace kzh {
       op->commit();
     }
 
-    file_manager_.remove_directory(staging_path);
+    file_manager->remove_directory(staging_path);
 
     info() << "Patch applied successfully.";
 
