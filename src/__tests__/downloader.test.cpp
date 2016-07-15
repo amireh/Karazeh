@@ -9,11 +9,10 @@ namespace fs = boost::filesystem;
 using namespace kzh;
 
 TEST_CASE("Downloader") {
-  const path_t temp_file_path = test_config.temp_path / "downloader_test.out";
+  const path_t temp_file_path(test_config.temp_path / "downloader_test.out");
 
-  config_t config_(sample_config);
-  file_manager  file_manager_;
-  downloader subject(config_, file_manager_);
+  kzh::config_t config(sample_config);
+  kzh::downloader subject(config, *config.file_manager);
 
   SECTION("it should load a remote resource") {
     string_t buf;
@@ -29,7 +28,7 @@ TEST_CASE("Downloader") {
   // takes too long, meh
   //
   // GIVEN("An unreachable host") {
-  //   config_.host = "http://localhost.3456:9123";
+  //   config.host = "http://localhost.3456:9123";
   //   string_t buf;
   //
   //   THEN("it should not bork when attempting to query it") {
@@ -38,7 +37,7 @@ TEST_CASE("Downloader") {
   // }
 
   GIVEN("A host with an out-of-bound port") {
-    config_.host = "http://localhost.3456:91234123"; // OOB port
+    config.host = "http://localhost.3456:91234123"; // OOB port
     string_t buf;
 
     THEN("it should not bork when attempting to query it") {

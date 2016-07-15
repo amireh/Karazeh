@@ -21,11 +21,11 @@
 #ifndef H_KARAZEH_OPERATION_H
 #define H_KARAZEH_OPERATION_H
 
+#include "karazeh_export.h"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 #include "karazeh/downloader.hpp"
 #include "karazeh/file_manager.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
   struct release_manifest;

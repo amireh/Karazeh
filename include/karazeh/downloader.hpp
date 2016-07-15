@@ -21,15 +21,15 @@
 #ifndef H_KARAZEH_DOWNLOADER_H
 #define H_KARAZEH_DOWNLOADER_H
 
+#include <curl/curl.h>
+#include <boost/filesystem.hpp>
+#include "binreloc/binreloc.h"
+#include "karazeh_export.h"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/hasher.hpp"
 #include "karazeh/file_manager.hpp"
 #include "karazeh/config.hpp"
-#include <curl/curl.h>
-#include <boost/filesystem.hpp>
-#include "binreloc/binreloc.h"
-#include "karazeh_export.h"
 
 namespace kzh {
   struct download_t;
@@ -76,14 +76,15 @@ namespace kzh {
 
     bool fetch(string_t const& URI, download_t*, bool assume_ownership = true) const;
 
-    int nr_retries_;
+    int retry_count_;
   };
 
   /** Used internally by the downloader to manage downloads */
   struct KARAZEH_EXPORT download_t {
-    inline
+    inline explicit
     download_t(std::ostream& s)
-    : to_file(false),
+    : buf(nullptr),
+      to_file(false),
       status(false),
       size(0),
       retry_no(0),

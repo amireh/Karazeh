@@ -21,9 +21,9 @@
 #ifndef H_KARAZEH_OPERATION_DELETE_H
 #define H_KARAZEH_OPERATION_DELETE_H
 
+#include "karazeh_export.h"
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
 

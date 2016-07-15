@@ -36,7 +36,7 @@ namespace kzh {
     /** Given resource manager must have the paths resolved,
       * see downloader::resolve_paths()
       */
-    patcher(config_t const&);
+    explicit patcher(config_t const&);
     virtual ~patcher();
 
     /**

@@ -21,10 +21,10 @@
 #ifndef H_KARAZEH_OPERATION_UPDATE_H
 #define H_KARAZEH_OPERATION_UPDATE_H
 
+#include "karazeh_export.h"
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/delta_encoder.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
 

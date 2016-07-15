@@ -28,7 +28,10 @@ namespace kzh {
   )
   : operation(config, rm),
     logger("op_update"),
-    patched_(false)
+    patched_(false),
+    basis_length(0),
+    delta_length(0),
+    patched_length(0)
   {
   }
 

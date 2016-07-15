@@ -117,7 +117,7 @@ namespace kzh {
           log->error() << "binreloc could not be initialised";
         }
 
-        throw internal_error("Unable to resolve paths! binreloc could not be initialized");
+        throw std::runtime_error("Unable to resolve paths! binreloc could not be initialized");
       }
 
       char *tmp_bin_path = br_find_exe_dir(".");

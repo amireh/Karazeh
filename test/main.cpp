@@ -48,6 +48,9 @@ int main(int argc, char **argv) {
     std::cout << "Fixture path: " << kzh::test_config.fixture_path.string() << "\n";
     std::cout << "Server host: " << kzh::test_config.server_host << "\n";
   }
+  else {
+    kzh::logger::mute();
+  }
 
   curl_global_init(CURL_GLOBAL_ALL);
 

@@ -24,7 +24,7 @@ namespace kzh {
   downloader::downloader(config_t const& config, file_manager const& fmgr)
   : logger("downloader"),
     config_(config),
-    nr_retries_(2),
+    retry_count_(2),
     file_manager_(fmgr)
   {
   }
@@ -33,16 +33,16 @@ namespace kzh {
   }
 
   void downloader::set_retry_count(int n) {
-    nr_retries_ = n;
+    retry_count_ = n;
   }
 
   int downloader::retry_count() const {
-    return nr_retries_;
+    return retry_count_;
   }
 
   static size_t on_curl_data(char *buffer, size_t size, size_t nmemb, void *userdata)
   {
-    download_t *dl = (download_t*)userdata;
+    download_t *dl = static_cast<download_t*>(userdata);
 
     size_t realsize = size * nmemb;
 
@@ -142,7 +142,7 @@ namespace kzh {
     uint64_t expected_size,
     int* const nr_retries) const
   {
-    for (int i = 0; i < nr_retries_ + 1; ++i) {
+    for (int i = 0; i < retry_count_ + 1; ++i) {
       std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
 
       if (!fp.is_open() || !fp.good()) {
@@ -162,26 +162,23 @@ namespace kzh {
       }
 
       if (fetch(in_uri, &dl, false)) {
-
         fp.close();
 
-        std::ifstream fh(path.string().c_str());
-        if (!fh.is_open() || !fh.good()) { // this really shouldn't happen, but oh well
-          return false;
+        if (!file_manager_.is_readable(path)) {
+          return false; // this really shouldn't happen, but oh well
         }
 
         // validate integrity
-        hasher::digest_rc rc = config_.hasher->hex_digest(fh);
-
-        fh.close();
+        hasher::digest_rc rc = config_.hasher->hex_digest(path);
 
         if (expected_size > 0 && expected_size == dl.size && rc == checksum) {
           return true;
         }
         else if (expected_size == 0 && rc == checksum) {
           return true;
-        } else {
-          notice()
+        }
+        else {
+          warn()
             << "Downloaded file integrity mismatch: "
             <<  rc.digest << " vs " << checksum
             << " (got " << dl.size << " out of " << expected_size << " expected bytes)";
@@ -191,7 +188,8 @@ namespace kzh {
             file_manager_.load_file(path, buf);
           }
         }
-      } else {
+      }
+      else {
         fp.close();
       }
 

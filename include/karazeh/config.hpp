@@ -21,8 +21,8 @@
 #ifndef H_KARAZEH_CONFIG_H
 #define H_KARAZEH_CONFIG_H
 
-#include "karazeh/karazeh.hpp"
 #include "karazeh_export.h"
+#include "karazeh/karazeh.hpp"
 
 namespace kzh {
   class downloader;

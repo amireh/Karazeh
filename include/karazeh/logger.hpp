@@ -21,14 +21,13 @@
 #ifndef H_KARAZEH_LOGGER_H
 #define H_KARAZEH_LOGGER_H
 
-#include "karazeh.hpp"
-#include "karazeh_export.h"
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include "karazeh_export.h"
+#include "karazeh/karazeh.hpp"
 
 namespace kzh {
-
   using std::ostream;
   using std::ostringstream;
 

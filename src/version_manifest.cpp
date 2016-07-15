@@ -264,12 +264,9 @@ namespace kzh {
 
     for (auto release : releases_) {
       if (release->head == current_version || update_map.find(release->head) != update_map.end()) {
+        update_list.push_back(release->id);
         update_map.insert({ release->id, release });
       }
-    }
-
-    for (auto update_entry : update_map) {
-      update_list.push_back(update_entry.first);
     }
 
     return update_list;
@@ -371,10 +368,6 @@ namespace kzh {
 
       op->dst_path = operation_node["destination"].string_value();
       op->is_executable = operation_node["flags"]["executable"].bool_value();
-
-      // TODO: offload this onto an external state, preferably something
-      // serialized to disk so that we can share cross-runs
-      bool marked_for_deletion = false;
 
       for (auto sibling_operation_node : releaes_node["operations"].array_items()) {
         if (sibling_operation_node == operation_node) {
