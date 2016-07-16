@@ -2,6 +2,7 @@
 /build
 /deps/*/build
 /deps/*/lib
+/doc/compiled
 /lib
 /log
 /include/KarazehConfig.h
@@ -31,3 +32,4 @@ dumps
 .DS_Store
 *.swp
 /doc/diagrams/workspace
+/node_modules

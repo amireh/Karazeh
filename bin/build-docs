@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+function prompt {
+  while true; do
+    read -p "${1} [y/N] " yn
+    case $yn in
+      [Yy]* ) return 0; break;;
+      *     ) break;;
+    esac
+  done
+
+  return 1
+}
+
+(
+  cd doc/compiled;
+  rm -r *
+)
+
+./node_modules/.bin/megadoc --config ./megadoc.conf.js --no-purge
+doxygen .doxygen
+
+prompt "Should we commit?" && (
+  cd doc/compiled;
+  git add --ignore-errors .
+  git commit -m "Update docs"
+  git push origin gh-pages
+)

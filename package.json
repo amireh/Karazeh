@@ -6,8 +6,8 @@
   "author": "Ahmad Amireh",
   "license": "ISC",
   "dependencies": {
-    "megadoc": "6.x",
-    "megadoc-plugin-markdown": "6.x",
-    "megadoc-theme-qt": "6.x"
+    "megadoc": "5.0.4",
+    "megadoc-plugin-markdown": "5.0.1",
+    "megadoc-theme-qt": "5.0.0"
   }
 }

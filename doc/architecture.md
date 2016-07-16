@@ -82,5 +82,3 @@ VMF entries should:
   2. specify the RMF URI
 
 If the application could not be identified at this stage, no further processing will be allowed and the image should be reported to be corrupt.
-
-### Release Manifests (RMF)

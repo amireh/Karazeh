@@ -84,3 +84,38 @@ where the headers (`curl/curl.h`) may be found as well as the built library (`li
 
 [1] Go to System Properties -> Advanced -> Environment Variables or type 
 `rundll32 sysdm.cpl,EditEnvironmentVariables` in the run prompt.
+
+## OS X
+
+I'll assume you have a C++ compiler installed (clang probably). If you don't,
+get the XCode developer tools installed.
+
+We now need to install CMake and some version of boost, we can use 
+[Homebrew](http://brew.sh/) to do this easily:
+
+```shell
+brew install cmake # CMake and "ccmake"
+brew install boost # libboost
+```
+
+Now you should have the system dependencies installed (libcurl is automatically
+available on OS X and Linux so we don't need to do anything special) so we're 
+to run CMake to generate our build:
+
+```shell
+mkdir build
+cd build
+ccmake ..
+```
+
+Configure and generate the build files. When that is done, run make:
+
+```shell
+make
+```
+
+## Linux
+
+On Linux it's basically the same as [[os-x]] except you'd be using your 
+distro's package manager to get cmake and boost installed. You can also use
+`ninja` instead of `make` if you want faster builds.

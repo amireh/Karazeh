@@ -22,6 +22,21 @@ module.exports = {
               {
                 name: 'Markdown::Browser',
                 options: { flat: true },
+              },
+
+              {
+                name: 'Layout::SidebarHeader',
+                options: {
+                  text: 'Additional Resources'
+                }
+              },
+
+              {
+                name: 'Link',
+                options: {
+                  text: 'API Reference',
+                  href: 'http://amireh.github.io/Karazeh/api/html/index.html'
+                }
               }
             ]
           },

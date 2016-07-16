@@ -74,7 +74,7 @@ Arguments:
 
 **Synopsis**
 
-```json
+```javascript
 {
   "type": "create",
   "source": {
@@ -119,7 +119,7 @@ Arguments:
 
 **Synopsis**
 
-```json
+```javascript
 {
   "type": "update",
   "basis": {
@@ -153,7 +153,7 @@ Arguments:
 
 **Synopsis**
 
-```json
+```javascript
 {
   "type": "delete",
   "checksum": String,
@@ -170,7 +170,7 @@ Arguments:
 
 ## The Version Manifest
 
-```json
+```javascript
 {
   "identities": [
     {
@@ -229,10 +229,4 @@ Arguments:
     }
   ]
 }
-```
-
-## The Release Manifest
-
-```xml
-[!include!](https://raw.github.com/amireh/karazeh_v2/master/doc/release_manifest.template.xml)
 ```

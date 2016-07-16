@@ -15,9 +15,15 @@ Both tools are freely available and licensed under the MIT license.
 
 ## Building
 
-See the [[Building]] guide.
+See the [[./doc/building.md]] guide.
 
 ## Usage
+
+Currently there's a basic example you can see under `examples/basic` which
+shows how to interface with the low-level APIs to get an application to fetch
+the available updates and apply them in succession. However, it's likely we'll
+be introducing higher level APIs to do this sort of thing in the future so you
+wouldn't have to fret with so much details.
 
 _TBD_
 
@@ -40,7 +46,7 @@ darkhttpd /path/to/karazeh/test/fixture --port 9393
 Afterwards, run the binary:
 
 ```bash
-./karazeh_tests
+./build/karazeh_tests
 ```
 
 The test runner can be customized using some environment variables:
