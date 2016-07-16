@@ -61,7 +61,7 @@ namespace kzh {
           else
           {
             // Found file: Copy
-            fs::copy_file( current, destination / current.filename() );
+            fs::copy( current, destination / current.filename() );
           }
         }
 

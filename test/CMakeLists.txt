@@ -25,15 +25,13 @@ ADD_EXECUTABLE(${PROJECT_NAME}_tests
 
 ADD_DEFINITIONS(-std=c++11)
 
-IF(WIN32)
-  TARGET_COMPILE_DEFINITIONS(${TARGET} PRIVATE TINYXML2_IMPORT=1)
-ENDIF()
-
 IF(APPLE)
   ADD_DEFINITIONS(
     # FakeIt noise:
     -Wno-inconsistent-missing-override
   )
+
+  # SET(CMAKE_CXX_FLAGS "-std=c++11 -Wc++11-extensions")
 ENDIF()
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}_tests kzh)
