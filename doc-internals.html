@@ -14,7 +14,7 @@
   </head>
 
   <body class="body--themed">
-    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="1955084386"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-211022332"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
 <!-- /react-text --></a></div><div data-reactid="18"><a href="doc-architecture.html" class="class-browser__entry-link" data-reactid="19"><!-- react-text: 20 -->Architecture
 <!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
 <!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
@@ -39,7 +39,7 @@
 <p><strong>Embedded Dependencies</strong></p>
 <ul>
 <li><a href="http://librsync.sourceforge.net" target="_blank">librsync</a></li>
-<li><a href="http://www.grinninglizard.com/tinyxml2/index.html" target="_blank">tinyxml2</a></li>
+<li><a href="https://github.com/dropbox/json11" target="_blank">json11</a></li>
 <li><a href="http://pawnscript.googlecode.com/svn-history/r6/trunk/linux/binreloc.c" target="_blank">binreloc</a> <em>Linux only</em></li>
 <li>md5</li>
 </ul>
@@ -113,12 +113,19 @@
 <ol>
 <li>move the file from the staged source to the destination</li>
 </ol>
-<p><code>create</code> in the release manifest:</p>
-<pre class="language-xml"><code><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>create</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>source</span> <span class="token attr-name" >checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>1234<span class="token punctuation" >"</span></span> <span class="token attr-name" >size</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>500<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/source]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>source</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>destination</span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/destination]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>destination</span><span class="token punctuation" >></span></span>
-<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>create</span><span class="token punctuation" >></span></span></code></pre><hr>
-
+<p><strong>Synopsis</strong></p>
+<pre class="language-none"><code>{
+  "type": "create",
+  "source": {
+    "url": String,
+    "checksum": String,
+    "size": Number
+  },
+  "destination": String,
+  "flags": {
+    "executable": Boolean
+  }
+}</code></pre>
     <h3 class="anchorable-heading">
       <a name="update" class="anchorable-heading__anchor"></a>
       <a href="#update" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text"><code>update</code></span>
@@ -151,36 +158,21 @@
 <li>remove the source file</li>
 <li>move the patched file to the source&#39;s destination</li>
 </ol>
-<p><code>create</code> in the release manifest:</p>
-<pre class="language-xml"><code><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>update</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>target</span> <span class="token attr-name" >pre-checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>1234<span class="token punctuation" >"</span></span> <span class="token attr-name" >post-checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>5678<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/file]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>target</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>patch</span>  <span class="token attr-name" >checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>5678<span class="token punctuation" >"</span></span> <span class="token attr-name" >size</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>100<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/patch]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>patch</span><span class="token punctuation" >></span></span>
-<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>update</span><span class="token punctuation" >></span></span></code></pre><hr>
+<p><strong>Synopsis</strong></p>
+<pre class="language-none"><code>{
+  "type": "update",
+  "basis": {
+    "pre_checksum": String,
+    "post_checksum": String,
+    "filepath": String
+  },
 
-    <h3 class="anchorable-heading">
-      <a name="rename" class="anchorable-heading__anchor"></a>
-      <a href="#rename" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text"><code>rename</code></span>
-    </h3>
-  <p>Arguments:</p>
-<ol>
-<li>the fully qualified source path</li>
-<li>the fully qualified destination path</li>
-</ol>
-<p><strong>Staging</strong></p>
-<ol>
-<li>verify that the source exists</li>
-<li>verify that the destination is clear</li>
-</ol>
-<p><strong>Deployment</strong></p>
-<ol>
-<li>move the source to the destination</li>
-</ol>
-<p><code>rename</code> in the release manifest:</p>
-<pre class="language-xml"><code><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>rename</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>from</span> <span class="token attr-name" >checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>[1234]<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/file]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>from</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>to</span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/new/path/to/file]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>to</span><span class="token punctuation" >></span></span>
-<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>rename</span><span class="token punctuation" >></span></span></code></pre><hr>
-
+  "delta": {
+    "checksum": String,
+    "size": Number,
+    "url": String
+  }
+}</code></pre>
     <h3 class="anchorable-heading">
       <a name="delete" class="anchorable-heading__anchor"></a>
       <a href="#delete" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text"><code>delete</code></span>
@@ -198,32 +190,91 @@
 <li>if the source is a directory, recursively empty its contents</li>
 <li>remove the source</li>
 </ol>
-<p><code>delete</code> in the release manifest:</p>
-<pre class="language-xml"><code><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>delete</span><span class="token punctuation" >></span></span>
-  <span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;</span>target</span> <span class="token attr-name" >checksum</span><span class="token attr-value" ><span class="token punctuation" >=</span><span class="token punctuation" >"</span>[1234]<span class="token punctuation" >"</span></span><span class="token punctuation" >></span></span><span class="token cdata" >&lt;![CDATA[/path/to/file-or-directory]]></span><span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>target</span><span class="token punctuation" >></span></span>
-<span class="token tag" ><span class="token tag" ><span class="token punctuation" >&lt;/</span>delete</span><span class="token punctuation" >></span></span></code></pre>
+<p><strong>Synopsis</strong></p>
+<pre class="language-none"><code>{
+  "type": "delete",
+  "checksum": String,
+  "target": String
+}</code></pre>
     <h3 class="anchorable-heading">
       <a name="notes" class="anchorable-heading__anchor"></a>
       <a href="#notes" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Notes</span>
     </h3>
   <ul>
-<li><code>&lt;create executable=&quot;true&quot;&gt;</code> will cause the patcher to mark the created file as executable (chmod 0711)</li>
-<li><code>&lt;delete&gt;</code> entries will internally mark those paths as &quot;to be deleted&quot;, so any subsequent  <code>&lt;create&gt;</code> entry with one of those paths will know that they will be deleted, and will not cause a staging error; effectively, we achieve the effect of <code>&lt;replace&gt;</code> without having to implement any!</li>
+<li><code>create</code> with the <code>executable</code> flag will cause the patcher to mark the created file as executable (chmod 0711)</li>
+<li><code>delete</code> entries will internally mark those paths as &quot;to be deleted&quot;, so any subsequent  <code>create</code> entry with one of those paths will know that they will be deleted, and will not cause a staging error; effectively, we achieve the effect of <code>replace</code> without having to implement any!</li>
 <li>running with <code>-v</code> will cause the <code>resource_manager</code> to print out the content of all downloaded files</li>
-<li><code>&lt;delete&gt;</code> recursively removes directories as well as files</li>
+<li><code>delete</code> recursively removes directories as well as files</li>
 </ul>
 
     <h2 class="anchorable-heading">
       <a name="the-version-manifest" class="anchorable-heading__anchor"></a>
       <a href="#the-version-manifest" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">The Version Manifest</span>
     </h2>
-  <pre class="language-xml"><code>[!include!](https://raw.github.com/amireh/karazeh_v2/master/doc/version_manifest.template.xml)</code></pre>
+  <pre class="language-none"><code>{
+  "identities": [
+    {
+      "name": String,
+      "files": Array.<String>
+    }
+  ],
+
+  "releases": [
+    {
+      // The identity list used for computing the id of this release. See
+      // the "id" attribute below for more information.
+      "identity": String,
+
+      // The identifier of this release. This value is computed based on the 
+      // accumulation of checksums of the identity files (as specified per the
+      // identity list @identity) which is then digested using MD5.
+      // 
+      // For example, say the identity "Base" has the files:
+      // 
+      //     - bin/app.exe # => c23cca28502254df15f39dc8300ef752
+      //     - data/assets.mpq # => f1eb970aeb2e380593480ed76070acbe
+      // 
+      // The identifier for such a version of the application would be:
+      // 
+      //     MD5(
+      //       "c23cca28502254df15f39dc8300ef752" +
+      //       "f1eb970aeb2e380593480ed76070acbe"
+      //     ) # => 3a2f552b7db42835a84ec19ee3edf4c9
+      "id": String,
+
+      "operations": Array,
+
+      // Identifier of the "head" release; the preceding release to this one.
+      // 
+      // When no "head" is specified, the release is assumed to be the initial
+      // one (i.e. the starting state of the application).
+      // 
+      // Having more than one release per identity list with no "head" results
+      // in undefined behavior.
+      "head": String?,
+
+      // A tag for use by the integrating application to refer to the release.
+      // This is not employed by Karazeh in any way and is only meant for user
+      // display purposes.
+      "tag": String?,
+
+      // A URI to download the release manifest from. Use of this attribute
+      // is optional IFF the "operations" attribute is specified inline in
+      // the version manifest.
+      // 
+      // This allows the integration layer to choose whether to split the
+      // manifests up on a per-release basis, or to specify them all in the
+      // version manifest.
+      "uri": String?
+    }
+  ]
+}</code></pre>
     <h2 class="anchorable-heading">
       <a name="the-release-manifest" class="anchorable-heading__anchor"></a>
       <a href="#the-release-manifest" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">The Release Manifest</span>
     </h2>
   <pre class="language-xml"><code>[!include!](https://raw.github.com/amireh/karazeh_v2/master/doc/release_manifest.template.xml)</code></pre></div><!-- react-empty: 43 --></div></div></div><div class="footer" data-reactid="44"><div class="markdown-text " data-reactid="45"><p>Made with &#9829; using <a href="https://github.com/megadoc" target="_blank">megadoc</a>.</p>
-</div></div></div></div><div class="two-column-layout__nav" data-reactid="46"><div class="sticky-container" data-reactid="47"><div class="doc-content" data-reactid="48"><p data-reactid="49">Contents</p><div data-reactid="50"><div data-reactid="51"><ul class="markdown-toc markdown-toc--flat" data-reactid="52"><li class="markdown-toc__entry" data-reactid="53"><a href="#current-dependencies" class="" data-reactid="54">Current dependencies</a></li><li class="markdown-toc__entry" data-reactid="55"><a href="#identifying-the-application-version" class="" data-reactid="56">Identifying the application version</a></li><li class="markdown-toc__entry" data-reactid="57"><a href="#versioning-schemes" class="" data-reactid="58">Versioning schemes</a></li><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="59"><i class="icon icon-arrow-right" data-reactid="60"></i><a href="#generating-binary-diffs" class="" data-reactid="61">Generating binary diffs</a><ul class="markdown-toc" data-reactid="62"><li class="markdown-toc__entry" data-reactid="63"><a href="#the-hunt-for-a-delta-encoding-solution" class="" data-reactid="64">The hunt for a delta encoding solution</a></li></ul></li><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="65"><i class="icon icon-arrow-right" data-reactid="66"></i><a href="#operations" class="" data-reactid="67">Operations</a><ul class="markdown-toc" data-reactid="68"><li class="markdown-toc__entry" data-reactid="69"><a href="#create" class="" data-reactid="70">create</a></li><li class="markdown-toc__entry" data-reactid="71"><a href="#update" class="" data-reactid="72">update</a></li><li class="markdown-toc__entry" data-reactid="73"><a href="#rename" class="" data-reactid="74">rename</a></li><li class="markdown-toc__entry" data-reactid="75"><a href="#delete" class="" data-reactid="76">delete</a></li><li class="markdown-toc__entry" data-reactid="77"><a href="#notes" class="" data-reactid="78">Notes</a></li></ul></li><li class="markdown-toc__entry" data-reactid="79"><a href="#the-version-manifest" class="" data-reactid="80">The Version Manifest</a></li><li class="markdown-toc__entry" data-reactid="81"><a href="#the-release-manifest" class="" data-reactid="82">The Release Manifest</a></li></ul></div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div><div class="two-column-layout__nav" data-reactid="46"><div class="sticky-container" data-reactid="47"><div class="doc-content" data-reactid="48"><p data-reactid="49">Contents</p><div data-reactid="50"><div data-reactid="51"><ul class="markdown-toc markdown-toc--flat" data-reactid="52"><li class="markdown-toc__entry" data-reactid="53"><a href="#current-dependencies" class="" data-reactid="54">Current dependencies</a></li><li class="markdown-toc__entry" data-reactid="55"><a href="#identifying-the-application-version" class="" data-reactid="56">Identifying the application version</a></li><li class="markdown-toc__entry" data-reactid="57"><a href="#versioning-schemes" class="" data-reactid="58">Versioning schemes</a></li><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="59"><i class="icon icon-arrow-right" data-reactid="60"></i><a href="#generating-binary-diffs" class="" data-reactid="61">Generating binary diffs</a><ul class="markdown-toc" data-reactid="62"><li class="markdown-toc__entry" data-reactid="63"><a href="#the-hunt-for-a-delta-encoding-solution" class="" data-reactid="64">The hunt for a delta encoding solution</a></li></ul></li><li class="markdown-toc__entry markdown-toc__entry--collapsible" data-reactid="65"><i class="icon icon-arrow-right" data-reactid="66"></i><a href="#operations" class="" data-reactid="67">Operations</a><ul class="markdown-toc" data-reactid="68"><li class="markdown-toc__entry" data-reactid="69"><a href="#create" class="" data-reactid="70">create</a></li><li class="markdown-toc__entry" data-reactid="71"><a href="#update" class="" data-reactid="72">update</a></li><li class="markdown-toc__entry" data-reactid="73"><a href="#delete" class="" data-reactid="74">delete</a></li><li class="markdown-toc__entry" data-reactid="75"><a href="#notes" class="" data-reactid="76">Notes</a></li></ul></li><li class="markdown-toc__entry" data-reactid="77"><a href="#the-version-manifest" class="" data-reactid="78">The Version Manifest</a></li><li class="markdown-toc__entry" data-reactid="79"><a href="#the-release-manifest" class="" data-reactid="80">The Release Manifest</a></li></ul></div></div></div></div></div></div></div></div></div></div>
     
     <script type="text/javascript" src="config.js"></script>
     

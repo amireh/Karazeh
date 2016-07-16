@@ -14,7 +14,7 @@
   </head>
 
   <body class="body--themed">
-    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-1232340988"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="2007037986"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="index.html" class="class-browser__entry-link" data-reactid="16"><!-- react-text: 17 -->Karazeh
 <!-- /react-text --></a></div><div data-reactid="18"><a href="doc-architecture.html" class="class-browser__entry-link" data-reactid="19"><!-- react-text: 20 -->Architecture
 <!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
 <!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
@@ -49,7 +49,10 @@
 <p>Once it is determined that a patch was being applied, Karazeh attempts to identify its <em>last known version</em> which is <strong>stored in the cache</strong>^[1] right before any patch is applied (and removed once the patch is successfully deployed, or rolled-back).</p>
 <p>Now that the original version is identified, Karazeh will fetch the version manifest, and download the release version for the one that comes right after the original one (which is the patch that had been interrupted). Using that manifest, it resumes the procedure as it normally does: it will first roll-back all the changes, then stage, deploy, and purge.</p>
 <blockquote>
-<p>[1] The reason the patcher does not in this case identify the version using the version manifest as it normally does is because the <em>identity files</em> might have been changed during the last patch, and then checksum-ming those files would result in an identity that corresponds to no valid release!</p>
+<p>[1] The reason the patcher does not in this case identify the version using 
+the version manifest as it normally does is because the <em>identity files</em> 
+might have been changed during the last patch, and then checksum-ming those 
+files would result in an identity that corresponds to no valid release!</p>
 </blockquote>
 
     <h2 class="anchorable-heading">

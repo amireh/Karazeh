@@ -1,8 +1,0 @@
-<karazeh>
-  <identity name="general">
-    <file><![CDATA[/bin/test]]></file>
-  </identity>
-
-  <release tag="0.1.0" identity="general_xxx" initial="true" checksum="bae3d8f9b767a12336768dacf72cb0de" />
-  <release tag="0.1.1" identity="general" uri="/releases/test-0.1.1.xml" checksum="ebb5dcbf784e0ef2fe6c37dae8d52722" />
-</karazeh>

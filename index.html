@@ -14,7 +14,7 @@
   </head>
 
   <body class="body--themed">
-    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-1143738187"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="" class="class-browser__entry-link active" data-reactid="16"><!-- react-text: 17 -->Karazeh
+    <div id="__app__"><div data-reactroot="" data-reactid="1" data-react-checksum="-1066075107"><div data-reactid="2"></div><!-- react-empty: 3 --><!-- react-empty: 4 --><div class="root root--with-multi-page-layout root--with-fixed-sidebar root--with-two-column-layout root--without-banner" data-reactid="5"><div class="root__screen" data-reactid="6"><div class="two-column-layout two-column-layout--with-nav" data-reactid="7"><div class="two-column-layout__left" style="width:240px;" data-reactid="8"><div class="resizable-panel" data-reactid="9"><div class="resizable-panel__content" data-reactid="10"><div data-reactid="11"><div data-reactid="12"><nav data-reactid="13"><div data-reactid="14"><div data-reactid="15"><a href="" class="class-browser__entry-link active" data-reactid="16"><!-- react-text: 17 -->Karazeh
 <!-- /react-text --></a></div><div data-reactid="18"><a href="doc-architecture.html" class="class-browser__entry-link" data-reactid="19"><!-- react-text: 20 -->Architecture
 <!-- /react-text --></a></div><div data-reactid="21"><a href="doc-authoring_patches.html" class="class-browser__entry-link" data-reactid="22"><!-- react-text: 23 -->Authoring Patches
 <!-- /react-text --></a></div><div data-reactid="24"><a href="doc-building.html" class="class-browser__entry-link" data-reactid="25"><!-- react-text: 26 -->Building
@@ -41,7 +41,7 @@ what you&#39;re looking for.</p>
       <a name="building" class="anchorable-heading__anchor"></a>
       <a href="#building" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Building</span>
     </h2>
-  <p><em>TBD</em></p>
+  <p>See the <a href="" class="mega-link--internal mega-link--broken">Building</a> guide.</p>
 
     <h2 class="anchorable-heading">
       <a name="usage" class="anchorable-heading__anchor"></a>
@@ -53,24 +53,29 @@ what you&#39;re looking for.</p>
       <a name="tests" class="anchorable-heading__anchor"></a>
       <a href="#tests" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">Tests</span>
     </h2>
-  <p>To run the unit tests you must launch an http server to serve the fixtures. You can
-easily do this using a light http daemon such as <code>darkhttpd</code> and running it
-on port 8080 to serve <code>/path/to/karazeh/test/fixture</code> as the root directory.</p>
-<p>Example on Arch Linux:</p>
+  <p>To run the unit tests you must launch an http server on port 9393 to serve the 
+files under <code>/path/to/karazeh/test/fixture</code> for the tests. </p>
+<p>If you have Python2 available, it&#39;s very easy:</p>
+<pre class="language-javascript"><code><span class="token punctuation" >(</span>cd test<span class="token operator" >/</span>fixture<span class="token punctuation" >;</span> python2 <span class="token operator" >-</span>m SimpleHTTPServer <span class="token number" >9393</span><span class="token punctuation" >)</span></code></pre><p>If you&#39;re on Arch Linux, you can use <code>darkhttpd</code> instead:</p>
 <pre class="language-bash"><code>pacman -S darkhttpd
-<span class="token function" >cd</span> /path/to/karazeh/test/fixture
-darkhttpd <span class="token keyword" >.</span></code></pre><p>Afterwards, run the binary:</p>
-<pre class="language-bash"><code>./karazeh_unit_tests</code></pre>
+darkhttpd /path/to/karazeh/test/fixture --port 9393</code></pre><p>Afterwards, run the binary:</p>
+<pre class="language-bash"><code>./karazeh_tests</code></pre><p>The test runner can be customized using some environment variables:</p>
+<ul>
+<li><code>VERBOSE=1</code> if you want more output</li>
+<li><code>ROOT=/path/to/root</code> should point to the root directory of the Karazeh repository; this is needed in case the built-in binary locators aren&#39;t doing their job correctly.</li>
+<li><code>HOST=http://customhost:1234</code> should point to the fixture server. Defaults to <code>http://localhost:9393</code></li>
+</ul>
+
     <h2 class="anchorable-heading">
       <a name="license" class="anchorable-heading__anchor"></a>
       <a href="#license" class="anchorable-heading__link icon icon-link"></a><span class="anchorable-heading__text">License</span>
     </h2>
-  <p>Copyright 2011-2016 Ahmad Amireh <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#97;&#104;&#x6d;&#x61;&#100;&#x40;&#x61;&#x6d;&#x69;&#x72;&#x65;&#x68;&#x2e;&#x6e;&#x65;&#x74;" target="_blank">&#97;&#104;&#x6d;&#x61;&#100;&#x40;&#x61;&#x6d;&#x69;&#x72;&#x65;&#x68;&#x2e;&#x6e;&#x65;&#x74;</a>.</p>
+  <p>Copyright 2011-2016 Ahmad Amireh <a href="&#109;&#x61;&#105;&#108;&#116;&#x6f;&#58;&#x61;&#104;&#x6d;&#97;&#100;&#x40;&#97;&#x6d;&#105;&#x72;&#101;&#x68;&#46;&#x6e;&#x65;&#116;" target="_blank">&#x61;&#104;&#x6d;&#97;&#100;&#x40;&#97;&#x6d;&#105;&#x72;&#101;&#x68;&#46;&#x6e;&#x65;&#116;</a>.</p>
 <p>The code is licensed under the GNU L-GPL v3.0 (see COPYING) and is free to use,
 link-against and embed within free and commercial applications.</p>
 <p>Libraries used by Karazeh to link against and their respective licenses:</p>
 <ul>
-<li><a href="https://github.com/leethomason/tinyxml2" target="_blank">TinyXML-2</a> - z-lib</li>
+<li><a href="https://github.com/dropbox/json11" target="_blank">json11</a> - MIT</li>
 <li><a href="http://librsync.sourcefrog.net/" target="_blank">librsync</a> - GNU LGPL v2.1</li>
 <li><a href="https://github.com/datenwolf/binreloc" target="_blank">binreloc</a> - DWTFYWT</li>
 <li>RSA Data Security, Inc. MD5 Message-Digest
