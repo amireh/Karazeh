@@ -6,6 +6,7 @@
 #include "karazeh/hashers/md5_hasher.hpp"
 #include "karazeh/path_resolver.hpp"
 #include "karazeh/file_manager.hpp"
+#include "karazeh/downloader.hpp"
 #include "test_utils.hpp"
 #include <cstdlib>
 
@@ -20,6 +21,7 @@ int main(int argc, char **argv) {
 
   kzh::md5_hasher     hasher;
   kzh::file_manager   file_manager;
+  kzh::downloader     downloader(kzh::sample_config, file_manager);
 
   kzh::path_resolver path_resolver;
   kzh::path_t base_path = kzh::path_t(get_env_var("ROOT", "")).make_preferred();
@@ -35,6 +37,8 @@ int main(int argc, char **argv) {
   kzh::sample_config.root_path = kzh::test_config.fixture_path;
   kzh::sample_config.cache_path = (kzh::sample_config.root_path / ".kzh/cache").make_preferred();
   kzh::sample_config.hasher = &hasher;
+  kzh::sample_config.file_manager = &file_manager;
+  kzh::sample_config.downloader = &downloader;
   kzh::sample_config.verbose = verbose;
 
   file_manager.ensure_directory(kzh::test_config.temp_path);
@@ -44,8 +48,15 @@ int main(int argc, char **argv) {
     std::cout << "Fixture path: " << kzh::test_config.fixture_path.string() << "\n";
     std::cout << "Server host: " << kzh::test_config.server_host << "\n";
   }
+  else {
+    kzh::logger::mute();
+  }
+
+  curl_global_init(CURL_GLOBAL_ALL);
 
   result = Catch::Session().run( argc, argv );
+
+  curl_global_cleanup();
 
   file_manager.remove_directory(kzh::test_config.temp_path);
   file_manager.remove_directory(kzh::sample_config.cache_path.parent_path()); // the .kzh directory

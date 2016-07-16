@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+$(which cppcheck &> /dev/null) || {
+  echo "cppcheck must be installed."
+  exit 1
+}
+
+cppcheck --quiet --force --enable=all -I deps -I include include src test $@

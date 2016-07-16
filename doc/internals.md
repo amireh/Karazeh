@@ -7,7 +7,7 @@
 **Embedded Dependencies**
 
 * [librsync](http://librsync.sourceforge.net)
-* [tinyxml2](http://www.grinninglizard.com/tinyxml2/index.html)
+* [json11](https://github.com/dropbox/json11)
 * [binreloc](http://pawnscript.googlecode.com/svn-history/r6/trunk/linux/binreloc.c) *Linux only*
 * md5
 
@@ -72,16 +72,22 @@ Arguments:
 
 1. move the file from the staged source to the destination
 
-`create` in the release manifest:
+**Synopsis**
 
-```xml
-<create>
-  <source checksum="1234" size="500"><![CDATA[/path/to/source]]></source>
-  <destination><![CDATA[/path/to/destination]]></destination>
-</create>
+```json
+{
+  "type": "create",
+  "source": {
+    "url": String,
+    "checksum": String,
+    "size": Number
+  },
+  "destination": String,
+  "flags": {
+    "executable": Boolean
+  }
+}
 ```
-
-*****
 
 ### `update`
 
@@ -111,43 +117,24 @@ Arguments:
 3. remove the source file
 4. move the patched file to the source's destination
 
-`create` in the release manifest:
+**Synopsis**
 
-```xml
-<update>
-  <target pre-checksum="1234" post-checksum="5678"><![CDATA[/path/to/file]]></target>
-  <patch  checksum="5678" size="100"><![CDATA[/path/to/patch]]></patch>
-</update>
+```json
+{
+  "type": "update",
+  "basis": {
+    "pre_checksum": String,
+    "post_checksum": String,
+    "filepath": String
+  },
+
+  "delta": {
+    "checksum": String,
+    "size": Number,
+    "url": String
+  }
+}
 ```
-
-*****
-
-### `rename`
-
-Arguments:
-
-1. the fully qualified source path
-2. the fully qualified destination path
-
-**Staging**
-
-1. verify that the source exists
-2. verify that the destination is clear
-
-**Deployment**
-
-1. move the source to the destination
-
-`rename` in the release manifest:
-
-```xml
-<rename>
-  <from checksum="[1234]"><![CDATA[/path/to/file]]></from>
-  <to><![CDATA[/new/path/to/file]]></to>
-</rename>
-```
-
-*****
 
 ### `delete`
 
@@ -164,25 +151,84 @@ Arguments:
 1. if the source is a directory, recursively empty its contents
 2. remove the source
 
-`delete` in the release manifest:
+**Synopsis**
 
-```xml
-<delete>
-  <target checksum="[1234]"><![CDATA[/path/to/file-or-directory]]></target>
-</delete>
+```json
+{
+  "type": "delete",
+  "checksum": String,
+  "target": String
+}
 ```
 
 ### Notes
 
-* `<create executable="true">` will cause the patcher to mark the created file as executable (chmod 0711)
-* `<delete>` entries will internally mark those paths as "to be deleted", so any subsequent  `<create>` entry with one of those paths will know that they will be deleted, and will not cause a staging error; effectively, we achieve the effect of `<replace>` without having to implement any!
+* `create` with the `executable` flag will cause the patcher to mark the created file as executable (chmod 0711)
+* `delete` entries will internally mark those paths as "to be deleted", so any subsequent  `create` entry with one of those paths will know that they will be deleted, and will not cause a staging error; effectively, we achieve the effect of `replace` without having to implement any!
 * running with `-v` will cause the `resource_manager` to print out the content of all downloaded files
-* `<delete>` recursively removes directories as well as files
+* `delete` recursively removes directories as well as files
 
 ## The Version Manifest
 
-```xml
-[!include!](https://raw.github.com/amireh/karazeh_v2/master/doc/version_manifest.template.xml)
+```json
+{
+  "identities": [
+    {
+      "name": String,
+      "files": Array.<String>
+    }
+  ],
+
+  "releases": [
+    {
+      // The identity list used for computing the id of this release. See
+      // the "id" attribute below for more information.
+      "identity": String,
+
+      // The identifier of this release. This value is computed based on the 
+      // accumulation of checksums of the identity files (as specified per the
+      // identity list @identity) which is then digested using MD5.
+      // 
+      // For example, say the identity "Base" has the files:
+      // 
+      //     - bin/app.exe # => c23cca28502254df15f39dc8300ef752
+      //     - data/assets.mpq # => f1eb970aeb2e380593480ed76070acbe
+      // 
+      // The identifier for such a version of the application would be:
+      // 
+      //     MD5(
+      //       "c23cca28502254df15f39dc8300ef752" +
+      //       "f1eb970aeb2e380593480ed76070acbe"
+      //     ) # => 3a2f552b7db42835a84ec19ee3edf4c9
+      "id": String,
+
+      "operations": Array,
+
+      // Identifier of the "head" release; the preceding release to this one.
+      // 
+      // When no "head" is specified, the release is assumed to be the initial
+      // one (i.e. the starting state of the application).
+      // 
+      // Having more than one release per identity list with no "head" results
+      // in undefined behavior.
+      "head": String?,
+
+      // A tag for use by the integrating application to refer to the release.
+      // This is not employed by Karazeh in any way and is only meant for user
+      // display purposes.
+      "tag": String?,
+
+      // A URI to download the release manifest from. Use of this attribute
+      // is optional IFF the "operations" attribute is specified inline in
+      // the version manifest.
+      // 
+      // This allows the integration layer to choose whether to split the
+      // manifests up on a per-release basis, or to specify them all in the
+      // version manifest.
+      "uri": String?
+    }
+  ]
+}
 ```
 
 ## The Release Manifest

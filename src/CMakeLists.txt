@@ -3,7 +3,6 @@ INCLUDE(GenerateExportHeader)
 
 INCLUDE_DIRECTORIES(../include)
 INCLUDE_DIRECTORIES(../deps)
-INCLUDE_DIRECTORIES(../deps/tinyxml2)
 INCLUDE_DIRECTORIES(../deps/md5)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/exports)
 
@@ -12,6 +11,8 @@ IF(WIN32)
 ENDIF()
 
 IF(APPLE)
+  SET(CMAKE_CXX_FLAGS "-std=c++11 -Wc++11-extensions")
+
   FIND_LIBRARY(COREFOUNDATION_LIBRARY NAMES CoreFoundation)
   MARK_AS_ADVANCED (COREFOUNDATION_LIBRARY)
 ENDIF()
@@ -33,10 +34,10 @@ SET(Karazeh_SRCS
   ../include/karazeh/patcher.hpp
   ../include/karazeh/path_resolver.hpp
   ../include/karazeh/release_manifest.hpp
-  ../include/karazeh/utility.hpp
+  ../include/karazeh/version_manifest.hpp
 
-  ../deps/tinyxml2/tinyxml2.h
-  ../deps/tinyxml2/tinyxml2.cpp
+  ../deps/json11/json11.hpp
+  ../deps/json11/json11.cpp
   ../deps/md5/md5.hpp
   ../deps/md5/md5.cpp
   ../deps/binreloc/binreloc.h
@@ -54,14 +55,11 @@ SET(Karazeh_SRCS
   patcher.cpp
   path_resolver.cpp
   release_manifest.cpp
+  version_manifest.cpp
 )
 
 # generate library
 ADD_LIBRARY(kzh SHARED ${Karazeh_SRCS})
-
-IF(WIN32)
-  TARGET_COMPILE_DEFINITIONS(kzh PRIVATE TINYXML2_EXPORT=1)
-ENDIF()
 
 GENERATE_EXPORT_HEADER(kzh
   BASE_NAME kzh

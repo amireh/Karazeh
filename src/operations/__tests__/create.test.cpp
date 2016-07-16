@@ -22,21 +22,21 @@ namespace fs = boost::filesystem;
 #define STUB_HEX_DIGEST ConstOverloadedMethod(hasherSpy, hex_digest, hasher::digest_rc(const path_t&))
 
 TEST_CASE("create_operation") {
-  config_t          config_(kzh::sample_config);
-  file_manager      file_manager_;
-  md5_hasher        md5_hasher_;
-  downloader        downloader_(kzh::sample_config, file_manager_);
-  release_manifest  manifest_;
+  config_t          config(kzh::sample_config);
+  kzh::file_manager      file_manager;
+  kzh::downloader        downloader(kzh::sample_config, file_manager);
+  kzh::release_manifest  manifest;
 
-  downloader_.set_retry_count(0);
+  downloader.set_retry_count(0);
 
-  manifest_.checksum = "somethingsomething";
+  config.downloader = &downloader;
+  config.file_manager = &file_manager;
+
+  manifest.id = "somethingsomething";
 
   create_operation subject(
-    config_,
-    file_manager_,
-    downloader_,
-    manifest_
+    config,
+    manifest
   );
 
   subject.dst_path = "CreateOperationTest/bar.txt";
@@ -49,19 +49,19 @@ TEST_CASE("create_operation") {
       THEN("It creates it") {
         REQUIRE(subject.stage() == STAGE_OK);
 
-        REQUIRE(file_manager_.exists(
-          (config_.cache_path / manifest_.checksum / subject.dst_path).parent_path()
+        REQUIRE(file_manager.exists(
+          (config.cache_path / manifest.id / subject.dst_path).parent_path()
         ));
       }
     }
 
     WHEN("The cache directory does not exist...") {
-      config_.cache_path = (test_config.temp_path / "some_custom_cache").make_preferred();
+      config.cache_path = (test_config.temp_path / "some_custom_cache").make_preferred();
 
       THEN("it creates it") {
         REQUIRE(subject.stage() == STAGE_OK);
-        REQUIRE(file_manager_.is_directory(
-          config_.cache_path / "somethingsomething/CreateOperationTest"
+        REQUIRE(file_manager.is_directory(
+          config.cache_path / "somethingsomething/CreateOperationTest"
         ));
       }
     }
@@ -92,7 +92,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The cache destination is not writable") {
-      config_.cache_path = test_config.fixture_path / "permissions/unwritable_dir";
+      config.cache_path = test_config.fixture_path / "permissions/unwritable_dir";
 
       THEN("it aborts") {
         REQUIRE(subject.stage() == STAGE_UNAUTHORIZED);
@@ -112,13 +112,13 @@ TEST_CASE("create_operation") {
   } // Staging
 
   SECTION("Deploying") {
-    const path_t cachePath(config_.cache_path / manifest_.checksum / subject.dst_path);
-    const path_t destPath(config_.root_path / subject.dst_path);
+    const path_t cachePath(config.cache_path / manifest.id / subject.dst_path);
+    const path_t destPath(config.root_path / subject.dst_path);
 
     REQUIRE(subject.stage() == STAGE_OK);
 
     WHEN("The destination is occupied") {
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
       When(STUB_IS_READABLE).AlwaysDo([&](const path_t &path) {
         return path == destPath;
       });
@@ -129,7 +129,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The destination is not writable") {
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
       When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
         return path != destPath;
       });
@@ -140,7 +140,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The cache source is not writable") {
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
       When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
         return path != cachePath;
       });
@@ -154,19 +154,19 @@ TEST_CASE("create_operation") {
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It installs the staged file at the destination") {
-        REQUIRE(file_manager_.exists(destPath));
-        REQUIRE(config_.hasher->hex_digest(destPath) == subject.src_checksum);
+        REQUIRE(file_manager.exists(destPath));
+        REQUIRE(config.hasher->hex_digest(destPath) == subject.src_checksum);
       }
 
       THEN("It removes the staged file") {
-        REQUIRE_FALSE(file_manager_.exists(cachePath));
+        REQUIRE_FALSE(file_manager.exists(cachePath));
       }
     }
 
     WHEN("It is marked as an executable") {
       subject.is_executable = true;
 
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
       Fake(STUB_MAKE_EXECUTABLE);
 
       REQUIRE(subject.deploy() == STAGE_OK);
@@ -180,14 +180,14 @@ TEST_CASE("create_operation") {
   }
 
   SECTION("Rolling back") {
-    const path_t cachePath(config_.cache_path / manifest_.checksum / subject.dst_path);
-    const path_t destPath(config_.root_path / subject.dst_path);
+    const path_t cachePath(config.cache_path / manifest.id / subject.dst_path);
+    const path_t destPath(config.root_path / subject.dst_path);
 
     WHEN("It has been staged") {
       REQUIRE(subject.stage() == STAGE_OK);
 
       THEN("It removes the directory it has created") {
-        Mock<file_manager> spy(file_manager_);
+        Mock<kzh::file_manager> spy(file_manager);
         Fake(STUB_REMOVE_DIRECTORY);
 
         subject.rollback();
@@ -201,7 +201,7 @@ TEST_CASE("create_operation") {
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It moves the file back into staging") {
-        Mock<file_manager> spy(file_manager_);
+        Mock<kzh::file_manager> spy(file_manager);
         Fake(STUB_MOVE);
 
         subject.rollback();
@@ -211,7 +211,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("It has neither been staged nor deployed") {
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
 
       Fake(STUB_MOVE);
       Fake(STUB_REMOVE_DIRECTORY);
@@ -231,7 +231,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("It has been rolled-back") {
-      Mock<file_manager> spy(file_manager_);
+      Mock<kzh::file_manager> spy(file_manager);
       Fake(STUB_REMOVE_FILE);
 
       REQUIRE(subject.stage() == STAGE_OK);
@@ -247,7 +247,7 @@ TEST_CASE("create_operation") {
 
       THEN("It does not remove the staged file if it finds the checksum not to match") {
         Mock<md5_hasher> hasherSpy;
-        config_.hasher = &hasherSpy.get();
+        config.hasher = &hasherSpy.get();
 
         When(STUB_HEX_DIGEST).AlwaysDo([&](const path_t&) {
           hasher::digest_rc rc;

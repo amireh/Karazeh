@@ -21,13 +21,11 @@
 #ifndef H_KARAZEH_PATH_RESOLVER_H
 #define H_KARAZEH_PATH_RESOLVER_H
 
+#include "binreloc/binreloc.h"
+#include "karazeh_export.h"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/hasher.hpp"
-#include <curl/curl.h>
-#include <boost/filesystem.hpp>
-#include "binreloc/binreloc.h"
-#include "karazeh_export.h"
 
 namespace kzh {
   class KARAZEH_EXPORT path_resolver : protected logger {
@@ -62,6 +60,9 @@ namespace kzh {
      * On Windows, it is located using GetModuleFileName() (see resolve_paths())
      *
      * All the other paths are derived from the bin_path unless overridden.
+     *
+     * @throw std::runtime_error
+     *        LINUX ONLY: if binreloc could not be initialized for some reason.
      */
     void resolve(path_t root = "", bool verbose = false);
 

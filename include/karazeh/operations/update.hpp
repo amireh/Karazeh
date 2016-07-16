@@ -21,16 +21,16 @@
 #ifndef H_KARAZEH_OPERATION_UPDATE_H
 #define H_KARAZEH_OPERATION_UPDATE_H
 
+#include "karazeh_export.h"
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/delta_encoder.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
 
   class KARAZEH_EXPORT update_operation : public operation, protected logger {
   public:
-    update_operation(config_t const&, file_manager const&, downloader const&, release_manifest&);
+    update_operation(config_t const&, release_manifest const&);
     virtual ~update_operation();
 
     /**

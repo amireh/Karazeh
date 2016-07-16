@@ -21,10 +21,10 @@
 #ifndef H_KARAZEH_DELTA_ENCODER_H
 #define H_KARAZEH_DELTA_ENCODER_H
 
+#include "karazeh_export.h"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/logger.hpp"
 #include "karazeh/file_manager.hpp"
-#include "karazeh_export.h"
 
 extern "C" {
   #include "librsync-2.0.0/src/librsync.h"

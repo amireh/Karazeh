@@ -1,129 +1,52 @@
 #include "catch.hpp"
 #include "karazeh/karazeh.hpp"
-#include "karazeh/utility.hpp"
 #include "karazeh/patcher.hpp"
 #include "karazeh/path_resolver.hpp"
-#include "karazeh/hashers/md5_hasher.hpp"
+#include "karazeh/version_manifest.hpp"
 #include "test_utils.hpp"
-#include "tinyxml2/tinyxml2.h"
+#include <boost/filesystem.hpp>
 
 using namespace kzh;
 using namespace Catch::Matchers;
 
-TEST_CASE("Patcher - Manifest validation", "[Patcher]") {
-  config_t              config_(sample_config);
-  path_resolver         path_resolver_;
-  file_manager          file_manager_;
-  tinyxml2::XMLDocument manifest_doc_;
+TEST_CASE("Patcher", "[Patcher_JSON]") {
+  string_t original_host(sample_config.host);
+  path_t   original_root_path(sample_config.root_path);
+  path_t   original_cache_path(sample_config.cache_path);
 
-  path_resolver_.resolve(test_config.fixture_path / "sample_application/0.1.2");
-  config_.host = test_config.server_host;
-  config_.root_path = path_resolver_.get_root_path();
-  config_.cache_path = path_resolver_.get_cache_path();
+  kzh::path_resolver         path_resolver;
+  kzh::config_t const& config(sample_config);
 
-  downloader  downloader_(config_, file_manager_);
-  patcher     subject(config_, file_manager_, downloader_);
+  path_resolver.resolve(test_config.fixture_path / "sample_application/current");
 
-  auto load_manifest = [&](string_t const& p, tinyxml2::XMLDocument& doc) -> bool {
-    string_t manifest_xml;
+  sample_config.host          = test_config.server_host;
+  sample_config.root_path     = path_resolver.get_root_path();
+  sample_config.cache_path    = path_resolver.get_cache_path();
 
-    downloader_.fetch(config_.host + "/manifests/" + p, manifest_xml);
+  version_manifest version(config);
 
-    return doc.Parse(manifest_xml.c_str()) == tinyxml2::XML_SUCCESS;
-  };
+  patcher subject(config);
 
-  GIVEN("A bad URI to a manifest...") {
-    THEN("it throws") {
-      REQUIRE_THROWS_AS(
-        subject.identify(config_.host + "/manifests/non_existent_manifest.xml"),
-        kzh::invalid_resource
-      );
-    }
+  SECTION("#apply_update()") {
+    sample_config.host = sample_config.host + "/sample_application";
+
+    test_utils::copy_directory(
+      test_config.fixture_path / "sample_application/0.1.0",
+      config.root_path
+    );
+
+    version.load_from_uri(config.host + "/manifests/version.json");
+    version.load_release_from_uri(config.host + "/manifests/release__0.1.1.json");
+
+    auto release = version.get_release("ebb5dcbf784e0ef2fe6c37dae8d52722");
+
+    REQUIRE(release);
+    REQUIRE(subject.apply_update(*release) == STAGE_OK);
   }
 
-  GIVEN("An empty manifest...") {
-    THEN("it throws") {
-      REQUIRE_THROWS_AS(
-        subject.identify(config_.host + "/manifests/empty.xml"),
-        kzh::missing_children
-      );
-    }
-  }
+  config.file_manager->remove_directory(sample_config.root_path);
 
-  GIVEN("No <identity /> list") {
-    REQUIRE(load_manifest("invalid_vm_missing_ilist.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Equals("no identity list defined.", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A manifest with an identity list missing the name parameter") {
-    REQUIRE(load_manifest("invalid_vm_missing_ilist_name.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("missing required attribute 'name'", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A manifest with an identity list with no files") {
-    REQUIRE(load_manifest("invalid_vm_missing_ilist_files.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("node <identity name=\"general\"> must have <file> nodes to define identity files", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A manifest with an identity list missing <release /> nodes") {
-    REQUIRE(load_manifest("invalid_vm_missing_releases.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("missing a required child <release>", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A manifest with no initial <release />") {
-    REQUIRE(load_manifest("invalid_vm_missing_initial_release.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("missing initial release node", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A <release /> tag that points to an undefined identity list...") {
-    REQUIRE(load_manifest("invalid_vm_undefined_ilist.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("<release> node points to an undefined identity list", Catch::CaseSensitive::No)
-      );
-    }
-  }
-
-  GIVEN("A <release /> with no [identity]") {
-    REQUIRE(load_manifest("invalid_vm_unmapped_release.xml", manifest_doc_));
-
-    THEN("it throws") {
-      REQUIRE_THROWS_WITH(
-        subject.identify(manifest_doc_),
-        Contains("missing required attribute 'identity'", Catch::CaseSensitive::No)
-      );
-    }
-  }
+  sample_config.host          = original_host;
+  sample_config.root_path     = original_root_path;
+  sample_config.cache_path    = original_cache_path;
 }

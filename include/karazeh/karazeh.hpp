@@ -23,8 +23,8 @@
 
 #include <string>
 #include <cassert>
-#include "karazeh/exception.hpp"
 #include <boost/filesystem.hpp>
+#include "karazeh/exception.hpp"
 
 #define KZH_DISTANCE_FROM_ROOT 1
 

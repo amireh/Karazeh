@@ -21,15 +21,16 @@
 #ifndef H_KARAZEH_OPERATION_DELETE_H
 #define H_KARAZEH_OPERATION_DELETE_H
 
+#include "karazeh_export.h"
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
 
+  // TODO: require target checksum
   class KARAZEH_EXPORT delete_operation : public operation, protected logger {
   public:
-    delete_operation(config_t const&, file_manager const&, downloader const&, release_manifest&);
+    delete_operation(config_t const&, release_manifest const&);
     virtual ~delete_operation();
 
     /**

@@ -18,7 +18,10 @@ Once it is determined that a patch was being applied, Karazeh attempts to identi
 
 Now that the original version is identified, Karazeh will fetch the version manifest, and download the release version for the one that comes right after the original one (which is the patch that had been interrupted). Using that manifest, it resumes the procedure as it normally does: it will first roll-back all the changes, then stage, deploy, and purge.
 
-  > [1] The reason the patcher does not in this case identify the version using the version manifest as it normally does is because the *identity files* might have been changed during the last patch, and then checksum-ming those files would result in an identity that corresponds to no valid release!
+> [1] The reason the patcher does not in this case identify the version using 
+> the version manifest as it normally does is because the *identity files* 
+> might have been changed during the last patch, and then checksum-ming those 
+> files would result in an identity that corresponds to no valid release!
 
 ## What happens if a patch file could not be downloaded?
 

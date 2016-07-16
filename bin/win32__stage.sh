@@ -15,7 +15,7 @@ $(grep "# Karazeh" README.md &> /dev/null) || {
 }
 
 DEPS_PATH="/c/local"
-STAGE_PATH="bin/Debug/"
+STAGE_PATH="build/Debug/"
 
 # libcurl
 cp "${DEPS_PATH}"/curl-7.49.1/builds/libcurl-vc12-x86-release-dll-ipv6-sspi-winssl/bin/libcurl.dll "${STAGE_PATH}"
@@ -31,4 +31,4 @@ cp "${DEPS_PATH}"/boost_1_61_0/lib32-msvc-12.0/boost_filesystem-vc120-mt-gd-1_61
 cp "${DEPS_PATH}"/GnuWin32/bin/* "${STAGE_PATH}"
 
 # karazeh
-cp lib/Debug/kzh.dll "${STAGE_PATH}"
+cp build/Debug/kzh.dll "${STAGE_PATH}"

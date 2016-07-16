@@ -19,19 +19,19 @@
  */
 
 #include "karazeh/operations/update.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
-  namespace fs = boost::filesystem;
-
   update_operation::update_operation(
     config_t const& config,
-    file_manager const& file_manager,
-    downloader const& downloader,
-    release_manifest& rm
+    release_manifest const& rm
   )
-  : operation(config, file_manager, downloader, rm),
+  : operation(config, rm),
     logger("op_update"),
-    patched_(false)
+    patched_(false),
+    basis_length(0),
+    delta_length(0),
+    patched_length(0)
   {
   }
 
@@ -46,14 +46,16 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::stage() {
+    auto file_manager = config_.file_manager;
+
     basis_path_     = (config_.root_path / basis).make_preferred();
-    cache_dir_      = path_t(config_.cache_path / rm_.checksum / basis).make_preferred().parent_path();
+    cache_dir_      = path_t(config_.cache_path / rm_.id / basis).make_preferred().parent_path();
     signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
     delta_path_     = (cache_dir_ / basis).make_preferred().filename().string() + ".delta";
     patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";
 
     // basis must exist
-    if (!file_manager_.is_readable(basis_path_)) {
+    if (!file_manager->is_readable(basis_path_)) {
       error()
         << "basis file does not exist at: " << basis_path_;
 
@@ -71,10 +73,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (file_manager_.stat_filesize(basis_path_) != basis_length) {
+    if (file_manager->stat_filesize(basis_path_) != basis_length) {
       error()
         << "Length mismatch: "
-        << file_manager_.stat_filesize(basis_path_) << " to " << basis_length
+        << file_manager->stat_filesize(basis_path_) << " to " << basis_length
         << " in file " << basis_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -82,8 +84,8 @@ namespace kzh {
 
 
     // prepare our cache directory, if necessary
-    if (!fs::is_directory(cache_dir_)) {
-      if (!file_manager_.create_directory(cache_dir_)) {
+    if (!file_manager->is_directory(cache_dir_)) {
+      if (!file_manager->create_directory(cache_dir_)) {
         error() << "Unable to create cache directory: " << cache_dir_;
         return STAGE_UNAUTHORIZED;
       }
@@ -92,7 +94,7 @@ namespace kzh {
     // TODO: free space checks, need at least 2x basis file size + delta size
 
     // get the delta patch
-    if (!downloader_.fetch(delta, delta_path_, delta_checksum, delta_length)) {
+    if (!config_.downloader->fetch(delta, delta_path_, delta_checksum, delta_length)) {
       throw invalid_resource(delta);
     }
 
@@ -109,6 +111,8 @@ namespace kzh {
   }
 
   STAGE_RC update_operation::deploy() {
+    auto file_manager = config_.file_manager;
+
     debug() << "patching file " << basis_path_ << " using delta " << delta_path_ << " out to " << patched_path_;
     rs_result rc = encoder_.patch(basis_path_.c_str(), delta_path_.c_str(), patched_path_.c_str());
 
@@ -130,10 +134,10 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    if (file_manager_.stat_filesize(patched_path_) != patched_length) {
+    if (file_manager->stat_filesize(patched_path_) != patched_length) {
       error()
         << "Length mismatch: "
-        << file_manager_.stat_filesize(patched_path_) << " to " << patched_length
+        << file_manager->stat_filesize(patched_path_) << " to " << patched_length
         << " in file " << patched_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -142,9 +146,11 @@ namespace kzh {
     // swap the files
     debug() << "Swapping files: " << basis_path_ << " & " << patched_path_;
 
-    fs::rename(patched_path_, path_t(patched_path_.string() + ".tmp"));
-    fs::rename(basis_path_, patched_path_);
-    fs::rename(path_t(patched_path_.string() + ".tmp"), basis_path_);
+    const path_t temp_path(path_t(patched_path_.string() + ".tmp").make_preferred());
+
+    file_manager->move(patched_path_, temp_path);
+    file_manager->move(basis_path_, patched_path_);
+    file_manager->move(temp_path, basis_path_);
 
     patched_ = true;
 
@@ -152,19 +158,21 @@ namespace kzh {
   }
 
   void update_operation::rollback() {
+    auto file_manager = config_.file_manager;
+
     // make sure the basis still exists in cache
     if (patched_) {
 
-      if (!fs::exists(patched_path_)) {
+      if (!file_manager->exists(patched_path_)) {
         throw invalid_state("Basis no longer exists in cache, can not rollback!");
       }
 
       // the file should be there.. but just in case
-      if (fs::exists(basis_path_)) {
-        fs::remove(basis_path_);
+      if (file_manager->exists(basis_path_)) {
+        file_manager->remove_file(basis_path_);
       }
 
-      fs::rename(patched_path_, basis_path_);
+      file_manager->move(patched_path_, basis_path_);
     }
 
     cleanup();
@@ -175,14 +183,15 @@ namespace kzh {
   }
 
   void update_operation::cleanup() {
+    auto file_manager = config_.file_manager;
 
     // delete the delta patch
-    if (fs::exists(delta_path_)) {
-      fs::remove(delta_path_);
+    if (file_manager->exists(delta_path_)) {
+      file_manager->remove_file(delta_path_);
     }
 
-    if (fs::exists(signature_path_)) {
-      fs::remove(signature_path_);
+    if (file_manager->exists(signature_path_)) {
+      file_manager->remove_file(signature_path_);
     }
 
   }

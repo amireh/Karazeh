@@ -23,14 +23,14 @@
 
 namespace kzh {
 
-  std::ostream& operator<<(std::ostream& s, release_manifest* rm) {
-    s << rm->tostring();
-    return s;
-  }
+  // std::ostream& operator<<(std::ostream& s, release_manifest* rm) {
+  //   s << rm->tostring();
+  //   return s;
+  // }
 
-  string_t release_manifest::tostring() const {
-    std::ostringstream s;
-    s << "release[" << this->tag << "] => " << this->uri;
-    return s.str();
-  }
+  // string_t release_manifest::tostring() const {
+  //   std::ostringstream s;
+  //   s << "release[" << this->tag << "] => " << this->uri;
+  //   return s.str();
+  // }
 }

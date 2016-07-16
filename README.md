@@ -58,7 +58,7 @@ link-against and embed within free and commercial applications.
 
 Libraries used by Karazeh to link against and their respective licenses:
 
-- [TinyXML-2](https://github.com/leethomason/tinyxml2) - z-lib
+- [json11](https://github.com/dropbox/json11) - MIT
 - [librsync](http://librsync.sourcefrog.net/) - GNU LGPL v2.1
 - [binreloc](https://github.com/datenwolf/binreloc) - DWTFYWT
 - RSA Data Security, Inc. MD5 Message-Digest

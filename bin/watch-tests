@@ -13,8 +13,12 @@ function run {
   (cd build; make -j${CONCURRENCY}) && ./build/karazeh_tests $@
 }
 
+MONITOR="kqueue_monitor"
+
+uname -a | grep "Linux" &> /dev/null && MONITOR="poll_monitor"
+
 fswatch \
-  -v -r --exclude="fixture" --format="%p" \
-  -m kqueue_monitor \
+  -r --exclude="fixture" --format="%p" \
+  -m $MONITOR \
   src test include |
   while read; do run; done

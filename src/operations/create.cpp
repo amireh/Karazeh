@@ -19,21 +19,21 @@
  */
 
 #include "karazeh/operations/create.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
   namespace fs = boost::filesystem;
 
   create_operation::create_operation(
     config_t const& config,
-    file_manager const& file_manager,
-    downloader const& downloader,
-    release_manifest& rm
+    release_manifest const& rm
   )
-  : operation(config, file_manager, downloader, rm),
+  : operation(config, rm),
     logger("op_create"),
     created_directory_(false),
     marked_for_deletion_(false),
-    is_executable(false)
+    is_executable(false),
+    src_size(0)
   {
   }
 
@@ -45,7 +45,9 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::stage() {
-    cache_path_ = path_t(config_.cache_path / rm_.checksum / dst_path);
+    auto file_manager = config_.file_manager;
+
+    cache_path_ = path_t(config_.cache_path / rm_.id / dst_path);
     cache_dir_ = cache_path_.parent_path();
     dst_dir_ = (config_.root_path / dst_path).parent_path();
 
@@ -53,22 +55,20 @@ namespace kzh {
       indent();
 
       debug() << "Caching path: "<< cache_path_;
-      debug() << "Caching dir: "<< cache_dir_;
-      debug() << "Dest dir: "<< dst_dir_;
       debug() << "Dest path: " << dst_path;
 
       deindent();
     }
 
     // Prepare our staging directory
-    if (!file_manager_.ensure_directory(cache_dir_)) {
+    if (!file_manager->ensure_directory(cache_dir_)) {
       error() << "Unable to create caching directory: " << cache_dir_;
       return STAGE_UNAUTHORIZED;
     }
 
     // Prepare our destination directory, if necessary
-    if (!file_manager_.exists(dst_dir_)) {
-      if (!file_manager_.create_directory(dst_dir_)) {
+    if (!file_manager->exists(dst_dir_)) {
+      if (!file_manager->create_directory(dst_dir_)) {
         error() << "Unable to create destination dir: " << dst_dir_;
         return STAGE_UNAUTHORIZED;
       }
@@ -77,25 +77,25 @@ namespace kzh {
     }
 
     // Make sure the destination is free
-    if (file_manager_.is_readable(config_.root_path / dst_path) && !marked_for_deletion_) {
+    if (file_manager->is_readable(config_.root_path / dst_path) && !marked_for_deletion_) {
       error() << "Destination is occupied: " << dst_path;
 
       return STAGE_FILE_EXISTS;
     }
 
     // Can we write to the destination?
-    if (!file_manager_.is_writable(config_.root_path / dst_path)) {
+    if (!file_manager->is_writable(config_.root_path / dst_path)) {
       error() << "Destination isn't writable: " << config_.root_path / dst_path;
       return STAGE_UNAUTHORIZED;
     }
 
     // Can we write to the staging destination?
-    if (!file_manager_.is_writable(cache_path_)) {
+    if (!file_manager->is_writable(cache_path_)) {
       error() << "The cache isn't writable: " << cache_path_;
       return STAGE_UNAUTHORIZED;
     }
 
-    if (!downloader_.fetch(src_uri, cache_path_, src_checksum, src_size)) {
+    if (!config_.downloader->fetch(src_uri, cache_path_, src_checksum, src_size)) {
       throw invalid_resource(src_uri);
     }
 
@@ -103,32 +103,33 @@ namespace kzh {
   }
 
   STAGE_RC create_operation::deploy() {
+    auto file_manager = config_.file_manager;
+    const path_t full_destination_path(config_.root_path / dst_path);
+
     // Make sure the destination is free
-    if (file_manager_.is_readable(config_.root_path / dst_path)) {
-      error() << "Destination is occupied: " << dst_path;
+    if (file_manager->is_readable(full_destination_path)) {
+      error() << "Destination is occupied: " << full_destination_path;
       return STAGE_FILE_EXISTS;
     }
 
     // Can we write to the destination?
-    if (!file_manager_.is_writable(config_.root_path / dst_path)) {
-      error() << "Destination isn't writable: " << config_.root_path /dst_path;
+    if (!file_manager->is_writable(full_destination_path)) {
+      error() << "Destination isn't writable: " << full_destination_path;
       return STAGE_UNAUTHORIZED;
     }
 
     // Can we write to the staging destination?
-    if (!file_manager_.is_writable(cache_path_)) {
+    if (!file_manager->is_writable(cache_path_)) {
       error() << "Temp isn't writable: " << cache_path_;
       return STAGE_UNAUTHORIZED;
     }
 
     // Move the staged file to the destination
-    info() << "Creating " << config_.root_path / dst_path;
-    file_manager_.move(cache_path_, config_.root_path / dst_path);
+    info() << "Creating " << full_destination_path;
+    file_manager->move(cache_path_, full_destination_path);
 
     // validate integrity
-    std::ifstream fh((config_.root_path / dst_path).string().c_str());
-    hasher::digest_rc rc = config_.hasher->hex_digest(fh);
-    fh.close();
+    hasher::digest_rc rc = config_.hasher->hex_digest(full_destination_path);
 
     if (rc != src_checksum) {
       error() << "Created file integrity mismatch: " << rc.digest << " vs " << src_checksum;
@@ -136,16 +137,18 @@ namespace kzh {
     }
 
     if (is_executable) {
-      std::cout << "MARKING EXECUTABLE!\n";
-      file_manager_.make_executable(config_.root_path / dst_path);
+      debug() << "MARKING EXECUTABLE!\n";
+      file_manager->make_executable(full_destination_path);
     }
 
     return STAGE_OK;
   }
 
   void create_operation::rollback() {
+    auto file_manager = config_.file_manager;
+
     if (has_deployed()) {
-      file_manager_.move(get_destination(), cache_path_);
+      file_manager->move(get_destination(), cache_path_);
     }
 
     // If we were responsible for creating the directory of our dst_path
@@ -156,21 +159,24 @@ namespace kzh {
     if (created_directory_) {
       path_t dir = dst_dir_;
 
-      while (file_manager_.is_empty(dir)) {
-        file_manager_.remove_directory(dir);
+      while (file_manager->is_empty(dir)) {
+        file_manager->remove_directory(dir);
         dir = dir.parent_path();
       }
     }
   }
 
   void create_operation::commit() {
+    auto file_manager = config_.file_manager;
+    auto hasher = config_.hasher;
+
     // in case of roll back, the source file will still be staged in the cache
     if (
-      file_manager_.exists(cache_path_) &&
+      file_manager->exists(cache_path_) &&
       // just to be safe, double-check it's our own file!
-      config_.hasher->hex_digest(cache_path_) == src_checksum
+      hasher->hex_digest(cache_path_) == src_checksum
     ) {
-      file_manager_.remove_file(cache_path_);
+      file_manager->remove_file(cache_path_);
     }
   }
 
@@ -184,11 +190,14 @@ namespace kzh {
   }
 
   bool create_operation::has_deployed() const {
-    const path_t &destination = get_destination();
+    const path_t &destination(get_destination());
+
+    auto file_manager = config_.file_manager;
+    auto hasher = config_.hasher;
 
     return (
-      file_manager_.exists(destination) &&
-      config_.hasher->hex_digest(destination) == src_checksum
+      file_manager->exists(destination) &&
+      hasher->hex_digest(destination) == src_checksum
     );
   }
 

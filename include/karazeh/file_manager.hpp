@@ -21,13 +21,13 @@
 #ifndef H_KARAZEH_FILE_MANAGER_H
 #define H_KARAZEH_FILE_MANAGER_H
 
-#include "karazeh/karazeh.hpp"
-#include "karazeh/logger.hpp"
-#include "karazeh/hasher.hpp"
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include "binreloc/binreloc.h"
 #include "karazeh_export.h"
+#include "karazeh/karazeh.hpp"
+#include "karazeh/logger.hpp"
+#include "karazeh/hasher.hpp"
 
 namespace kzh {
   class KARAZEH_EXPORT file_manager : public logger {

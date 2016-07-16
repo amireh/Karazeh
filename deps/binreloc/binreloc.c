@@ -347,6 +347,14 @@ br_init_lib (BrInitError *error)
 	return exe != NULL;
 }
 
+void
+br_free() {
+	if (exe != NULL) {
+		free(exe);
+		exe = NULL;
+	}
+}
+
 
 /** Find the canonical filename of the current application.
  *

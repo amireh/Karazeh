@@ -18,20 +18,20 @@ ADD_EXECUTABLE(${PROJECT_NAME}_tests
   ../src/__tests__/file_manager.test.cpp
   ../src/__tests__/patcher.test.cpp
   ../src/__tests__/path_resolver.test.cpp
+  ../src/__tests__/version_manifest.test.cpp
   main.cpp
+  test_utils.cpp
 )
 
-IF(WIN32)
-  TARGET_COMPILE_DEFINITIONS(${TARGET} PRIVATE TINYXML2_IMPORT=1)
-ENDIF()
+ADD_DEFINITIONS(-std=c++11)
 
 IF(APPLE)
   ADD_DEFINITIONS(
-    # needed for FakeIt
-    -std=c++11
     # FakeIt noise:
     -Wno-inconsistent-missing-override
   )
+
+  # SET(CMAKE_CXX_FLAGS "-std=c++11 -Wc++11-extensions")
 ENDIF()
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}_tests kzh)

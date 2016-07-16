@@ -21,15 +21,15 @@
 #ifndef H_KARAZEH_OPERATION_CREATE_H
 #define H_KARAZEH_OPERATION_CREATE_H
 
+#include "karazeh_export.h"
 #include "karazeh/operation.hpp"
 #include "karazeh/logger.hpp"
-#include "karazeh_export.h"
 
 namespace kzh {
 
   class KARAZEH_EXPORT create_operation : public operation, protected logger {
   public:
-    create_operation(config_t const&, file_manager const&, downloader const&, release_manifest&);
+    create_operation(config_t const&, release_manifest const&);
     virtual ~create_operation();
 
     /**

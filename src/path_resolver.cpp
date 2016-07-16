@@ -47,6 +47,10 @@
   }
 #endif
 
+#if KZH_PLATFORM == KZH_PLATFORM_WIN32
+  #include <Windows.h>
+#endif
+
 namespace kzh {
   namespace fs = boost::filesystem;
 
@@ -117,12 +121,13 @@ namespace kzh {
           log->error() << "binreloc could not be initialised";
         }
 
-        throw internal_error("Unable to resolve paths! binreloc could not be initialized");
+        throw std::runtime_error("Unable to resolve paths! binreloc could not be initialized");
       }
 
       char *tmp_bin_path = br_find_exe_dir(".");
       path_t bin_path = path_t(tmp_bin_path).make_preferred();
       free(tmp_bin_path);
+      br_free();
 
       return bin_path;
     #elif KZH_PLATFORM == KZH_PLATFORM_APPLE
@@ -138,7 +143,7 @@ namespace kzh {
           log->error() << "Unable to resolve path: " << GetLastError();;
         }
 
-        throw internal_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
+        throw std::runtime_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
       }
 
       return path_t(string_t(szPath)).remove_filename().make_preferred();
