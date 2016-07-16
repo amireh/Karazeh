@@ -1,0 +1,17 @@
+<map id="include/karazeh/operation.hpp" name="include/karazeh/operation.hpp">
+<area shape="rect" id="node2" href="$create_8hpp.html" title="include/karazeh/operations\l/create.hpp" alt="" coords="212,80,403,121"/>
+<area shape="rect" id="node3" href="$version__manifest_8hpp.html" title="include/karazeh/version\l_manifest.hpp" alt="" coords="90,169,258,211"/>
+<area shape="rect" id="node9" href="$delete_8hpp.html" title="include/karazeh/operations\l/delete.hpp" alt="" coords="427,80,617,121"/>
+<area shape="rect" id="node11" href="$update_8hpp.html" title="include/karazeh/operations\l/update.hpp" alt="" coords="641,80,832,121"/>
+<area shape="rect" id="node13" href="$release__manifest_8hpp.html" title="include/karazeh/release\l_manifest.hpp" alt="" coords="857,80,1027,121"/>
+<area shape="rect" id="node7" href="$create_8test_8cpp.html" title="src/operations/__tests\l__/create.test.cpp" alt="" coords="490,169,650,211"/>
+<area shape="rect" id="node8" href="$create_8cpp.html" title="src/operations/create.cpp" alt="" coords="283,177,465,203"/>
+<area shape="rect" id="node4" href="$patcher_8test_8cpp.html" title="src/__tests__/patcher.test.cpp" alt="" coords="740,266,949,293"/>
+<area shape="rect" id="node5" href="$version__manifest_8test_8cpp.html" title="src/__tests__/version\l_manifest.test.cpp" alt="" coords="5,259,156,300"/>
+<area shape="rect" id="node6" href="$version__manifest_8cpp.html" title="src/version_manifest.cpp" alt="" coords="180,266,355,293"/>
+<area shape="rect" id="node10" href="$delete_8cpp.html" title="src/operations/delete.cpp" alt="" coords="674,177,858,203"/>
+<area shape="rect" id="node12" href="$update_8cpp.html" title="src/operations/update.cpp" alt="" coords="882,177,1069,203"/>
+<area shape="rect" id="node14" href="$patcher_8hpp.html" title="include/karazeh/patcher.hpp" alt="" coords="1293,177,1492,203"/>
+<area shape="rect" id="node16" href="$release__manifest_8cpp.html" title="src/release_manifest.cpp" alt="" coords="1093,177,1269,203"/>
+<area shape="rect" id="node15" href="$patcher_8cpp.html" title="src/patcher.cpp" alt="" coords="1333,266,1452,293"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="kzh::logger" name="kzh::logger">
+<area shape="rect" id="node2" href="$classkzh_1_1create__operation.html" title="kzh::create_operation" alt="" coords="145,5,301,32"/>
+<area shape="rect" id="node3" href="$classkzh_1_1delete__operation.html" title="kzh::delete_operation" alt="" coords="145,56,302,83"/>
+<area shape="rect" id="node4" href="$classkzh_1_1delta__encoder.html" title="librsync implementation of delta encoding, used in rdiff. " alt="" coords="154,107,293,133"/>
+<area shape="rect" id="node5" href="$classkzh_1_1downloader.html" title="kzh::downloader" alt="" coords="163,157,284,184"/>
+<area shape="rect" id="node6" href="$classkzh_1_1file__manager.html" title="kzh::file_manager" alt="" coords="159,208,287,235"/>
+<area shape="rect" id="node7" href="$classkzh_1_1patcher.html" title="kzh::patcher" alt="" coords="174,259,273,285"/>
+<area shape="rect" id="node8" href="$classkzh_1_1path__resolver.html" title="kzh::path_resolver" alt="" coords="156,309,291,336"/>
+<area shape="rect" id="node9" href="$classkzh_1_1update__operation.html" title="kzh::update_operation" alt="" coords="144,360,303,387"/>
+</map>

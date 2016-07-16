@@ -1,0 +1,13 @@
+<map id="include/karazeh/release_manifest.hpp" name="include/karazeh/release_manifest.hpp">
+<area shape="rect" id="node2" href="$patcher_8hpp.html" title="include/karazeh/patcher.hpp" alt="" coords="149,102,348,129"/>
+<area shape="rect" id="node5" href="$version__manifest_8hpp.html" title="include/karazeh/version\l_manifest.hpp" alt="" coords="373,95,541,136"/>
+<area shape="rect" id="node8" href="$create_8test_8cpp.html" title="src/operations/__tests\l__/create.test.cpp" alt="" coords="565,95,725,136"/>
+<area shape="rect" id="node9" href="$create_8cpp.html" title="src/operations/create.cpp" alt="" coords="749,102,932,129"/>
+<area shape="rect" id="node10" href="$delete_8cpp.html" title="src/operations/delete.cpp" alt="" coords="957,102,1141,129"/>
+<area shape="rect" id="node11" href="$update_8cpp.html" title="src/operations/update.cpp" alt="" coords="1165,102,1351,129"/>
+<area shape="rect" id="node12" href="$release__manifest_8cpp.html" title="src/release_manifest.cpp" alt="" coords="1375,102,1551,129"/>
+<area shape="rect" id="node3" href="$patcher_8test_8cpp.html" title="src/__tests__/patcher.test.cpp" alt="" coords="148,191,357,218"/>
+<area shape="rect" id="node4" href="$patcher_8cpp.html" title="src/patcher.cpp" alt="" coords="5,191,124,218"/>
+<area shape="rect" id="node6" href="$version__manifest_8test_8cpp.html" title="src/__tests__/version\l_manifest.test.cpp" alt="" coords="381,184,532,225"/>
+<area shape="rect" id="node7" href="$version__manifest_8cpp.html" title="src/version_manifest.cpp" alt="" coords="556,191,731,218"/>
+</map>

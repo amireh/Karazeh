@@ -1,0 +1,12 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classkzh_1_1logger.html" title="kzh::logger" alt="" coords="15,183,105,209"/>
+<area shape="rect" id="node2" href="$classkzh_1_1create__operation.html" title="kzh::create_operation" alt="" coords="164,5,320,32"/>
+<area shape="rect" id="node3" href="$classkzh_1_1delete__operation.html" title="kzh::delete_operation" alt="" coords="163,56,321,83"/>
+<area shape="rect" id="node4" href="$classkzh_1_1delta__encoder.html" title="librsync implementation of delta encoding, used in rdiff. " alt="" coords="173,360,311,387"/>
+<area shape="rect" id="node5" href="$classkzh_1_1downloader.html" title="kzh::downloader" alt="" coords="181,157,303,184"/>
+<area shape="rect" id="node6" href="$classkzh_1_1file__manager.html" title="kzh::file_manager" alt="" coords="178,208,306,235"/>
+<area shape="rect" id="node7" href="$classkzh_1_1patcher.html" title="kzh::patcher" alt="" coords="193,259,291,285"/>
+<area shape="rect" id="node8" href="$classkzh_1_1path__resolver.html" title="kzh::path_resolver" alt="" coords="175,309,309,336"/>
+<area shape="rect" id="node9" href="$classkzh_1_1update__operation.html" title="kzh::update_operation" alt="" coords="163,107,321,133"/>
+<area shape="rect" id="node10" href="$classkzh_1_1operation.html" title="kzh::operation" alt="" coords="5,56,115,83"/>
+</map>

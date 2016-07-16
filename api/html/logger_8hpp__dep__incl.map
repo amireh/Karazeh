@@ -1,0 +1,32 @@
+<map id="include/karazeh/logger.hpp" name="include/karazeh/logger.hpp">
+<area shape="rect" id="node2" href="$delta__encoder_8hpp.html" title="include/karazeh/delta\l_encoder.hpp" alt="" coords="1177,169,1334,211"/>
+<area shape="rect" id="node3" href="$update_8hpp.html" title="include/karazeh/operations\l/update.hpp" alt="" coords="641,348,832,389"/>
+<area shape="rect" id="node11" href="$downloader_8hpp.html" title="include/karazeh/downloader.hpp" alt="" coords="395,177,617,203"/>
+<area shape="rect" id="node13" href="$create_8hpp.html" title="include/karazeh/operations\l/create.hpp" alt="" coords="856,348,1047,389"/>
+<area shape="rect" id="node16" href="$delete_8hpp.html" title="include/karazeh/operations\l/delete.hpp" alt="" coords="1071,348,1261,389"/>
+<area shape="rect" id="node19" href="$patcher_8hpp.html" title="include/karazeh/patcher.hpp" alt="" coords="5,445,204,471"/>
+<area shape="rect" id="node24" href="$file__manager_8hpp.html" title="include/karazeh/file\l_manager.hpp" alt="" coords="962,80,1106,121"/>
+<area shape="rect" id="node27" href="$path__resolver_8hpp.html" title="include/karazeh/path\l_resolver.hpp" alt="" coords="1592,169,1745,211"/>
+<area shape="rect" id="node30" href="$md5__hasher_8cpp.html" title="src/hashers/md5_hasher.cpp" alt="" coords="1617,87,1814,114"/>
+<area shape="rect" id="node31" href="$logger_8cpp.html" title="src/logger.cpp" alt="" coords="1839,87,1949,114"/>
+<area shape="rect" id="node9" href="$delta__encoder_8test_8cpp.html" title="src/__tests__/delta\l_encoder.test.cpp" alt="" coords="1302,259,1441,300"/>
+<area shape="rect" id="node10" href="$delta__encoder_8cpp.html" title="src/delta_encoder.cpp" alt="" coords="1118,266,1278,293"/>
+<area shape="rect" id="node4" href="$version__manifest_8hpp.html" title="include/karazeh/version\l_manifest.hpp" alt="" coords="1239,437,1407,479"/>
+<area shape="rect" id="node8" href="$update_8cpp.html" title="src/operations/update.cpp" alt="" coords="429,445,615,471"/>
+<area shape="rect" id="node5" href="$patcher_8test_8cpp.html" title="src/__tests__/patcher.test.cpp" alt="" coords="1289,534,1499,561"/>
+<area shape="rect" id="node6" href="$version__manifest_8test_8cpp.html" title="src/__tests__/version\l_manifest.test.cpp" alt="" coords="1664,527,1815,568"/>
+<area shape="rect" id="node7" href="$version__manifest_8cpp.html" title="src/version_manifest.cpp" alt="" coords="1091,534,1265,561"/>
+<area shape="rect" id="node12" href="$operation_8hpp.html" title="include/karazeh/operation.hpp" alt="" coords="782,266,993,293"/>
+<area shape="rect" id="node22" href="$downloader_8test_8cpp.html" title="src/__tests__/downloader.test.cpp" alt="" coords="334,266,566,293"/>
+<area shape="rect" id="node23" href="$downloader_8cpp.html" title="src/downloader.cpp" alt="" coords="167,266,309,293"/>
+<area shape="rect" id="node18" href="$release__manifest_8hpp.html" title="include/karazeh/release\l_manifest.hpp" alt="" coords="395,348,566,389"/>
+<area shape="rect" id="node14" href="$create_8test_8cpp.html" title="src/operations/__tests\l__/create.test.cpp" alt="" coords="639,437,799,479"/>
+<area shape="rect" id="node15" href="$create_8cpp.html" title="src/operations/create.cpp" alt="" coords="824,445,1007,471"/>
+<area shape="rect" id="node17" href="$delete_8cpp.html" title="src/operations/delete.cpp" alt="" coords="1031,445,1215,471"/>
+<area shape="rect" id="node21" href="$release__manifest_8cpp.html" title="src/release_manifest.cpp" alt="" coords="229,445,405,471"/>
+<area shape="rect" id="node20" href="$patcher_8cpp.html" title="src/patcher.cpp" alt="" coords="45,534,164,561"/>
+<area shape="rect" id="node25" href="$file__manager_8test_8cpp.html" title="src/__tests__/file\l_manager.test.cpp" alt="" coords="967,169,1101,211"/>
+<area shape="rect" id="node26" href="$file__manager_8cpp.html" title="src/file_manager.cpp" alt="" coords="742,177,891,203"/>
+<area shape="rect" id="node28" href="$path__resolver_8test_8cpp.html" title="src/__tests__/path\l_resolver.test.cpp" alt="" coords="1849,259,1984,300"/>
+<area shape="rect" id="node29" href="$path__resolver_8cpp.html" title="src/path_resolver.cpp" alt="" coords="1617,266,1773,293"/>
+</map>

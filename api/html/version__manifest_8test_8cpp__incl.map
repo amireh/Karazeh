@@ -1,0 +1,17 @@
+<map id="src/__tests__/version_manifest.test.cpp" name="src/__tests__/version_manifest.test.cpp">
+<area shape="rect" id="node3" href="$karazeh_8hpp.html" title="karazeh/karazeh.hpp" alt="" coords="440,572,591,599"/>
+<area shape="rect" id="node11" href="$version__manifest_8hpp.html" title="karazeh/version_manifest.hpp" alt="" coords="793,95,998,121"/>
+<area shape="rect" id="node33" href="$path__resolver_8hpp.html" title="karazeh/path_resolver.hpp" alt="" coords="1225,415,1411,442"/>
+<area shape="rect" id="node7" href="$exception_8hpp.html" title="karazeh/exception.hpp" alt="" coords="69,647,233,673"/>
+<area shape="rect" id="node15" href="$config_8hpp.html" title="karazeh/config.hpp" alt="" coords="449,415,589,442"/>
+<area shape="rect" id="node16" href="$hasher_8hpp.html" title="karazeh/hasher.hpp" alt="" coords="1140,497,1283,524"/>
+<area shape="rect" id="node17" href="$release__manifest_8hpp.html" title="karazeh/release_manifest.hpp" alt="" coords="575,177,781,203"/>
+<area shape="rect" id="node18" href="$operation_8hpp.html" title="karazeh/operation.hpp" alt="" coords="958,259,1121,285"/>
+<area shape="rect" id="node19" href="$downloader_8hpp.html" title="karazeh/downloader.hpp" alt="" coords="743,333,917,360"/>
+<area shape="rect" id="node26" href="$file__manager_8hpp.html" title="karazeh/file_manager.hpp" alt="" coords="919,415,1099,442"/>
+<area shape="rect" id="node27" href="$create_8hpp.html" title="karazeh/operations\l/create.hpp" alt="" coords="1295,169,1437,211"/>
+<area shape="rect" id="node28" href="$delete_8hpp.html" title="karazeh/operations\l/delete.hpp" alt="" coords="1498,169,1639,211"/>
+<area shape="rect" id="node29" href="$update_8hpp.html" title="karazeh/operations\l/update.hpp" alt="" coords="1682,169,1823,211"/>
+<area shape="rect" id="node22" href="$logger_8hpp.html" title="karazeh/logger.hpp" alt="" coords="1639,497,1781,524"/>
+<area shape="rect" id="node30" href="$delta__encoder_8hpp.html" title="karazeh/delta_encoder.hpp" alt="" coords="1791,333,1981,360"/>
+</map>

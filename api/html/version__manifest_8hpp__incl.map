@@ -1,0 +1,15 @@
+<map id="include/karazeh/version_manifest.hpp" name="include/karazeh/version_manifest.hpp">
+<area shape="rect" id="node6" href="$karazeh_8hpp.html" title="karazeh/karazeh.hpp" alt="" coords="488,497,639,524"/>
+<area shape="rect" id="node13" href="$config_8hpp.html" title="karazeh/config.hpp" alt="" coords="461,341,601,367"/>
+<area shape="rect" id="node14" href="$hasher_8hpp.html" title="karazeh/hasher.hpp" alt="" coords="1139,423,1281,449"/>
+<area shape="rect" id="node15" href="$release__manifest_8hpp.html" title="karazeh/release_manifest.hpp" alt="" coords="667,102,873,129"/>
+<area shape="rect" id="node16" href="$operation_8hpp.html" title="karazeh/operation.hpp" alt="" coords="1017,184,1179,211"/>
+<area shape="rect" id="node17" href="$downloader_8hpp.html" title="karazeh/downloader.hpp" alt="" coords="769,259,942,285"/>
+<area shape="rect" id="node24" href="$file__manager_8hpp.html" title="karazeh/file_manager.hpp" alt="" coords="1008,341,1188,367"/>
+<area shape="rect" id="node25" href="$create_8hpp.html" title="karazeh/operations\l/create.hpp" alt="" coords="1273,95,1414,136"/>
+<area shape="rect" id="node26" href="$delete_8hpp.html" title="karazeh/operations\l/delete.hpp" alt="" coords="1438,95,1579,136"/>
+<area shape="rect" id="node27" href="$update_8hpp.html" title="karazeh/operations\l/update.hpp" alt="" coords="1603,95,1745,136"/>
+<area shape="rect" id="node10" href="$exception_8hpp.html" title="karazeh/exception.hpp" alt="" coords="69,572,233,599"/>
+<area shape="rect" id="node20" href="$logger_8hpp.html" title="karazeh/logger.hpp" alt="" coords="1524,423,1667,449"/>
+<area shape="rect" id="node28" href="$delta__encoder_8hpp.html" title="karazeh/delta_encoder.hpp" alt="" coords="1705,259,1896,285"/>
+</map>
