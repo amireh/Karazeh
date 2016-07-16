@@ -47,6 +47,10 @@
   }
 #endif
 
+#if KZH_PLATFORM == KZH_PLATFORM_WIN32
+  #include <Windows.h>
+#endif
+
 namespace kzh {
   namespace fs = boost::filesystem;
 
@@ -139,7 +143,7 @@ namespace kzh {
           log->error() << "Unable to resolve path: " << GetLastError();;
         }
 
-        throw internal_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
+        throw std::runtime_error("Unable to resolve paths! GetModuleFileName() failed. See the log for the error.");
       }
 
       return path_t(string_t(szPath)).remove_filename().make_preferred();

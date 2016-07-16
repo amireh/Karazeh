@@ -55,6 +55,7 @@
 #include <map>
 #include <memory>
 #include <initializer_list>
+#include "karazeh_export.h"
 
 #ifdef _MSC_VER
     #if _MSC_VER <= 1800 // VS 2013
@@ -76,7 +77,7 @@ enum JsonParse {
 
 class JsonValue;
 
-class Json final {
+class KARAZEH_EXPORT Json final {
 public:
     // Types
     enum Type {
@@ -209,7 +210,7 @@ private:
 };
 
 // Internal class hierarchy - JsonValue objects are not exposed to users of this API.
-class JsonValue {
+class KARAZEH_EXPORT JsonValue {
 protected:
     friend class Json;
     friend class JsonInt;

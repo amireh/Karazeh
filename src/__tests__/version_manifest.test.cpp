@@ -41,16 +41,17 @@ TEST_CASE("VersionManifest") {
   SECTION("#parse()") {
     GIVEN("A manifest with no identity lists...") {
       THEN("it throws") {
-        REQUIRE_THROWS_WITH(
-          subject.load_from_string(R"VOGON(
+        auto fixture = R"VOGON(
           {
             "identities": [
             ],
 
             "releases": [{}]
           }
-          )VOGON"),
+        )VOGON";
 
+        REQUIRE_THROWS_WITH(
+          subject.load_from_string(fixture),
           Equals("Version manifest must contain at least one identity list.", Catch::CaseSensitive::No)
         );
       }
@@ -58,8 +59,7 @@ TEST_CASE("VersionManifest") {
 
     GIVEN("An identity list missing the name parameter") {
       THEN("it throws") {
-        REQUIRE_THROWS_WITH(
-          subject.load_from_string(R"VOGON(
+        auto fixture = R"VOGON(
           {
             "identities": [
               {
@@ -68,7 +68,10 @@ TEST_CASE("VersionManifest") {
 
             "releases": [{}]
           }
-          )VOGON"),
+        )VOGON";
+
+        REQUIRE_THROWS_WITH(
+          subject.load_from_string(fixture),
           Contains("Malformed entity: bad type for name", Catch::CaseSensitive::No)
         );
       }
@@ -76,8 +79,7 @@ TEST_CASE("VersionManifest") {
 
     GIVEN("An identity list with no files") {
       THEN("it throws") {
-        REQUIRE_THROWS_WITH(
-          subject.load_from_string(R"VOGON(
+        auto fixture = R"VOGON(
           {
             "identities": [
               {
@@ -88,7 +90,10 @@ TEST_CASE("VersionManifest") {
 
             "releases": [{}]
           }
-          )VOGON"),
+        )VOGON";
+
+        REQUIRE_THROWS_WITH(
+          subject.load_from_string(fixture),
           Contains("Identity list (Vanilla) must contain at least one file entry.", Catch::CaseSensitive::No)
         );
       }
@@ -123,8 +128,7 @@ TEST_CASE("VersionManifest") {
 
     GIVEN("A release pointing to an unknown identity list") {
       THEN("it throws") {
-        REQUIRE_THROWS_WITH(
-          subject.load_from_string(R"VOGON(
+        auto fixture = R"VOGON(
           {
             "identities": [{ "name": "Vanilla", "files": [ "bin/test" ] }],
             "releases": [{
@@ -133,7 +137,10 @@ TEST_CASE("VersionManifest") {
               "identity": "Foobar"
             }]
           }
-          )VOGON"),
+        )VOGON";
+
+        REQUIRE_THROWS_WITH(
+          subject.load_from_string(fixture),
           Contains("Release (asdf) points to an undefined identity list (Foobar).", Catch::CaseSensitive::No)
         );
       }

@@ -23,14 +23,14 @@ ADD_EXECUTABLE(${PROJECT_NAME}_tests
   test_utils.cpp
 )
 
+ADD_DEFINITIONS(-std=c++11)
+
 IF(WIN32)
   TARGET_COMPILE_DEFINITIONS(${TARGET} PRIVATE TINYXML2_IMPORT=1)
 ENDIF()
 
 IF(APPLE)
   ADD_DEFINITIONS(
-    # needed for FakeIt
-    -std=c++11
     # FakeIt noise:
     -Wno-inconsistent-missing-override
   )
