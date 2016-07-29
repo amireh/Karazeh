@@ -30,7 +30,18 @@ namespace kzh {
 
   class KARAZEH_EXPORT update_operation : public operation, protected logger {
   public:
-    update_operation(config_t const&, release_manifest const&);
+    /**
+     * @param basis_path
+     *        File path (relative to [config.root]) to the file to modify.
+     *
+     * @param delta_url
+     *        URL (relative to [config.host]) to the delta patch file.
+     */
+    explicit update_operation(config_t const&, release_manifest const&,
+      path_t   const& basis_path,
+      string_t const& delta_url
+    );
+
     virtual ~update_operation();
 
     /**
@@ -62,30 +73,31 @@ namespace kzh {
 
     virtual string_t tostring();
 
-    string_t basis; /** Path to the file to patch */
+    inline const path_t& basis_path() const { return basis_path_; };
+    inline const string_t& delta_url()  const { return delta_url_; };
+
     string_t basis_checksum;
-    uint64_t basis_length;
-    string_t delta; /** URI of the delta patch file */
     string_t delta_checksum;
-    uint64_t delta_length;
     string_t patched_checksum; /* Checksum of the file post-patching (the new one) */
-    uint64_t patched_length; /* Size (in bytes) of the patched file */
 
   private:
     /** Fully qualified path to the basis file */
-    path_t basis_path_;
+    const path_t basis_path_;
 
-    /** Path to where the signature will be generated */
-    path_t signature_path_;
-
-    /** Path to where the delta will be downloaded */
-    path_t delta_path_;
-
-    /** Path to where the patched version of the basis will be stored */
-    path_t patched_path_;
+    /** URI of the delta patch file */
+    const string_t delta_url_;
 
     /** Where cached data will be */
-    path_t cache_dir_;
+    const path_t cache_dir_;
+
+    /** Path to where the signature will be generated */
+    const path_t signature_path_;
+
+    /** Path to where the delta will be downloaded */
+    const path_t delta_path_;
+
+    /** Path to where the patched version of the basis will be stored */
+    const path_t patched_path_;
 
     delta_encoder encoder_;
 

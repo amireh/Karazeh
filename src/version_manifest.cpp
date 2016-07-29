@@ -41,8 +41,7 @@ namespace kzh {
 
   static const JSON::shape SCHEMA_CREATE_OPERATION_SOURCE = {
     { "url", JSON::STRING },
-    { "checksum", JSON::STRING },
-    { "size", JSON::NUMBER },
+    { "checksum", JSON::STRING }
   };
 
   static const JSON::shape SCHEMA_UPDATE_OPERATION = {
@@ -58,7 +57,6 @@ namespace kzh {
 
   static const JSON::shape SCHEMA_UPDATE_OPERATION_DELTA = {
     { "checksum", JSON::STRING },
-    { "size", JSON::NUMBER },
     { "url", JSON::STRING },
   };
 
@@ -361,11 +359,6 @@ namespace kzh {
 
       op->src_uri = source_node["url"].string_value();
       op->src_checksum = source_node["checksum"].string_value();
-
-      if (source_node["size"].type() == JSON::NUMBER) {
-        op->src_size = source_node["size"].int_value();
-      }
-
       op->dst_path = operation_node["destination"].string_value();
       op->is_executable = operation_node["flags"]["executable"].bool_value();
 
@@ -389,17 +382,14 @@ namespace kzh {
       validate_schema(operation_node["basis"], SCHEMA_UPDATE_OPERATION_BASIS);
       validate_schema(operation_node["delta"], SCHEMA_UPDATE_OPERATION_DELTA);
 
-      auto op = new update_operation(config_, release);
+      auto op = new update_operation(config_, release,
+        (config_.root_path / operation_node["basis"]["filepath"].string_value()).make_preferred(),
+        operation_node["delta"]["url"].string_value()
+      );
 
-      op->basis = operation_node["basis"]["filepath"].string_value();
       op->basis_checksum = operation_node["basis"]["pre_checksum"].string_value();
       op->patched_checksum = operation_node["basis"]["post_checksum"].string_value();
-      op->delta = operation_node["delta"]["url"].string_value();
       op->delta_checksum = operation_node["delta"]["checksum"].string_value();
-
-      if (operation_node["delta"]["size"].type() == JSON::NUMBER) {
-        op->delta_length = operation_node["delta"]["size"].int_value();
-      }
 
       return op;
     }

@@ -315,6 +315,8 @@
 #   define CATCH_AUTO_PTR( T ) std::auto_ptr<T>
 #endif
 
+#include "fakeit/FakeitExceptions.hpp"
+
 namespace Catch {
 
     struct IConfig;
@@ -6711,6 +6713,9 @@ namespace Catch {
             catch( TestFailureException& ) {
                 throw;
             }
+            catch( fakeit::FakeitException &e ) {
+                return e.what();
+            }
             catch( std::exception& ex ) {
                 return ex.what();
             }
@@ -6721,6 +6726,8 @@ namespace Catch {
                 return msg;
             }
             catch(...) {
+                std::exception_ptr p = std::current_exception();
+                std::clog <<(p ? p.__cxa_exception_type()->name() : "null") << std::endl;
                 return "Unknown exception";
             }
         }

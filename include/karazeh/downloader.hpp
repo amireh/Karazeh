@@ -50,10 +50,10 @@ namespace kzh {
      *
      * @return true if the file was correctly DLed, false otherwise
      */
-    bool fetch(string_t const& URI, string_t& out_buf) const;
+    virtual bool fetch(string_t const& URI, string_t& out_buf) const;
 
     /** same as above but outputs to file instead of buffer */
-    bool fetch(string_t const& URI, std::ostream& out_file) const;
+    virtual bool fetch(string_t const& URI, std::ostream& out_file) const;
 
     /**
      * Downloads the file found at the given URI and verifies
@@ -62,7 +62,7 @@ namespace kzh {
      *
      * Returns true if the file was downloaded and its integrity verified.
      */
-    bool fetch(
+    virtual bool fetch(
       string_t const& URI,
       path_t const& path_to_file,
       string_t const& checksum,

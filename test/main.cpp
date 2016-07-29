@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   path_resolver.resolve(base_path);
 
   kzh::test_config.fixture_path = (path_resolver.get_root_path() / "test/fixture").make_preferred();
-  kzh::test_config.temp_path = (path_resolver.get_root_path() / "tmp").make_preferred();
+  kzh::test_config.temp_path = (path_resolver.get_root_path() / "test/fixture/.kzh/tmp").make_preferred();
   kzh::test_config.server_host = host;
 
   kzh::sample_config.host = kzh::test_config.server_host;
@@ -58,8 +58,10 @@ int main(int argc, char **argv) {
 
   curl_global_cleanup();
 
-  file_manager.remove_directory(kzh::test_config.temp_path);
-  file_manager.remove_directory(kzh::sample_config.cache_path.parent_path()); // the .kzh directory
+  if (get_env_var("ARTIFACTS") != "1") {
+    file_manager.remove_directory(kzh::test_config.temp_path);
+    file_manager.remove_directory(kzh::sample_config.cache_path.parent_path()); // the .kzh directory
+  }
 
   return result;
 }

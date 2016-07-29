@@ -46,7 +46,6 @@
 
           "delta": {
             "checksum": "b02c5026a9e24d0cdefa19641077ca91",
-            "size": 60058,
             "url": "/patch_v0.1.1-v0.1.2/data_common.tar.delta"
           }
         }

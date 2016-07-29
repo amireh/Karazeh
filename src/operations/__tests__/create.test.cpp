@@ -1,48 +1,45 @@
+#include <boost/filesystem.hpp>
 #include "catch.hpp"
+#include "fakeit.hpp"
+#include "test_utils.hpp"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
 #include "karazeh/operations/create.hpp"
 #include "karazeh/hashers/md5_hasher.hpp"
 #include "karazeh/release_manifest.hpp"
-#include "test_utils.hpp"
-#include <boost/filesystem.hpp>
-#include "fakeit.hpp"
-
-using namespace kzh;
-using namespace fakeit;
 
 namespace fs = boost::filesystem;
 
-#define STUB_MOVE ConstOverloadedMethod(spy, move, bool(path_t const&, path_t const&))
-#define STUB_REMOVE_FILE ConstOverloadedMethod(spy, remove_file, bool(path_t const&))
-#define STUB_REMOVE_DIRECTORY ConstOverloadedMethod(spy, remove_directory, bool(path_t const&))
-#define STUB_MAKE_EXECUTABLE ConstOverloadedMethod(spy, make_executable, bool(path_t const&))
-#define STUB_IS_READABLE ConstOverloadedMethod(spy, is_readable, bool(path_t const&))
-#define STUB_IS_WRITABLE ConstOverloadedMethod(spy, is_writable, bool(path_t const&))
-#define STUB_HEX_DIGEST ConstOverloadedMethod(hasherSpy, hex_digest, hasher::digest_rc(const path_t&))
-
 TEST_CASE("create_operation") {
-  config_t          config(kzh::sample_config);
-  kzh::file_manager      file_manager;
-  kzh::downloader        downloader(kzh::sample_config, file_manager);
-  kzh::release_manifest  manifest;
+  using namespace kzh;
+  using fakeit::Mock;
+  using fakeit::When;
+  using fakeit::Fake;
+  using fakeit::Verify;
+  using fakeit::Once;
 
-  downloader.set_retry_count(0);
+  config_t                config(kzh::sample_config);
+  kzh::file_manager       file_manager;
+  kzh::downloader         downloader(kzh::sample_config, file_manager);
+  kzh::release_manifest   manifest;
+  create_operation        subject(config, manifest);
 
+  // spies
+  Mock<kzh::file_manager> file_manager_spy(file_manager);
+  Mock<md5_hasher>        hasher_spy;
+
+  // <setup>
   config.downloader = &downloader;
   config.file_manager = &file_manager;
 
-  manifest.id = "somethingsomething";
+  downloader.set_retry_count(0);
 
-  create_operation subject(
-    config,
-    manifest
-  );
+  manifest.id = "somethingsomething";
 
   subject.dst_path = "CreateOperationTest/bar.txt";
   subject.src_uri  = "/hash_me.txt";
   subject.src_checksum = "f1eb970aeb2e380593480ed76070acbe";
-  subject.src_size = 24;
+  // </setup>
 
   SECTION("Staging...") {
     WHEN("The destination directory doesn't already exist") {
@@ -118,8 +115,7 @@ TEST_CASE("create_operation") {
     REQUIRE(subject.stage() == STAGE_OK);
 
     WHEN("The destination is occupied") {
-      Mock<kzh::file_manager> spy(file_manager);
-      When(STUB_IS_READABLE).AlwaysDo([&](const path_t &path) {
+      When(FI_FILE_MANAGER_IS_READABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
         return path == destPath;
       });
 
@@ -129,8 +125,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The destination is not writable") {
-      Mock<kzh::file_manager> spy(file_manager);
-      When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
+      When(FI_FILE_MANAGER_IS_WRITABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
         return path != destPath;
       });
 
@@ -140,8 +135,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The cache source is not writable") {
-      Mock<kzh::file_manager> spy(file_manager);
-      When(STUB_IS_WRITABLE).AlwaysDo([&](const path_t &path) {
+      When(FI_FILE_MANAGER_IS_WRITABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
         return path != cachePath;
       });
 
@@ -164,17 +158,14 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("It is marked as an executable") {
-      subject.is_executable = true;
+      Fake(FI_FILE_MANAGER_MAKE_EXECUTABLE(file_manager_spy));
 
-      Mock<kzh::file_manager> spy(file_manager);
-      Fake(STUB_MAKE_EXECUTABLE);
+      subject.is_executable = true;
 
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It sets the executable bit") {
-        Verify(STUB_MAKE_EXECUTABLE)
-          .Exactly(Once)
-        ;
+        Verify(FI_FILE_MANAGER_MAKE_EXECUTABLE(file_manager_spy)).Exactly(Once);
       }
     }
   }
@@ -187,12 +178,11 @@ TEST_CASE("create_operation") {
       REQUIRE(subject.stage() == STAGE_OK);
 
       THEN("It removes the directory it has created") {
-        Mock<kzh::file_manager> spy(file_manager);
-        Fake(STUB_REMOVE_DIRECTORY);
+        Fake(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy));
 
         subject.rollback();
 
-        Verify(STUB_REMOVE_DIRECTORY).Exactly(Once);
+        Verify(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy)).Exactly(Once);
       }
     }
 
@@ -201,26 +191,23 @@ TEST_CASE("create_operation") {
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It moves the file back into staging") {
-        Mock<kzh::file_manager> spy(file_manager);
-        Fake(STUB_MOVE);
+        Fake(FI_FILE_MANAGER_MOVE(file_manager_spy));
 
         subject.rollback();
 
-        Verify(STUB_MOVE).Exactly(1);
+        Verify(FI_FILE_MANAGER_MOVE(file_manager_spy)).Exactly(1);
       }
     }
 
     WHEN("It has neither been staged nor deployed") {
-      Mock<kzh::file_manager> spy(file_manager);
-
-      Fake(STUB_MOVE);
-      Fake(STUB_REMOVE_DIRECTORY);
+      Fake(FI_FILE_MANAGER_MOVE(file_manager_spy));
+      Fake(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy));
 
       THEN("It does nothing") {
         subject.rollback();
 
-        Verify(STUB_MOVE).Exactly(0);
-        Verify(STUB_REMOVE_DIRECTORY).Exactly(0);
+        Verify(FI_FILE_MANAGER_MOVE(file_manager_spy)).Exactly(0);
+        Verify(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy)).Exactly(0);
       }
     }
   }
@@ -231,8 +218,7 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("It has been rolled-back") {
-      Mock<kzh::file_manager> spy(file_manager);
-      Fake(STUB_REMOVE_FILE);
+      Fake(FI_FILE_MANAGER_REMOVE_FILE(file_manager_spy));
 
       REQUIRE(subject.stage() == STAGE_OK);
       REQUIRE(subject.deploy() == STAGE_OK);
@@ -242,14 +228,13 @@ TEST_CASE("create_operation") {
       THEN("It removes the staged file") {
         subject.commit();
 
-        Verify(STUB_REMOVE_FILE).Exactly(1);
+        Verify(FI_FILE_MANAGER_REMOVE_FILE(file_manager_spy)).Exactly(1);
       }
 
       THEN("It does not remove the staged file if it finds the checksum not to match") {
-        Mock<md5_hasher> hasherSpy;
-        config.hasher = &hasherSpy.get();
+        config.hasher = &hasher_spy.get();
 
-        When(STUB_HEX_DIGEST).AlwaysDo([&](const path_t&) {
+        When(FI_HASHER_HEX_DIGEST(hasher_spy)).AlwaysDo([&](const path_t&) {
           hasher::digest_rc rc;
 
           rc.valid = true;
@@ -260,7 +245,7 @@ TEST_CASE("create_operation") {
 
         subject.commit();
 
-        Verify(STUB_REMOVE_FILE).Exactly(0);
+        Verify(FI_FILE_MANAGER_REMOVE_FILE(file_manager_spy)).Exactly(0);
       }
     }
   }
@@ -268,11 +253,3 @@ TEST_CASE("create_operation") {
   fs::remove_all(sample_config.cache_path / "CreateOperationTest");
   fs::remove_all(test_config.fixture_path / "CreateOperationTest");
 }
-
-#undef STUB_MOVE
-#undef STUB_REMOVE_FILE
-#undef STUB_REMOVE_DIRECTORY
-#undef STUB_MAKE_EXECUTABLE
-#undef STUB_IS_READABLE
-#undef STUB_IS_WRITABLE
-#undef STUB_HEX_DIGEST

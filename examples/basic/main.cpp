@@ -8,8 +8,12 @@ namespace fs = boost::filesystem;
 using kzh::string_t;
 
 static int apply_updates(kzh::config_t&);
+static void cleanup();
 
 int main(int argc, char** argv) {
+  int rc;
+
+  curl_global_init(CURL_GLOBAL_ALL);
 
   kzh::config_t config;
 
@@ -30,13 +34,22 @@ int main(int argc, char** argv) {
   }
 
   try {
-    return apply_updates(config);
+    rc = apply_updates(config);
   }
   catch (std::exception &e) {
     std::cerr << "Patching failed! Details:" << std::endl;
     std::cerr << e.what() << std::endl;
-    return 1;
+
+    rc = 1;
   }
+
+  cleanup();
+
+  return rc;
+}
+
+void cleanup() {
+  curl_global_cleanup();
 }
 
 int apply_updates(kzh::config_t &config) {
@@ -84,6 +97,10 @@ int apply_updates(kzh::config_t &config) {
 
     for (auto release_id : available_updates) {
       auto release = version_manifest.get_release(release_id);
+
+      if (!release->uri.empty()) {
+        version_manifest.load_release_from_uri(release->uri);
+      }
 
       if (patcher.apply_update(*release) != kzh::STAGE_OK) {
         logger.error() << "Update " << release << " could not be applied!";

@@ -186,8 +186,7 @@ TEST_CASE("VersionManifest") {
               "type": "create",
               "source": {
                 "url": "/0.1.1/data/media/materials/programs/celshader.cg",
-                "checksum": "3858f62230ac3c915f300c664312c63f",
-                "size": 6
+                "checksum": "3858f62230ac3c915f300c664312c63f"
               },
 
               "destination": "/data/media/materials/programs/celshader.cg"
@@ -204,7 +203,6 @@ TEST_CASE("VersionManifest") {
 
       REQUIRE(op->src_uri == "/0.1.1/data/media/materials/programs/celshader.cg");
       REQUIRE(op->src_checksum == "3858f62230ac3c915f300c664312c63f");
-      REQUIRE(op->src_size == 6);
       REQUIRE(op->dst_path == "/data/media/materials/programs/celshader.cg");
     }
 
@@ -224,7 +222,6 @@ TEST_CASE("VersionManifest") {
 
               "delta": {
                 "checksum": "b02c5026a9e24d0cdefa19641077ca91",
-                "size": 60058,
                 "url": "/patch_v0.1.1-v0.1.2/data_common.tar.delta"
               }
             }
@@ -238,12 +235,11 @@ TEST_CASE("VersionManifest") {
         subject.get_release("my fake release")->operations.front()
       );
 
-      REQUIRE(op->basis == "/data/common.tar");
+      REQUIRE(op->basis_path() == config.root_path / "/data/common.tar");
       REQUIRE(op->basis_checksum == "427fbbb5a80b517719defe07f7545686");
       REQUIRE(op->patched_checksum == "72eda360361e155ad8eabd07f07fa017");
-      REQUIRE(op->delta == "/patch_v0.1.1-v0.1.2/data_common.tar.delta");
+      REQUIRE(op->delta_url() == "/patch_v0.1.1-v0.1.2/data_common.tar.delta");
       REQUIRE(op->delta_checksum == "b02c5026a9e24d0cdefa19641077ca91");
-      REQUIRE(op->delta_length == 60058);
     }
 
     SECTION("Parsing a \"delete\" operation") {

@@ -4,6 +4,8 @@
 
 namespace kzh {
   namespace test_utils {
+    namespace fs = boost::filesystem;
+
     bool copy_directory(path_t const& source, path_t const& destination) {
       namespace fs = boost::filesystem;
 
@@ -72,5 +74,21 @@ namespace kzh {
       }
       return true;
     }
-  }
-}
+
+    void create_file(path_t const& path, string_t const& contents) {
+      if (!fs::is_directory(path.parent_path())) {
+        fs::create_directories(path.parent_path());
+      }
+
+      std::ofstream fh(path_t(path).make_preferred().string(), std::ios::trunc | std::ios::in);
+      fh << contents;
+      fh.close();
+    }
+
+    void remove_file(path_t const& path) {
+      if (fs::exists(path)) {
+        fs::remove(path);
+      }
+    }
+  } // namespace test_utils
+} // namespace kzh

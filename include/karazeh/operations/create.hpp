@@ -56,7 +56,6 @@ namespace kzh {
     virtual string_t tostring();
 
     string_t  src_checksum;
-    uint64_t  src_size;
     string_t  src_uri;
     string_t  dst_path;
     bool      is_executable;

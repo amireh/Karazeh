@@ -10,17 +10,18 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/deps)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/exports)
 
-ADD_EXECUTABLE(${PROJECT_NAME}_tests
+ADD_EXECUTABLE(${TARGET}
   ../src/hashers/__tests__/md5_hasher.test.cpp
   ../src/operations/__tests__/create.test.cpp
+  ../src/operations/__tests__/update.test.cpp
   ../src/__tests__/delta_encoder.test.cpp
   ../src/__tests__/downloader.test.cpp
   ../src/__tests__/file_manager.test.cpp
   ../src/__tests__/patcher.test.cpp
   ../src/__tests__/path_resolver.test.cpp
   ../src/__tests__/version_manifest.test.cpp
-  main.cpp
   test_utils.cpp
+  main.cpp
 )
 
 ADD_DEFINITIONS(-std=c++11)
@@ -34,4 +35,4 @@ IF(APPLE)
   # SET(CMAKE_CXX_FLAGS "-std=c++11 -Wc++11-extensions")
 ENDIF()
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}_tests kzh)
+TARGET_LINK_LIBRARIES(${TARGET} kzh)

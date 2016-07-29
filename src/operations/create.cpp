@@ -32,8 +32,7 @@ namespace kzh {
     logger("op_create"),
     created_directory_(false),
     marked_for_deletion_(false),
-    is_executable(false),
-    src_size(0)
+    is_executable(false)
   {
   }
 
@@ -95,7 +94,7 @@ namespace kzh {
       return STAGE_UNAUTHORIZED;
     }
 
-    if (!config_.downloader->fetch(src_uri, cache_path_, src_checksum, src_size)) {
+    if (!config_.downloader->fetch(src_uri, cache_path_, src_checksum)) {
       throw invalid_resource(src_uri);
     }
 
@@ -182,10 +181,13 @@ namespace kzh {
 
   string_t create_operation::tostring() {
     std::ostringstream s;
-    s << "create from[" << this->src_uri << ']'
-      << " to[" << this->dst_path << ']'
-      << " checksum[" << this->src_checksum << ']'
-      << " size[" << this->src_size << ']';
+
+    s << "create:"
+      << " URL='"         << this->src_uri << "'"
+      << " destination='" << this->dst_path << "'"
+      << " checksum="     << this->src_checksum << "'"
+    ;
+
     return s.str();
   }
 

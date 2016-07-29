@@ -43,6 +43,8 @@ namespace kzh {
     /** Checksum of a file to be updated does not match the expected checksum */
     STAGE_FILE_INTEGRITY_MISMATCH,
 
+    STAGE_ENCODING_ERROR,
+
     /** Probably a Karazeh bug */
     STAGE_INTERNAL_ERROR
   };

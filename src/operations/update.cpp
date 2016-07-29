@@ -24,14 +24,26 @@
 namespace kzh {
   update_operation::update_operation(
     config_t const& config,
-    release_manifest const& rm
+    release_manifest const& release,
+    path_t   const& in_basis_path,
+    string_t const& in_delta_url
   )
-  : operation(config, rm),
+  : operation(config, release),
     logger("op_update"),
     patched_(false),
-    basis_length(0),
-    delta_length(0),
-    patched_length(0)
+
+    basis_path_(in_basis_path),
+    delta_url_(in_delta_url),
+
+    cache_dir_(
+      config_.cache_path
+      / release.id
+      / config.hasher->hex_digest(basis_path_.string()).digest
+    ),
+
+    signature_path_(cache_dir_ / "signature"),
+    delta_path_(cache_dir_ / "delta"),
+    patched_path_(cache_dir_ / "patched")
   {
   }
 
@@ -40,30 +52,24 @@ namespace kzh {
 
   string_t update_operation::tostring() {
     std::ostringstream s;
-    s << "update basis[" << basis << ']'
-      << " using[" << delta << ']';
+    s << "update basis[" << basis_path_ << ']'
+      << " using[" << delta_path_ << ']';
     return s.str();
   }
 
   STAGE_RC update_operation::stage() {
     auto file_manager = config_.file_manager;
 
-    basis_path_     = (config_.root_path / basis).make_preferred();
-    cache_dir_      = path_t(config_.cache_path / rm_.id / basis).make_preferred().parent_path();
-    signature_path_ = (cache_dir_ / basis).make_preferred().filename().string() + ".signature";
-    delta_path_     = (cache_dir_ / basis).make_preferred().filename().string() + ".delta";
-    patched_path_   = (cache_dir_ / basis).make_preferred().filename().string() + ".patched";
-
     // basis must exist
     if (!file_manager->is_readable(basis_path_)) {
-      error()
-        << "basis file does not exist at: " << basis_path_;
+      error() << "basis file does not exist at: " << basis_path_;
 
       return STAGE_FILE_MISSING;
     }
 
     // basis checksum check
     hasher::digest_rc digest = config_.hasher->hex_digest(basis_path_);
+
     if (digest != basis_checksum) {
       error()
         << "Basis file checksum mismatch: "
@@ -72,16 +78,6 @@ namespace kzh {
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
-
-    if (file_manager->stat_filesize(basis_path_) != basis_length) {
-      error()
-        << "Length mismatch: "
-        << file_manager->stat_filesize(basis_path_) << " to " << basis_length
-        << " in file " << basis_path_;
-
-      return STAGE_FILE_INTEGRITY_MISMATCH;
-    }
-
 
     // prepare our cache directory, if necessary
     if (!file_manager->is_directory(cache_dir_)) {
@@ -94,17 +90,18 @@ namespace kzh {
     // TODO: free space checks, need at least 2x basis file size + delta size
 
     // get the delta patch
-    if (!config_.downloader->fetch(delta, delta_path_, delta_checksum, delta_length)) {
-      throw invalid_resource(delta);
+    if (!config_.downloader->fetch(delta_url_, delta_path_, delta_checksum)) {
+      throw invalid_resource(delta_url_);
     }
 
     // create the signature
     debug() << "generating signature for " << basis_path_ << " out to " << signature_path_;
 
-    rs_result rc = encoder_.signature(basis_path_.c_str(), signature_path_.c_str());
+    rs_result rc = encoder_.signature(basis_path_, signature_path_);
+
     if (rc != RS_DONE) {
       error() << "Generating of signature for file " << basis_path_ << " has failed. librsync rc: " << rc;
-      return STAGE_INTERNAL_ERROR;
+      return STAGE_ENCODING_ERROR;
     }
 
     return STAGE_OK;
@@ -121,7 +118,7 @@ namespace kzh {
         << "Patching file " << basis_path_ << " using patch " << delta_path_
         <<" has failed. librsync rc: " << rc;
 
-      return STAGE_INTERNAL_ERROR;
+      return STAGE_ENCODING_ERROR;
     }
 
     hasher::digest_rc digest = config_.hasher->hex_digest(patched_path_);
@@ -129,15 +126,6 @@ namespace kzh {
       error()
         << "Checksum mismatch: "
         << digest.digest << " vs " << patched_checksum
-        << " in file " << patched_path_;
-
-      return STAGE_FILE_INTEGRITY_MISMATCH;
-    }
-
-    if (file_manager->stat_filesize(patched_path_) != patched_length) {
-      error()
-        << "Length mismatch: "
-        << file_manager->stat_filesize(patched_path_) << " to " << patched_length
         << " in file " << patched_path_;
 
       return STAGE_FILE_INTEGRITY_MISMATCH;
@@ -193,7 +181,5 @@ namespace kzh {
     if (file_manager->exists(signature_path_)) {
       file_manager->remove_file(signature_path_);
     }
-
   }
-
 }
