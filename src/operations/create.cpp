@@ -31,9 +31,9 @@ namespace kzh {
   )
   : operation(id, config, rm),
     logger("op_create"),
-    created_directory_(false),
-    marked_for_deletion_(false),
-    is_executable(false)
+    is_executable(false),
+    cache_path_(cache_dir_ / "file"),
+    marked_for_deletion_(false)
   {
   }
 
@@ -47,15 +47,14 @@ namespace kzh {
   STAGE_RC create_operation::stage() {
     auto file_manager = config_.file_manager;
 
-    cache_path_ = path_t(config_.cache_path / rm_.id / dst_path);
-    cache_dir_ = cache_path_.parent_path();
-    dst_dir_ = (config_.root_path / dst_path).parent_path();
+    const path_t destination(get_destination());
+    const path_t destination_dir(destination.parent_path());
 
     if (config_.verbose) {
       indent();
 
       debug() << "Caching path: "<< cache_path_;
-      debug() << "Dest path: " << dst_path;
+      debug() << "Destination path: " << destination;
 
       deindent();
     }
@@ -67,25 +66,21 @@ namespace kzh {
     }
 
     // Prepare our destination directory, if necessary
-    if (!file_manager->exists(dst_dir_)) {
-      if (!file_manager->create_directory(dst_dir_)) {
-        error() << "Unable to create destination dir: " << dst_dir_;
-        return STAGE_UNAUTHORIZED;
-      }
-
-      created_directory_ = true;
+    if (!file_manager->ensure_directory(destination_dir)) {
+      error() << "Unable to create destination dir: " << destination_dir;
+      return STAGE_UNAUTHORIZED;
     }
 
     // Make sure the destination is free
-    if (file_manager->is_readable(config_.root_path / dst_path) && !marked_for_deletion_) {
-      error() << "Destination is occupied: " << dst_path;
+    if (file_manager->is_readable(destination) && !marked_for_deletion_) {
+      error() << "Destination is occupied!";
 
       return STAGE_FILE_EXISTS;
     }
 
     // Can we write to the destination?
-    if (!file_manager->is_writable(config_.root_path / dst_path)) {
-      error() << "Destination isn't writable: " << config_.root_path / dst_path;
+    if (!file_manager->is_writable(destination)) {
+      error() << "Destination isn't writable!";
       return STAGE_UNAUTHORIZED;
     }
 
@@ -104,17 +99,17 @@ namespace kzh {
 
   STAGE_RC create_operation::deploy() {
     auto file_manager = config_.file_manager;
-    const path_t full_destination_path(config_.root_path / dst_path);
+    const path_t destination(get_destination());
 
     // Make sure the destination is free
-    if (file_manager->is_readable(full_destination_path)) {
-      error() << "Destination is occupied: " << full_destination_path;
+    if (file_manager->is_readable(destination)) {
+      error() << "Destination is occupied: " << destination;
       return STAGE_FILE_EXISTS;
     }
 
     // Can we write to the destination?
-    if (!file_manager->is_writable(full_destination_path)) {
-      error() << "Destination isn't writable: " << full_destination_path;
+    if (!file_manager->is_writable(destination)) {
+      error() << "Destination isn't writable: " << destination;
       return STAGE_UNAUTHORIZED;
     }
 
@@ -125,11 +120,11 @@ namespace kzh {
     }
 
     // Move the staged file to the destination
-    info() << "Creating " << full_destination_path;
-    file_manager->move(cache_path_, full_destination_path);
+    info() << "Creating " << destination;
+    file_manager->move(cache_path_, destination);
 
     // validate integrity
-    hasher::digest_rc rc = config_.hasher->hex_digest(full_destination_path);
+    hasher::digest_rc rc = config_.hasher->hex_digest(destination);
 
     if (rc != src_checksum) {
       error() << "Created file integrity mismatch: " << rc.digest << " vs " << src_checksum;
@@ -138,31 +133,15 @@ namespace kzh {
 
     if (is_executable) {
       debug() << "MARKING EXECUTABLE!\n";
-      file_manager->make_executable(full_destination_path);
+      file_manager->make_executable(destination);
     }
 
     return STAGE_OK;
   }
 
   void create_operation::rollback() {
-    auto file_manager = config_.file_manager;
-
     if (has_deployed()) {
-      file_manager->move(get_destination(), cache_path_);
-    }
-
-    // If we were responsible for creating the directory of our dst_path
-    // we need to remove it and all its ancestors if they're empty
-    //
-    // TODO: this might be better done by keeping track of it in the
-    // cache so that the rollback becomes idempotent cross-runs
-    if (created_directory_) {
-      path_t dir = dst_dir_;
-
-      while (file_manager->is_empty(dir)) {
-        file_manager->remove_directory(dir);
-        dir = dir.parent_path();
-      }
+      config_.file_manager->move(get_destination(), cache_path_);
     }
   }
 
@@ -193,14 +172,11 @@ namespace kzh {
   }
 
   bool create_operation::has_deployed() const {
-    const path_t &destination(get_destination());
-
-    auto file_manager = config_.file_manager;
-    auto hasher = config_.hasher;
+    const path_t destination(get_destination());
 
     return (
-      file_manager->exists(destination) &&
-      hasher->hex_digest(destination) == src_checksum
+      config_.file_manager->exists(destination) &&
+      config_.hasher->hex_digest(destination) == src_checksum
     );
   }
 

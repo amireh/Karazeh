@@ -22,6 +22,7 @@ TEST_CASE("create_operation") {
   kzh::file_manager       file_manager;
   kzh::downloader         downloader(kzh::sample_config, file_manager);
   kzh::release_manifest   manifest;
+  manifest.id = "somethingsomething";
   create_operation        subject(0, config, manifest);
 
   // spies
@@ -34,32 +35,19 @@ TEST_CASE("create_operation") {
 
   downloader.set_retry_count(0);
 
-  manifest.id = "somethingsomething";
-
   subject.dst_path = "CreateOperationTest/bar.txt";
   subject.src_uri  = "/hash_me.txt";
   subject.src_checksum = "f1eb970aeb2e380593480ed76070acbe";
   // </setup>
 
+  const path_t staging_path(config.cache_path / manifest.id / "0" / "file");
+  const path_t destination_path(config.root_path / subject.dst_path);
+
   SECTION("Staging...") {
     WHEN("The destination directory doesn't already exist") {
       THEN("It creates it") {
         REQUIRE(subject.stage() == STAGE_OK);
-
-        REQUIRE(file_manager.exists(
-          (config.cache_path / manifest.id / subject.dst_path).parent_path()
-        ));
-      }
-    }
-
-    WHEN("The cache directory does not exist...") {
-      config.cache_path = (test_config.temp_path / "some_custom_cache").make_preferred();
-
-      THEN("it creates it") {
-        REQUIRE(subject.stage() == STAGE_OK);
-        REQUIRE(file_manager.is_directory(
-          config.cache_path / "somethingsomething/CreateOperationTest"
-        ));
+        REQUIRE(file_manager.exists(destination_path.parent_path()));
       }
     }
 
@@ -89,7 +77,16 @@ TEST_CASE("create_operation") {
     }
 
     WHEN("The cache destination is not writable") {
-      config.cache_path = test_config.fixture_path / "permissions/unwritable_dir";
+      kzh::file_manager functional_file_manager;
+
+      When(FI_FILE_MANAGER_IS_WRITABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
+        if (path == staging_path) {
+          return false;
+        }
+        else {
+          return functional_file_manager.is_writable(path);
+        }
+      });
 
       THEN("it aborts") {
         REQUIRE(subject.stage() == STAGE_UNAUTHORIZED);
@@ -100,23 +97,17 @@ TEST_CASE("create_operation") {
       subject.src_uri = "/akljhasdklfjhasdlfkhjasdf";
 
       THEN("it aborts") {
-        REQUIRE_THROWS_AS(
-          subject.stage(),
-          invalid_resource
-        );
+        REQUIRE_THROWS_AS(subject.stage(), invalid_resource);
       }
     }
   } // Staging
 
   SECTION("Deploying") {
-    const path_t cachePath(config.cache_path / manifest.id / subject.dst_path);
-    const path_t destPath(config.root_path / subject.dst_path);
-
     REQUIRE(subject.stage() == STAGE_OK);
 
     WHEN("The destination is occupied") {
       When(FI_FILE_MANAGER_IS_READABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
-        return path == destPath;
+        return path == destination_path;
       });
 
       THEN("It aborts") {
@@ -126,7 +117,7 @@ TEST_CASE("create_operation") {
 
     WHEN("The destination is not writable") {
       When(FI_FILE_MANAGER_IS_WRITABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
-        return path != destPath;
+        return path != destination_path;
       });
 
       THEN("It aborts") {
@@ -136,7 +127,7 @@ TEST_CASE("create_operation") {
 
     WHEN("The cache source is not writable") {
       When(FI_FILE_MANAGER_IS_WRITABLE(file_manager_spy)).AlwaysDo([&](const path_t &path) {
-        return path != cachePath;
+        return path != staging_path;
       });
 
       THEN("It aborts") {
@@ -148,12 +139,12 @@ TEST_CASE("create_operation") {
       REQUIRE(subject.deploy() == STAGE_OK);
 
       THEN("It installs the staged file at the destination") {
-        REQUIRE(file_manager.exists(destPath));
-        REQUIRE(config.hasher->hex_digest(destPath) == subject.src_checksum);
+        REQUIRE(file_manager.exists(destination_path));
+        REQUIRE(config.hasher->hex_digest(destination_path) == subject.src_checksum);
       }
 
       THEN("It removes the staged file") {
-        REQUIRE_FALSE(file_manager.exists(cachePath));
+        REQUIRE_FALSE(file_manager.exists(staging_path));
       }
     }
 
@@ -171,18 +162,12 @@ TEST_CASE("create_operation") {
   }
 
   SECTION("Rolling back") {
-    const path_t cachePath(config.cache_path / manifest.id / subject.dst_path);
-    const path_t destPath(config.root_path / subject.dst_path);
-
     WHEN("It has been staged") {
       REQUIRE(subject.stage() == STAGE_OK);
 
-      THEN("It removes the directory it has created") {
-        Fake(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy));
-
+      THEN("It is a no-op") {
         subject.rollback();
-
-        Verify(FI_FILE_MANAGER_REMOVE_DIRECTORY(file_manager_spy)).Exactly(Once);
+        REQUIRE(!file_manager.exists(destination_path));
       }
     }
 
