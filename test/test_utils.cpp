@@ -1,6 +1,7 @@
 #include "test_utils.hpp"
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <fstream>
 
 namespace kzh {
   namespace test_utils {
