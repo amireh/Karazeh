@@ -21,6 +21,7 @@
 #ifndef H_KARAZEH_OPERATION_H
 #define H_KARAZEH_OPERATION_H
 
+#include <string>
 #include "karazeh_export.h"
 #include "karazeh/karazeh.hpp"
 #include "karazeh/config.hpp"
@@ -45,18 +46,21 @@ namespace kzh {
 
     STAGE_ENCODING_ERROR,
 
+    /**
+     * This could happen if a file that was creating during staging is no longer
+     * available during deployment, most likely indicating the user interfering
+     * with Karazeh temporary files.
+     */
+    STAGE_INVALID_STATE,
+
     /** Probably a Karazeh bug */
     STAGE_INTERNAL_ERROR
   };
 
   class KARAZEH_EXPORT operation {
   public:
-    inline operation(config_t const& config, release_manifest const& rm)
-    : config_(config),
-      rm_(rm)
-    {}
-
-    inline virtual ~operation() {}
+    explicit operation(int id, config_t const& config, release_manifest const& release);
+    virtual ~operation();
 
     /**
      * An operation gets "staged" in order to verify whether all
@@ -107,8 +111,10 @@ namespace kzh {
     inline virtual string_t tostring() { return ""; }
 
   protected:
+    int const id_;
     config_t const& config_;
     release_manifest const&rm_;
+    path_t const cache_dir_;
   };
 
 } // end of namespace kzh

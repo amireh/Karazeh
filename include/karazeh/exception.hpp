@@ -34,7 +34,7 @@ namespace kzh {
   class invalid_resource : public std::runtime_error {
   public:
     inline invalid_resource(const std::string& uri)
-    : std::runtime_error(uri)
+    : std::runtime_error("invalid resource: " + uri)
     { }
   };
 

@@ -23,23 +23,18 @@
 
 namespace kzh {
   update_operation::update_operation(
+    int id,
     config_t const& config,
     release_manifest const& release,
     path_t   const& in_basis_path,
     string_t const& in_delta_url
   )
-  : operation(config, release),
+  : operation(id, config, release),
     logger("op_update"),
     patched_(false),
 
     basis_path_(in_basis_path),
     delta_url_(in_delta_url),
-
-    cache_dir_(
-      config_.cache_path
-      / release.id
-      / config.hasher->hex_digest(basis_path_.string()).digest
-    ),
 
     signature_path_(cache_dir_ / "signature"),
     delta_path_(cache_dir_ / "delta"),
@@ -111,6 +106,14 @@ namespace kzh {
     auto file_manager = config_.file_manager;
 
     debug() << "patching file " << basis_path_ << " using delta " << delta_path_ << " out to " << patched_path_;
+
+    if (
+      !file_manager->is_readable(basis_path_) ||
+      !file_manager->is_readable(delta_path_)
+    ) {
+      return STAGE_INVALID_STATE;
+    }
+
     rs_result rc = encoder_.patch(basis_path_.c_str(), delta_path_.c_str(), patched_path_.c_str());
 
     if (rc != RS_DONE) {
@@ -122,6 +125,7 @@ namespace kzh {
     }
 
     hasher::digest_rc digest = config_.hasher->hex_digest(patched_path_);
+
     if (digest != patched_checksum) {
       error()
         << "Checksum mismatch: "
@@ -131,14 +135,18 @@ namespace kzh {
       return STAGE_FILE_INTEGRITY_MISMATCH;
     }
 
-    // swap the files
-    debug() << "Swapping files: " << basis_path_ << " & " << patched_path_;
-
     const path_t temp_path(path_t(patched_path_.string() + ".tmp").make_preferred());
 
+    // move the patched file to a temporary location until we can move it over
+    // to the destination:
     file_manager->move(patched_path_, temp_path);
-    file_manager->move(basis_path_, patched_path_);
-    file_manager->move(temp_path, basis_path_);
+
+    // free the destination; move the old file to where the patched file was so
+    // that we can roll back if necessary:
+    file_manager->move(basis_path_, patched_path_); // !! repository side effect !!
+
+    // finally, move over the patched file to where the old file was:
+    file_manager->move(temp_path, basis_path_); // !! repository side effect !!
 
     patched_ = true;
 
@@ -147,23 +155,45 @@ namespace kzh {
 
   void update_operation::rollback() {
     auto file_manager = config_.file_manager;
+    auto hasher       = config_.hasher;
 
-    // make sure the basis still exists in cache
-    if (patched_) {
+    // did we patch the file? keep in mind that if we did:
+    //
+    // - patched_path_ would point to the **original** file
+    // - basis_path_ would point to the **patched** file
+    //
+    // to avoid confusion, we'll gonna rename the references to "original" and
+    // "patched":
+    const path_t    &original_path(patched_path_);
+    const string_t  &original_checksum(basis_checksum);
+    const path_t    &modified_path(basis_path_);
+    const string_t  &modified_checksum(patched_checksum);
 
-      if (!file_manager->exists(patched_path_)) {
-        throw invalid_state("Basis no longer exists in cache, can not rollback!");
-      }
-
-      // the file should be there.. but just in case
-      if (file_manager->exists(basis_path_)) {
-        file_manager->remove_file(basis_path_);
-      }
-
-      file_manager->move(patched_path_, basis_path_);
+    if (!file_manager->is_readable(modified_path)) {
+      return (void)STAGE_INVALID_STATE;
     }
 
-    cleanup();
+    auto checksum = hasher->hex_digest(modified_path);
+
+    if (checksum == modified_checksum) {
+      // make sure the original still exists
+      if (!file_manager->exists(original_path)) {
+        error() << "Basis no longer exists in cache, can not rollback!";
+
+        return (void)STAGE_INVALID_STATE;
+      }
+      else if (hasher->hex_digest(original_path) != original_checksum) {
+        error() << "Basis file seems to have changed, can not rollback!";
+
+        return (void)STAGE_INVALID_STATE;
+      }
+
+      // remove the modified file:
+      file_manager->remove_file(modified_path);
+
+      // and move the original file back in its place:
+      file_manager->move(original_path, modified_path);
+    }
   }
 
   void update_operation::commit() {
@@ -180,6 +210,10 @@ namespace kzh {
 
     if (file_manager->exists(signature_path_)) {
       file_manager->remove_file(signature_path_);
+    }
+
+    if (file_manager->exists(patched_path_)) {
+      file_manager->remove_file(patched_path_);
     }
   }
 }

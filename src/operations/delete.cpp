@@ -25,10 +25,11 @@ namespace kzh {
   namespace fs = boost::filesystem;
 
   delete_operation::delete_operation(
+    int id,
     config_t const& config,
     release_manifest const& rm
   )
-  : operation(config, rm),
+  : operation(id, config, rm),
     logger("op_delete"),
     deleted_(false)
   {

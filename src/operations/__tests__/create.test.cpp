@@ -22,7 +22,7 @@ TEST_CASE("create_operation") {
   kzh::file_manager       file_manager;
   kzh::downloader         downloader(kzh::sample_config, file_manager);
   kzh::release_manifest   manifest;
-  create_operation        subject(config, manifest);
+  create_operation        subject(0, config, manifest);
 
   // spies
   Mock<kzh::file_manager> file_manager_spy(file_manager);

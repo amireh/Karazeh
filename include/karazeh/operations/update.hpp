@@ -37,7 +37,10 @@ namespace kzh {
      * @param delta_url
      *        URL (relative to [config.host]) to the delta patch file.
      */
-    explicit update_operation(config_t const&, release_manifest const&,
+    explicit update_operation(
+      int id,
+      config_t const&,
+      release_manifest const&,
       path_t   const& basis_path,
       string_t const& delta_url
     );
@@ -86,9 +89,6 @@ namespace kzh {
 
     /** URI of the delta patch file */
     const string_t delta_url_;
-
-    /** Where cached data will be */
-    const path_t cache_dir_;
 
     /** Path to where the signature will be generated */
     const path_t signature_path_;

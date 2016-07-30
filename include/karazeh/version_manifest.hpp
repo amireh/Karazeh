@@ -168,7 +168,7 @@ namespace kzh {
     config_t                       const &config_;
 
     release_manifest* find_or_create_release(JSON const&);
-    operation* parse_operation(release_manifest const&, JSON const&, JSON const&) const;
+    operation* parse_operation(release_manifest const&, JSON const&, JSON const&, int const) const;
   };
 
 } // end of namespace kzh

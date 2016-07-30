@@ -41,8 +41,8 @@ namespace kzh {
       // rollback any changes if the staging failed
       info() << "Rolling back all changes.";
 
-      for (auto op : release.operations) {
-        op->rollback();
+      for (auto op = release.operations.rbegin(); op != release.operations.rend(); ++op) {
+        (*op)->rollback();
       }
 
       file_manager->remove_directory(staging_path);

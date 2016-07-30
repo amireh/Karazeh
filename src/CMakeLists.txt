@@ -52,6 +52,7 @@ SET(Karazeh_SRCS
   downloader.cpp
   file_manager.cpp
   logger.cpp
+  operation.cpp
   patcher.cpp
   path_resolver.cpp
   version_manifest.cpp

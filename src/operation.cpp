@@ -18,37 +18,20 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef H_KARAZEH_RELEASE_MANIFEST_H
-#define H_KARAZEH_RELEASE_MANIFEST_H
-
-#include <vector>
-#include "karazeh_export.h"
-#include "karazeh/karazeh.hpp"
 #include "karazeh/operation.hpp"
+#include "karazeh/release_manifest.hpp"
 
 namespace kzh {
-  struct KARAZEH_EXPORT release_manifest {
-    inline release_manifest() {};
-    inline ~release_manifest() {
-      while (!operations.empty()) {
-        delete operations.back();
+  operation::operation(int id, config_t const& config, release_manifest const& release)
+  : id_(id),
+    config_(config),
+    rm_(release),
+    cache_dir_(
+      config.cache_path
+      / release.id
+      / std::to_string(id)
+    )
+  {}
 
-        operations.pop_back();
-      }
-    };
-
-    release_manifest(const release_manifest&) = delete;
-    release_manifest& operator=(const release_manifest &) = delete;
-
-    string_t id;
-    string_t head;
-    string_t identity;
-    string_t tag;
-    string_t uri;
-
-    std::vector<operation*> operations;
-  };
-
-} // end of namespace kzh
-
-#endif
+  operation::~operation() {}
+}

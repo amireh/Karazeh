@@ -321,11 +321,16 @@ namespace kzh {
         release->uri = release_node["uri"].string_value();
       }
 
+      int operation_id = 0;
+
       for (auto operation_node : operation_nodes) {
-        operation *op = parse_operation(*release, release_node, operation_node);
+        operation *op = parse_operation(*release, release_node, operation_node, ++operation_id);
 
         if (op != nullptr) {
           release->operations.push_back(op);
+        }
+        else {
+          // probably need to handle this?
         }
       }
     }
@@ -345,7 +350,12 @@ namespace kzh {
   }
 
   operation*
-  version_manifest::parse_operation(release_manifest const& release, JSON const& releaes_node, JSON const& operation_node) const {
+  version_manifest::parse_operation(
+    release_manifest const& release,
+    JSON const& release_node,
+    JSON const& operation_node,
+    int const id
+  ) const {
     const string_t &operation_type = operation_node["type"].string_value();
 
     if (operation_type == "create") {
@@ -355,14 +365,14 @@ namespace kzh {
 
       validate_schema(source_node, SCHEMA_CREATE_OPERATION_SOURCE);
 
-      create_operation *op = new create_operation(config_, release);
+      create_operation *op = new create_operation(id, config_, release);
 
       op->src_uri = source_node["url"].string_value();
       op->src_checksum = source_node["checksum"].string_value();
       op->dst_path = operation_node["destination"].string_value();
       op->is_executable = operation_node["flags"]["executable"].bool_value();
 
-      for (auto sibling_operation_node : releaes_node["operations"].array_items()) {
+      for (auto sibling_operation_node : release_node["operations"].array_items()) {
         if (sibling_operation_node == operation_node) {
           break;
         }
@@ -382,7 +392,10 @@ namespace kzh {
       validate_schema(operation_node["basis"], SCHEMA_UPDATE_OPERATION_BASIS);
       validate_schema(operation_node["delta"], SCHEMA_UPDATE_OPERATION_DELTA);
 
-      auto op = new update_operation(config_, release,
+      auto op = new update_operation(
+        id,
+        config_,
+        release,
         (config_.root_path / operation_node["basis"]["filepath"].string_value()).make_preferred(),
         operation_node["delta"]["url"].string_value()
       );
@@ -396,7 +409,7 @@ namespace kzh {
     else if (operation_type == "delete") {
       validate_schema(operation_node, SCHEMA_DELETE_OPERATION);
 
-      auto op = new delete_operation(config_, release);
+      auto op = new delete_operation(id, config_, release);
 
       op->dst_path = operation_node["target"].string_value();
 

@@ -25,10 +25,11 @@ namespace kzh {
   namespace fs = boost::filesystem;
 
   create_operation::create_operation(
+    int id,
     config_t const& config,
     release_manifest const& rm
   )
-  : operation(config, rm),
+  : operation(id, config, rm),
     logger("op_create"),
     created_directory_(false),
     marked_for_deletion_(false),
