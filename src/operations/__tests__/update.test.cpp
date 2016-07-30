@@ -97,7 +97,6 @@ TEST_CASE("update_operation") {
         string_t const &url,
         path_t const &out,
         string_t const& checksum,
-        uint64_t,
         int* const
        ) {
         REQUIRE(url == delta_url);
@@ -113,7 +112,6 @@ TEST_CASE("update_operation") {
         string_t const &url,
         path_t const &out,
         string_t const& checksum,
-        uint64_t,
         int* const
        ) {
         string_t delta_contents;

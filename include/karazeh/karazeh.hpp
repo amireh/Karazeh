@@ -53,6 +53,7 @@
 
 namespace kzh {
   typedef std::string string_t;
+  typedef std::string url_t;
   typedef unsigned long uint64_t;
   typedef boost::filesystem::path path_t;
 }

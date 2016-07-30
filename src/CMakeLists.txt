@@ -54,7 +54,6 @@ SET(Karazeh_SRCS
   logger.cpp
   patcher.cpp
   path_resolver.cpp
-  release_manifest.cpp
   version_manifest.cpp
 )
 

@@ -50,10 +50,10 @@ namespace kzh {
      *
      * @return true if the file was correctly DLed, false otherwise
      */
-    virtual bool fetch(string_t const& URI, string_t& out_buf) const;
+    virtual bool fetch(url_t const&, string_t& out_buf) const;
 
     /** same as above but outputs to file instead of buffer */
-    virtual bool fetch(string_t const& URI, std::ostream& out_file) const;
+    virtual bool fetch(url_t const&, std::ostream& out_file) const;
 
     /**
      * Downloads the file found at the given URI and verifies
@@ -63,18 +63,18 @@ namespace kzh {
      * Returns true if the file was downloaded and its integrity verified.
      */
     virtual bool fetch(
-      string_t const& URI,
+      url_t const& URI,
       path_t const& path_to_file,
       string_t const& checksum,
-      uint64_t expected_size_bytes = 0,
-      int* const nr_retries = NULL
+      int* const retry_tally = NULL
     ) const;
 
   private:
     const config_t &config_;
     const file_manager& file_manager_;
 
-    bool fetch(string_t const& URI, download_t*, bool assume_ownership = true) const;
+    url_t get_full_url(string_t const&) const;
+    bool fetch_file(url_t const&, download_t*, bool assume_ownership) const;
 
     int retry_count_;
   };
@@ -82,22 +82,11 @@ namespace kzh {
   /** Used internally by the downloader to manage downloads */
   struct KARAZEH_EXPORT download_t {
     inline explicit
-    download_t(std::ostream& s)
-    : buf(nullptr),
-      to_file(false),
-      status(false),
-      size(0),
-      retry_no(0),
-      stream(s) {
-    }
+    download_t(string_t const& in_url) : url(in_url), buf(nullptr), stream(nullptr) {}
 
     string_t      *buf;
-    string_t      uri;
-    bool          status;
-    bool          to_file;
-    std::ostream  &stream;
-    uint64_t      size;
-    int           retry_no;
+    std::ostream  *stream;
+    string_t      url;
   };
 } // end of namespace kzh
 

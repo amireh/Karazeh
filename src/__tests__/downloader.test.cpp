@@ -6,9 +6,9 @@
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
-using namespace kzh;
 
 TEST_CASE("Downloader") {
+  using namespace kzh;
   const path_t temp_file_path(test_config.temp_path / "downloader_test.out");
 
   kzh::config_t config(sample_config);
@@ -53,7 +53,6 @@ TEST_CASE("Downloader") {
     REQUIRE_FALSE(subject.fetch("/hash_me.txt",
       temp_file_path,
       "dummy_checksum",
-      0,
       &nr_retries
     ));
 
@@ -69,42 +68,8 @@ TEST_CASE("Downloader") {
       "/hash_me.txt",
       temp_file_path,
       "f1eb970aeb2e380593480ed76070acbe",
-      0,
       &nr_retries
     ));
-
-    REQUIRE(nr_retries == 0);
-  }
-
-  SECTION("it should retry if there is a size mismatch") {
-    int nr_retries = -1;
-    subject.set_retry_count(3);
-
-    REQUIRE_FALSE(
-      subject.fetch(
-        "/hash_me.txt",
-        temp_file_path,
-        "f1eb970aeb2e380593480ed76070acbe",
-        32, /* it is 24 */
-        &nr_retries
-      )
-    );
-
-    REQUIRE(nr_retries == 3);
-  }
-
-  SECTION("it should not retry if the size matches") {
-    int nr_retries = -1;
-
-    REQUIRE(
-      subject.fetch(
-        "/hash_me.txt",
-        temp_file_path,
-        "f1eb970aeb2e380593480ed76070acbe",
-        24,
-        &nr_retries
-      )
-    );
 
     REQUIRE(nr_retries == 0);
   }

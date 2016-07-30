@@ -5,4 +5,4 @@ $(which cppcheck &> /dev/null) || {
   exit 1
 }
 
-cppcheck --quiet --force --enable=all -I deps -I include include src test $@
+cppcheck --quiet --force --enable=all -I deps -I include include src $@

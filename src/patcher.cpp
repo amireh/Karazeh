@@ -85,7 +85,7 @@ namespace kzh {
       }
     }
 
-    info() << "All operations staged and deployed, now to clean artifacts...";
+    info() << "All operations have been applied, now to clean artifacts...";
 
     for (auto op : release.operations) {
       op->commit();

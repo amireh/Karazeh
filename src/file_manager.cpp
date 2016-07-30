@@ -34,8 +34,9 @@ namespace kzh {
   {
     if (!fs.is_open() || !fs.good()) return false;
 
-    while (fs.good())
+    while (fs.good()) {
       out_buf.push_back(fs.get());
+    }
 
     out_buf.erase(out_buf.size()-1,1);
 
@@ -44,60 +45,45 @@ namespace kzh {
 
   bool file_manager::load_file(string_t const& path, string_t& out_buf) const
   {
+    bool rc;
     std::ifstream fs(path.c_str());
-    return load_file(fs, out_buf);
+
+    try {
+      rc = load_file(fs, out_buf);
+    }
+    catch(...) {
+      fs.close();
+      throw;
+    }
+
+    fs.close();
+
+    return rc;
   }
 
   bool file_manager::load_file(path_t const& path, string_t& out_buf) const
   {
-    std::ifstream fs(path.string().c_str());
-    return load_file(fs, out_buf);
+    return load_file(path.string(), out_buf);
   }
 
   bool file_manager::is_readable(string_t const& resource) const
   {
-    // boost::system::error_code ec;
-    // fs::file_status result = fs::status(resource, ec);
-
-    // if (ec != boost::system::error_code()) {
-    //   return false;
-    // }
-
-    // return (
-    //   (
-    //     result.type() == fs::regular_file ||
-    //     result.type() == fs::directory_file
-    //   ) &&
-    //   result.permissions() & fs::owner_read
-    // );
-
-    using fs::path;
-    using fs::exists;
-    using fs::is_regular_file;
-    using fs::is_directory;
-
-    path fp(resource);
+    path_t path(resource);
 
     try {
-      if (exists(fp)) {
-        if (is_directory(fp)) {
-          try {
-            for (fs::directory_iterator it(fp); it != fs::directory_iterator(); ++it) {
-              break;
-            }
+      if (fs::exists(path)) {
+        if (fs::is_directory(path)) {
+          for (fs::directory_iterator it(path); it != fs::directory_iterator(); ++it) {
+            break;
+          }
 
-            return true;
-          }
-          catch (fs::filesystem_error& e) {
-            error() << e.what();
-            return false;
-          }
+          return true;
         }
         else {
           std::ifstream fs(resource.c_str());
           bool readable = fs.is_open() && fs.good();
           fs.close();
-          return is_regular_file(fp) && readable;
+          return fs::is_regular_file(path) && readable;
         }
       }
     }
@@ -115,17 +101,13 @@ namespace kzh {
 
   bool file_manager::is_writable(string_t const& resource) const
   {
-    using fs::path;
-    using fs::exists;
-    using fs::is_regular_file;
-
     try {
-      path fp(resource);
+      path_t path(resource);
 
-      if (exists(fp)) {
+      if (fs::exists(path)) {
 
-        if (is_directory(fp)) {
-          return is_writable(fp / "__karazeh_internal_directory_check__");
+        if (is_directory(path)) {
+          return is_writable(path / "__karazeh_internal_directory_check__");
         }
 
         // it already exists, make sure we don't overwrite it
@@ -133,7 +115,7 @@ namespace kzh {
         bool writable = fs.is_open() && fs.good() && !fs.fail();
         fs.close();
 
-        return is_regular_file(fp) && writable;
+        return fs::is_regular_file(path) && writable;
       } else {
 
         // try creating a file and write to it
@@ -142,9 +124,9 @@ namespace kzh {
         fs << "This was generated automatically by Karazeh and should have been deleted.";
         fs.close();
 
-        if (exists(fp)) {
+        if (fs::exists(path)) {
           // delete the file
-          fs::remove(fp);
+          fs::remove(path);
         }
 
         return writable;

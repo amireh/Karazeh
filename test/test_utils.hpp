@@ -11,7 +11,7 @@
 #define FI_FILE_MANAGER_IS_WRITABLE(x) ConstOverloadedMethod(x, is_writable, bool(path_t const&))
 #define FI_FILE_MANAGER_MAKE_EXECUTABLE(x) ConstOverloadedMethod(x, make_executable, bool(path_t const&))
 #define FI_HASHER_HEX_DIGEST(x) ConstOverloadedMethod(x, hex_digest, hasher::digest_rc(const path_t&))
-#define FI_DOWNLOADER_FETCH(x) ConstOverloadedMethod(x, fetch, bool(string_t const&, const path_t&, string_t const&, uint64_t, int* const))
+#define FI_DOWNLOADER_FETCH(x) ConstOverloadedMethod(x, fetch, bool(string_t const&, const path_t&, string_t const&, int* const))
 
 namespace kzh {
   typedef struct {

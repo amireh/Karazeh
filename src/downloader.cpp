@@ -21,6 +21,23 @@
 #include "karazeh/downloader.hpp"
 
 namespace kzh {
+  static size_t
+  on_curl_data(char *buffer, size_t size, size_t nmemb, void *userdata)
+  {
+    download_t *download = static_cast<download_t*>(userdata);
+    size_t realsize = size * nmemb;
+
+    if (download->stream) {
+      download->stream->write(buffer, realsize);
+    }
+
+    if (download->buf) {
+      (*download->buf) += string_t(buffer, realsize);
+    }
+
+    return realsize;
+  }
+
   downloader::downloader(config_t const& config, file_manager const& fmgr)
   : logger("downloader"),
     config_(config),
@@ -32,138 +49,108 @@ namespace kzh {
   downloader::~downloader() {
   }
 
-  void downloader::set_retry_count(int n) {
+  void
+  downloader::set_retry_count(int n) {
     retry_count_ = n;
   }
 
-  int downloader::retry_count() const {
+  int
+  downloader::retry_count() const {
     return retry_count_;
   }
 
-  static size_t on_curl_data(char *buffer, size_t size, size_t nmemb, void *userdata)
+  bool
+  downloader::fetch_file(url_t const& url, download_t* download, bool assume_ownership) const
   {
-    download_t *dl = static_cast<download_t*>(userdata);
-
-    size_t realsize = size * nmemb;
-
-    dl->size += realsize;
-
-    if (dl->to_file) {
-      dl->stream.write(buffer, realsize);
-    } else {
-      (*dl->buf) += string_t(buffer, realsize);
-    }
-
-    return realsize;
-  }
-
-  bool downloader::fetch(string_t const& in_uri, download_t* dl, bool assume_ownership) const
-  {
-    string_t uri(in_uri);
-    if (in_uri.find("http://") == std::string::npos) {
-      uri = string_t(config_.host + in_uri);
-      dl->uri = uri;
-    }
-
     CURL* curl_ = curl_easy_init();
     CURLcode curlrc_;
+    bool http_connection_successful, http_request_successful;
 
     if (!curl_) {
-      error() << "unable to resolve URL " << uri << ", aborting remote download request";
+      error() << "unable to resolve URL " << url << ", aborting remote download request";
       return false;
     }
 
     char curlerr[CURL_ERROR_SIZE];
 
-    info() << "Downloading " << dl->uri;
+    info() << "Downloading " << download->url;
 
     curl_easy_setopt(curl_, CURLOPT_ERRORBUFFER, curlerr);
-    curl_easy_setopt(curl_, CURLOPT_URL, dl->uri.c_str());
+    curl_easy_setopt(curl_, CURLOPT_URL, download->url.c_str());
     curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, &on_curl_data);
-    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, dl);
+    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, download);
 
     curlrc_ = curl_easy_perform(curl_);
-    if (curlrc_ != 0) {
-      error() << "a CURL error was encountered; " << curlrc_ << " => " << curlerr;
+    http_connection_successful = curlrc_ == 0;
 
-      if (assume_ownership)
-        delete dl;
+    if (http_connection_successful) {
+      long http_rc = 0;
+      curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &http_rc);
 
-      curl_easy_cleanup(curl_);
+      http_request_successful = http_rc == 200;
 
-      return false;
+      if (!http_request_successful) {
+        error() << "Remote server error; status code: " << http_rc;
+      }
+    }
+    else {
+      error() << "CURL connection error: " << curlrc_ << " => " << curlerr;
     }
 
-    long http_rc = 0;
-    curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &http_rc);
-
-    if (http_rc != 200) {
-      error() << "remote server error, HTTP code: " << http_rc << ", download failed";
-
-      if (assume_ownership)
-        delete dl;
-
-      curl_easy_cleanup(curl_);
-
-      return false;
-    }
-
-    /* always cleanup */
     curl_easy_cleanup(curl_);
 
-    if (assume_ownership)
-      delete dl;
+    if (assume_ownership) {
+      delete download;
+    }
 
-    return true;
+    return http_connection_successful && http_request_successful;
   }
 
-  bool downloader::fetch(string_t const& in_uri, string_t& out_buf) const
+  bool
+  downloader::fetch(url_t const& _url, string_t& out_buf) const
   {
-    download_t *dl = new download_t(std::cout);
-    dl->buf = &out_buf;
-    dl->uri = in_uri;
+    string_t url(get_full_url(_url));
 
-    return fetch(in_uri, dl);
+    download_t *download = new download_t(url);
+    download->buf = &out_buf;
+
+    return fetch_file(url, download, true);
   }
 
-  bool downloader::fetch(string_t const& in_uri, std::ostream& out_stream) const
+  bool
+  downloader::fetch(url_t const& _url, std::ostream& out_stream) const
   {
-    download_t *dl = new download_t(out_stream);
-    dl->to_file = true;
-    dl->uri = in_uri;
+    string_t url(get_full_url(_url));
 
-    return fetch(in_uri, dl);
+    download_t *download = new download_t(url);
+    download->stream = &out_stream;
+
+    return fetch_file(url, download, true);
   }
 
-  bool downloader::fetch(
-    string_t const& in_uri,
-    path_t const& path,
-    string_t const& checksum,
-    uint64_t expected_size,
-    int* const nr_retries) const
+  bool
+  downloader::fetch(string_t const& url, path_t const& path, string_t const& checksum, int* const retry_tally) const
   {
+    // TODO: rethink about this, this really sounds like an external concern
     for (int i = 0; i < retry_count_ + 1; ++i) {
-      std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
+      bool fetch_successful;
 
-      if (!fp.is_open() || !fp.good()) {
+      if (!file_manager_.is_writable(path)) {
         error() << "Download destination is un-writable: " << path;
         return false;
       }
 
-      // we'll build the download_t manually because we need to reference its size
-      // otherwise we could use the std::ostream& version of fetch()
-      download_t dl(fp);
-      dl.to_file = true;
-      dl.uri = in_uri;
-      dl.retry_no = i;
+      std::ofstream fp(path.string().c_str(), std::ios_base::trunc | std::ios_base::binary);
 
-      if (nr_retries != nullptr) {
-        (*nr_retries) = i;
+      if (retry_tally != nullptr) {
+        (*retry_tally) = i;
       }
 
-      if (fetch(in_uri, &dl, false)) {
-        fp.close();
+      fetch_successful = fetch(url, fp);
 
+      fp.close();
+
+      if (fetch_successful) {
         if (!file_manager_.is_readable(path)) {
           return false; // this really shouldn't happen, but oh well
         }
@@ -171,33 +158,29 @@ namespace kzh {
         // validate integrity
         hasher::digest_rc rc = config_.hasher->hex_digest(path);
 
-        if (expected_size > 0 && expected_size == dl.size && rc == checksum) {
-          return true;
-        }
-        else if (expected_size == 0 && rc == checksum) {
+        if (rc == checksum) {
           return true;
         }
         else {
           warn()
             << "Downloaded file integrity mismatch: "
-            <<  rc.digest << " vs " << checksum
-            << " (got " << dl.size << " out of " << expected_size << " expected bytes)";
-
-          if (config_.verbose) {
-            string_t buf;
-            file_manager_.load_file(path, buf);
-          }
+            <<  rc.digest << " vs " << checksum;
         }
       }
-      else {
-        fp.close();
-      }
-
-      fp.open(path.string().c_str(), std::ios_base::trunc);
 
       notice() << "Retry #" << i+1;
     }
 
     return false;
+  }
+
+  url_t
+  downloader::get_full_url(string_t const& url) const {
+    if (url.find("http://") == std::string::npos) {
+      return url_t(config_.host + url);
+    }
+    else {
+      return url;
+    }
   }
 }
