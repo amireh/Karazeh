@@ -1,5 +1,7 @@
 # Karazeh
 
+[![Gitter](https://badges.gitter.im/karazeh/Lobby.svg)](https://gitter.im/karazeh/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 > **NOTE**
 > 
 > You are currently reading the documentation for the _master_ branch which
